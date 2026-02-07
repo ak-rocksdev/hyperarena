@@ -718,20 +718,62 @@ git commit -m "feat: add home screen, profile screen, finalize Phase 1 routing"
 
 ---
 
+## Task Completion Status
+
+### Phase 1 Core (Tasks 1–18) — ALL COMPLETE
+- [x] Task 1: Core Utilities — Formatters, Validators, AppTextField, ShimmerLoading
+- [x] Task 2: Freezed Data Models — Auth + Profile
+- [x] Task 3: Freezed Data Models — Venue + Court + CourtSlot
+- [x] Task 4: Freezed Data Models — Booking + PaymentMethodInfo + BookingSummary
+- [x] Task 5: Mock Data — Users, Venues, Bookings, Slot Generator
+- [x] Task 6: Auth Repository + Auth Provider + Auth State
+- [x] Task 7: Router Overhaul — Auth Guards + All Phase 1 Routes
+- [x] Task 8: Splash + Onboarding Screens
+- [x] Task 9: Login + Register Screens
+- [x] Task 10: Sport Selection Screen
+- [x] Task 11: Venue Repository + Providers
+- [x] Task 12: Explore Screen + Venue List + Venue Widgets
+- [x] Task 13: Venue Detail Screen + Court Card
+- [x] Task 14: Booking Repository + Providers
+- [x] Task 15: Booking Flow — Date Selection + Slot Selection
+- [x] Task 16: Booking Flow — Summary, Payment, Confirmation
+- [x] Task 17: Booking List + Booking Detail Screens
+- [x] Task 18: Home Screen + Profile Screen + Final Wiring
+
+### Post-Phase 1 Enhancements — ALL COMPLETE
+- [x] UI visual polish pass (shadow-driven depth, animations, gradient splash)
+- [x] Home screen: gamification card, quick stats, badges, popular venues, recent activity
+- [x] Coach feature: Freezed model, mock data, repository, providers, card + list screen
+- [x] Session feature: Freezed model, mock data, repository, providers, card + list screen
+- [x] Gamification: badges model, mock data, providers, shared helpers (tier utils)
+- [x] Explore tabs: Coach tab + Session tab wired (replaced placeholders)
+- [x] Venue detail: photo gallery with fullscreen viewer
+- [x] Session join (Gabung) flow: detail → slot selection → payment → confirmation
+- [x] Fix: coach tab crash (Sport.name on dynamic)
+- [x] Fix: Gabung/Lihat button contrast (white on teal)
+- [x] Fix: INTERNET permission for release builds
+- [x] Fix: about dialog crash (Navigator.pop context)
+- [x] Beta version label: login, register, about dialog (v0.0.1)
+
 ## Verification Checklist
 
-After all 18 tasks:
+After all tasks:
 
-1. `flutter analyze` → zero issues
-2. `flutter build apk --debug -t lib/main_mock.dart` → builds successfully
-3. Run on emulator — full flow works:
-   - [ ] Splash → Onboarding (3 slides) → Login
-   - [ ] Login → Home with greeting
-   - [ ] Explore tab → Venue list with sport filter
-   - [ ] Tap venue → Venue detail with courts
-   - [ ] Tap "Booking" → Date selection → Slot selection → Summary → Payment → Confirmation
-   - [ ] Bookings tab → Upcoming/Past tabs → Booking detail with status stepper
-   - [ ] Profile → Logout → Back to login
-4. All Indonesian text (Bahasa Indonesia primary)
-5. Rupiah formatting correct (Rp 150.000)
-6. Theme colors match design system
+1. `flutter analyze` → zero issues ✅
+2. `flutter build apk --debug -t lib/main_mock.dart` → builds successfully ✅
+3. `flutter build apk --release -t lib/main_mock.dart` → builds successfully ✅
+4. Run on emulator + physical device (Samsung SM-X816B) — full flow works:
+   - [x] Splash → Onboarding (3 slides) → Login
+   - [x] Login → Home with greeting + gamification card + stats + badges + venues + activity
+   - [x] Explore tab → Venue list with sport filter
+   - [x] Explore → Coach tab with sport filter + coach cards
+   - [x] Explore → Sesi tab with sport filter + session cards
+   - [x] Tap venue → Venue detail with courts + photo gallery
+   - [x] Tap "Booking" → Date selection → Slot selection → Summary → Payment → Confirmation
+   - [x] Tap "Gabung" on session → Session detail → Slot selection → Payment → Confirmation
+   - [x] Bookings tab → Upcoming/Past tabs → Booking detail with status stepper
+   - [x] Profile → Tentang Aplikasi (v0.0.1) → Logout → Back to login
+5. All Indonesian text (Bahasa Indonesia primary) ✅
+6. Rupiah formatting correct (Rp 150.000) ✅
+7. Theme colors match design system ✅
+8. Images load in release build (INTERNET permission) ✅

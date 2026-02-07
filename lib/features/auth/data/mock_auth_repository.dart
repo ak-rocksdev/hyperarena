@@ -1,5 +1,6 @@
 import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
+import 'package:hyperarena/core/mocks/mock_users.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/auth_token.dart';
@@ -19,7 +20,13 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<(User, AuthToken)> login(String email, String password) async {
     await Future.delayed(config.mockDelay);
-    return (MockData.currentUser, _fakeToken());
+    final userByEmail = {
+      MockUsers.currentUser.email: MockUsers.currentUser,
+      MockUsers.coachUser.email: MockUsers.coachUser,
+      MockUsers.organizerUser.email: MockUsers.organizerUser,
+      MockUsers.ownerUser.email: MockUsers.ownerUser,
+    };
+    return (userByEmail[email] ?? MockData.currentUser, _fakeToken());
   }
 
   @override

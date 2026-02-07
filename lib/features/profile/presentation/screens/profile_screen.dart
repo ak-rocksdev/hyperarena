@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
-import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -21,24 +21,11 @@ class ProfileScreen extends ConsumerWidget {
     final gamification =
         Theme.of(context).extension<GamificationThemeExtension>()!;
 
-    // XP thresholds per tier
-    const tierThresholds = {
-      LevelTier.rookie: 500,
-      LevelTier.amateur: 1500,
-      LevelTier.intermediate: 3500,
-      LevelTier.advanced: 7000,
-      LevelTier.pro: 15000,
-    };
-    final nextThreshold = tierThresholds[profile.levelTier] ?? 500;
-    final progress = (profile.totalXp / nextThreshold).clamp(0.0, 1.0);
-
-    String tierLabel(LevelTier tier) => switch (tier) {
-          LevelTier.rookie => 'Rookie',
-          LevelTier.amateur => 'Amateur',
-          LevelTier.intermediate => 'Intermediate',
-          LevelTier.advanced => 'Advanced',
-          LevelTier.pro => 'Pro',
-        };
+    final nextThreshold = GamificationHelpers.threshold(profile.levelTier);
+    final progress = GamificationHelpers.xpProgress(
+      profile.totalXp,
+      profile.levelTier,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
@@ -88,7 +75,7 @@ class ProfileScreen extends ConsumerWidget {
                     BorderRadius.circular(AppDimensions.radiusFull),
               ),
               child: Text(
-                tierLabel(profile.levelTier),
+                GamificationHelpers.tierLabel(profile.levelTier),
                 style: AppTypography.labelMedium.copyWith(
                   color: gamification.levelTextColor(profile.levelTier),
                 ),

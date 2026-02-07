@@ -28,6 +28,33 @@ abstract final class MockUsers {
     totalHoursPlayed: 12,
   );
 
+  static const coachUser = User(
+    id: 'coach-001',
+    name: 'Andi Pratama',
+    email: 'coach@email.com',
+    phone: '+6281999888777',
+    role: UserRole.coach,
+    isVerified: true,
+  );
+
+  static const organizerUser = User(
+    id: 'organizer-001',
+    name: 'Sari Rahmawati',
+    email: 'organizer@email.com',
+    phone: '+6281555666777',
+    role: UserRole.organizer,
+    isVerified: true,
+  );
+
+  static const ownerUser = User(
+    id: 'owner-001',
+    name: 'Hendra Wijaya',
+    email: 'owner@email.com',
+    phone: '+6281333444555',
+    role: UserRole.courtOwner,
+    isVerified: true,
+  );
+
   static const user2 = User(
     id: 'user-002',
     name: 'Rina Wijaya',

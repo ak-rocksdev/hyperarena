@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.dart';
+import 'package:hyperarena/features/auth/presentation/screens/splash_screen.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 
 /// Placeholder screen — replaced task-by-task as real screens are built.
@@ -148,11 +150,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ── Pre-auth routes ──────────────────────────────
       GoRoute(
         path: '/splash',
-        builder: (_, _) => const _PlaceholderScreen(title: 'Splash'),
+        builder: (_, _) => const SplashScreen(),
       ),
       GoRoute(
         path: '/onboarding',
-        builder: (_, _) => const _PlaceholderScreen(title: 'Onboarding'),
+        builder: (_, _) => const OnboardingScreen(),
       ),
       GoRoute(
         path: '/auth/login',

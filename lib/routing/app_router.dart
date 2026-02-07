@@ -7,6 +7,7 @@ import 'package:hyperarena/features/auth/presentation/screens/sport_selection_sc
 import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/register_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/splash_screen.dart';
+import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 
 /// Placeholder screen — replaced task-by-task as real screens are built.
@@ -188,8 +189,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/player/explore',
-              builder: (_, _) =>
-                  const _PlaceholderScreen(title: 'Explore'),
+              builder: (_, _) => const ExploreScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [

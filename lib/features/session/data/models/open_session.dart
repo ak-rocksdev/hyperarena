@@ -4,6 +4,27 @@ import 'package:hyperarena/core/theme/app_enums.dart';
 part 'open_session.freezed.dart';
 part 'open_session.g.dart';
 
+enum OpenSessionStatus { open, full, confirmed, cancelled, completed }
+
+enum SessionPricingModel { margin, transparent }
+
+enum SessionVisibility { free, invitationOnly, membersOnly }
+
+enum SessionSettlementStatus { pending, cleared, paidOut }
+
+@freezed
+class SessionHealth with _$SessionHealth {
+  const factory SessionHealth({
+    @Default(0) int pendingPayments,
+    @Default(false) bool isLowSignupRisk,
+    @Default(false) bool isJoinDeadlineAtRisk,
+    @Default(0) int trendScore,
+  }) = _SessionHealth;
+
+  factory SessionHealth.fromJson(Map<String, dynamic> json) =>
+      _$SessionHealthFromJson(json);
+}
+
 @freezed
 class OpenSession with _$OpenSession {
   const factory OpenSession({
@@ -24,6 +45,16 @@ class OpenSession with _$OpenSession {
     required int pricePerPerson,
     String? description,
     @Default([]) List<String> participantNames,
+    @Default(OpenSessionStatus.open) OpenSessionStatus status,
+    DateTime? joinDeadline,
+    @Default(SessionPricingModel.margin) SessionPricingModel pricingModel,
+    @Default(SessionVisibility.free) SessionVisibility visibility,
+    int? courtCost,
+    int? coachCost,
+    int? organizerFeePerPerson,
+    @Default(SessionSettlementStatus.pending)
+    SessionSettlementStatus settlementStatus,
+    @Default(SessionHealth()) SessionHealth health,
   }) = _OpenSession;
 
   factory OpenSession.fromJson(Map<String, dynamic> json) =>

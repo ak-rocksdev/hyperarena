@@ -9,9 +9,10 @@ import 'package:intl/intl.dart';
 
 class MockBookingRepository implements BookingRepository {
   final AppConfig config;
-  final List<Booking> _bookings = List.from(MockData.bookings);
 
   MockBookingRepository(this.config);
+
+  List<Booking> get _bookings => MockData.bookings;
 
   String _generateCode() {
     final date = DateFormat('yyyyMMdd').format(DateTime.now());
@@ -51,7 +52,7 @@ class MockBookingRepository implements BookingRepository {
       venueName: venueName,
       courtName: courtName,
     );
-    _bookings.insert(0, booking);
+    MockData.upsertBooking(booking);
     return booking;
   }
 
@@ -78,7 +79,7 @@ class MockBookingRepository implements BookingRepository {
       status: BookingStatus.waitingConfirmation,
       paymentProofUrl: proofUrl,
     );
-    _bookings[index] = updated;
+    MockData.upsertBooking(updated);
     return updated;
   }
 
@@ -86,10 +87,8 @@ class MockBookingRepository implements BookingRepository {
   Future<Booking> cancelBooking(String id) async {
     await Future.delayed(config.mockDelay);
     final index = _bookings.indexWhere((b) => b.id == id);
-    final updated = _bookings[index].copyWith(
-      status: BookingStatus.cancelled,
-    );
-    _bookings[index] = updated;
+    final updated = _bookings[index].copyWith(status: BookingStatus.cancelled);
+    MockData.upsertBooking(updated);
     return updated;
   }
 }

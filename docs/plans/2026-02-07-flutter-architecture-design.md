@@ -55,11 +55,11 @@ HyperArena supports four environments. Switching is done via separate entry poin
 | Environment | API Base URL | Data Source | Logging | Use Case |
 |-------------|-------------|-------------|---------|----------|
 | **mock** | — (none) | Mock repositories with fake data | Verbose | UI development, design iteration |
-| **local** | `http://10.0.2.2:8000/api` | Laravel local via emulator | Verbose | API integration testing |
+| **local** | `http://hyperarena.local/api` | Laravel local via Laragon | Verbose | API integration testing |
 | **dev** | `https://dev-api.hyperarena.id/api` | Laravel on dev server | Verbose | QA, staging, beta testing |
 | **production** | `https://api.hyperarena.id/api` | Laravel on production | Errors only | Live app |
 
-> Note: `10.0.2.2` is the Android emulator alias for `localhost`. iOS simulator uses `localhost` directly. The config handles both.
+> Note: Local development uses Laragon with virtual host `hyperarena.local`. On Android emulator, this domain won't resolve by default — add `10.0.2.2 hyperarena.local` to the emulator's `/etc/hosts`, or use your machine's LAN IP (e.g., `http://192.168.x.x/api`) as a fallback. iOS simulator shares the host's network, so `hyperarena.local` works directly.
 
 ### 2.2 Configuration Class
 
@@ -101,7 +101,7 @@ class AppConfig {
 
   static const local = AppConfig(
     environment: Environment.local,
-    apiBaseUrl: 'http://10.0.2.2:8000/api',
+    apiBaseUrl: 'http://hyperarena.local/api',
     useMockData: false,
     enableLogging: true,
     showDebugBanner: true,

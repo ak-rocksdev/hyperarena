@@ -27,7 +27,7 @@ class AppConfig {
     apiBaseUrl: '',
     useMockData: true,
     enableLogging: true,
-    showDebugBanner: true,
+    showDebugBanner: false,
     mockDelay: Duration(milliseconds: 500),
   );
 

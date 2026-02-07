@@ -24,6 +24,6 @@ enum BookingType { court, coaching, openSession }
 
 enum LevelTier { rookie, amateur, intermediate, advanced, pro }
 
-enum UserRole { player, coach, organizer }
+enum UserRole { player, coach, organizer, courtOwner }
 
 enum PaymentMethodType { qris, bankTransfer }

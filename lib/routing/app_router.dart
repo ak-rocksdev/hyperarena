@@ -8,6 +8,8 @@ import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.
 import 'package:hyperarena/features/auth/presentation/screens/register_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/splash_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_confirmation_screen.dart';
+import 'package:hyperarena/features/booking/presentation/screens/booking_detail_screen.dart';
+import 'package:hyperarena/features/booking/presentation/screens/booking_list_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_date_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_summary_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/payment_screen.dart';
@@ -201,8 +203,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/player/bookings',
-              builder: (_, _) =>
-                  const _PlaceholderScreen(title: 'Bookings'),
+              builder: (_, _) => const BookingListScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [
@@ -224,8 +225,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/booking/:id',
-        builder: (_, state) => _PlaceholderScreen(
-          title: 'Booking ${state.pathParameters['id']}',
+        builder: (_, state) => BookingDetailScreen(
+          bookingId: state.pathParameters['id']!,
         ),
       ),
 

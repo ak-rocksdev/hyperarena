@@ -17,6 +17,7 @@ abstract final class AppRoutes {
     UserRole.player => '/player/home',
     UserRole.coach => '/coach/dashboard',
     UserRole.organizer => '/organizer/dashboard',
+    UserRole.courtOwner => '/owner/dashboard',
   };
 
   static String explore(UserRole role) => switch (role) {
@@ -34,6 +35,7 @@ abstract final class AppRoutes {
     UserRole.player => '/player/profile',
     UserRole.coach => '/coach/profile',
     UserRole.organizer => '/organizer/profile',
+    UserRole.courtOwner => '/owner/profile',
   };
 
   // ── Role-neutral parameterized ─────────────────────────────────────

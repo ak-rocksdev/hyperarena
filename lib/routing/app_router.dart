@@ -122,6 +122,23 @@ class RoleShell extends StatelessWidget {
               label: 'Profile',
             ),
           ],
+        UserRole.courtOwner => const [
+            NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined),
+              selectedIcon: Icon(Icons.dashboard),
+              label: 'Dashboard',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.store_outlined),
+              selectedIcon: Icon(Icons.store),
+              label: 'Venues',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
       };
 }
 
@@ -148,10 +165,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/auth/login';
       }
 
-      if (isAuthenticated &&
-          (state.matchedLocation == '/auth/login' ||
-              state.matchedLocation == '/auth/register')) {
-        return '/player/home';
+      if (isAuthenticated && isPublicRoute) {
+        return authState.role == UserRole.coach
+            ? '/coach/dashboard'
+            : '/player/home';
       }
 
       return null;

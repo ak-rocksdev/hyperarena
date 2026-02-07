@@ -31,4 +31,5 @@ const _$UserRoleEnumMap = {
   UserRole.player: 'player',
   UserRole.coach: 'coach',
   UserRole.organizer: 'organizer',
+  UserRole.courtOwner: 'courtOwner',
 };

@@ -7,6 +7,8 @@ import 'package:hyperarena/features/auth/presentation/screens/sport_selection_sc
 import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/register_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/splash_screen.dart';
+import 'package:hyperarena/features/booking/presentation/screens/booking_date_screen.dart';
+import 'package:hyperarena/features/booking/presentation/screens/slot_selection_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
@@ -227,13 +229,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ── Booking flow routes ───────────────────────────
       GoRoute(
         path: '/booking/flow/court/:courtId',
-        builder: (_, state) => _PlaceholderScreen(
-          title: 'Book Court ${state.pathParameters['courtId']}',
+        builder: (_, state) => BookingDateScreen(
+          courtId: state.pathParameters['courtId']!,
         ),
       ),
       GoRoute(
         path: '/booking/flow/slots',
-        builder: (_, _) => const _PlaceholderScreen(title: 'Slot Selection'),
+        builder: (_, _) => const SlotSelectionScreen(),
       ),
       GoRoute(
         path: '/booking/flow/summary',

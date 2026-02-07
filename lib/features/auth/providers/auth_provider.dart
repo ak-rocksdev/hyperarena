@@ -25,27 +25,25 @@ final authNotifierProvider =
 class AuthNotifier extends Notifier<User?> {
   @override
   User? build() {
-    _restoreSession();
+    // Restore session synchronously by returning the stored user directly.
+    // Do NOT call `state = ...` inside build() — that causes re-entrancy.
+    final prefs = ref.read(sharedPreferencesProvider);
+    final userJson = prefs.getString(_userKey);
+    if (userJson != null) {
+      try {
+        return User.fromJson(
+          jsonDecode(userJson) as Map<String, dynamic>,
+        );
+      } catch (_) {
+        prefs.remove(_userKey);
+        prefs.remove(_tokenKey);
+      }
+    }
     return null;
   }
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
   AuthRepository get _repo => ref.read(authRepositoryProvider);
-
-  void _restoreSession() {
-    final userJson = _prefs.getString(_userKey);
-    if (userJson != null) {
-      try {
-        final user = User.fromJson(
-          jsonDecode(userJson) as Map<String, dynamic>,
-        );
-        state = user;
-      } catch (_) {
-        _prefs.remove(_userKey);
-        _prefs.remove(_tokenKey);
-      }
-    }
-  }
 
   Future<void> login(String email, String password) async {
     final (user, token) = await _repo.login(email, password);
@@ -78,16 +76,4 @@ class AuthNotifier extends Notifier<User?> {
     state = null;
   }
 
-  Future<void> checkAuth() async {
-    final userJson = _prefs.getString(_userKey);
-    if (userJson != null) {
-      try {
-        state = User.fromJson(
-          jsonDecode(userJson) as Map<String, dynamic>,
-        );
-      } catch (_) {
-        state = null;
-      }
-    }
-  }
 }

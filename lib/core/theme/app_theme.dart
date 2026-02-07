@@ -18,11 +18,15 @@ abstract final class AppTheme {
       textTheme: textTheme,
 
       // ── Color Scheme ────────────────────────────────────────────
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
+        onPrimary: AppColors.textOnPrimary,
         secondary: AppColors.secondary,
+        onSecondary: AppColors.textOnSecondary,
         tertiary: AppColors.accent,
+        onTertiary: AppColors.textOnAccent,
         error: AppColors.error,
+        onError: Colors.white,
         surface: AppSurfaces.surface,
         onSurface: AppColors.textPrimary,
         surfaceContainerHighest: AppSurfaces.surfaceVariant,
@@ -69,65 +73,45 @@ abstract final class AppTheme {
         ),
       ),
 
-      // ── Elevated Button ─────────────────────────────────────────
+      // ── Elevated Button — Section 6.4 primary CTA ────────────────
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.disabled)) {
-              return AppColors.neutral200;
-            }
-            return AppColors.primary;
-          }),
-          foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.disabled)) {
-              return AppColors.textDisabled;
-            }
-            return AppColors.textOnPrimary;
-          }),
-          minimumSize: WidgetStateProperty.all(
-            const Size(double.infinity, AppDimensions.buttonHeightMd),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
+          minimumSize: const Size(0, AppDimensions.buttonHeightMd),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
           ),
-          shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-            ),
-          ),
-          textStyle: WidgetStateProperty.all(AppTypography.button),
-          elevation: WidgetStateProperty.all(0),
+          textStyle: AppTypography.button,
+          disabledBackgroundColor: AppColors.neutral200,
+          disabledForegroundColor: AppColors.textDisabled,
         ),
       ),
 
-      // ── Outlined Button ─────────────────────────────────────────
+      // ── Outlined Button — Section 6.4 secondary ──────────────────
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: ButtonStyle(
-          foregroundColor: WidgetStateProperty.all(AppColors.primary),
-          minimumSize: WidgetStateProperty.all(
-            const Size(double.infinity, AppDimensions.buttonHeightMd),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          minimumSize: const Size(0, AppDimensions.buttonHeightMd),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
           ),
-          shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-            ),
-          ),
-          side: WidgetStateProperty.all(
-            const BorderSide(color: AppColors.primary, width: 1.5),
-          ),
-          textStyle: WidgetStateProperty.all(AppTypography.button),
+          side: const BorderSide(color: AppColors.primary, width: 1.5),
+          textStyle: AppTypography.button,
         ),
       ),
 
-      // ── Text Button ─────────────────────────────────────────────
+      // ── Text Button — Section 6.4 tertiary ───────────────────────
       textButtonTheme: TextButtonThemeData(
-        style: ButtonStyle(
-          foregroundColor: WidgetStateProperty.all(AppColors.primary),
-          textStyle: WidgetStateProperty.all(AppTypography.button),
-          padding: WidgetStateProperty.all(
-            const EdgeInsets.symmetric(horizontal: 12),
-          ),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          textStyle: AppTypography.button,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
         ),
       ),
 
       // ── Input Decoration ────────────────────────────────────────
+      // ── Input Fields — Section 6.5 ────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppSurfaces.surfaceVariant,
@@ -137,38 +121,38 @@ abstract final class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.border, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.border, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
           borderSide: const BorderSide(
             color: AppColors.borderFocused,
-            width: 1.5,
+            width: 2,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-          borderSide: const BorderSide(color: AppColors.borderError),
+          borderSide: const BorderSide(color: AppColors.borderError, width: 2),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
           borderSide: const BorderSide(
             color: AppColors.borderError,
-            width: 1.5,
+            width: 2,
           ),
         ),
-        labelStyle: AppTypography.bodyMedium.copyWith(
+        labelStyle: AppTypography.labelMedium.copyWith(
           color: AppColors.textSecondary,
         ),
         hintStyle: AppTypography.bodyMedium.copyWith(
-          color: AppColors.textTertiary,
+          color: AppColors.textDisabled,
         ),
-        prefixIconColor: AppColors.textTertiary,
-        suffixIconColor: AppColors.textTertiary,
+        prefixIconColor: AppColors.neutral400,
+        suffixIconColor: AppColors.neutral400,
       ),
 
       // ── Chip ────────────────────────────────────────────────────
@@ -203,7 +187,7 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         ),
-        titleTextStyle: AppTypography.headingMedium,
+        titleTextStyle: AppTypography.headingSmall,
         contentTextStyle: AppTypography.bodyMedium,
       ),
 

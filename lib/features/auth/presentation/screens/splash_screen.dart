@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_animations.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
@@ -18,17 +19,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
+  late final Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: AppAnimations.slow,
+      duration: AppAnimations.xSlow,
     );
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
       curve: AppAnimations.standard,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: AppAnimations.elastic,
+      ),
     );
     _controller.forward();
     _navigate();
@@ -62,25 +70,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.sports_tennis,
-                size: 80,
-                color: AppColors.primary,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppSurfaces.primaryGradient,
+        ),
+        child: Center(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.sports_tennis,
+                    size: 80,
+                    color: AppColors.textOnPrimary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'HyperArena',
+                    style: AppTypography.displayMedium.copyWith(
+                      color: AppColors.textOnPrimary,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                'HyperArena',
-                style: AppTypography.displayMedium.copyWith(
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

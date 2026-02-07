@@ -45,7 +45,7 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
   @override
   Widget build(BuildContext context) {
     final flow = ref.watch(bookingFlowProvider);
-    final slots = flow.slots
+    final slots = [...flow.slots]
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return Scaffold(

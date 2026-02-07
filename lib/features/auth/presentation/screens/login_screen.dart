@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/mocks/mock_users.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/validators.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
@@ -72,92 +73,127 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.screenHorizontal,
-            ),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.sports_tennis,
-                    size: 64,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(height: AppDimensions.md),
-                  Text(
-                    'Masuk ke HyperArena',
-                    style: AppTypography.headingLarge,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppDimensions.xs),
-                  Text(
-                    'Booking lapangan olahraga jadi mudah',
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
+                  // Soft branded header
+                  Container(
+                    padding: const EdgeInsets.only(
+                      top: AppDimensions.xxl,
+                      bottom: AppDimensions.xxl,
                     ),
-                    textAlign: TextAlign.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary50,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(AppDimensions.radiusXl),
+                        bottomRight: Radius.circular(AppDimensions.radiusXl),
+                      ),
+                      boxShadow: AppShadows.xs,
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.sports_tennis,
+                          size: 72,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(height: AppDimensions.md),
+                        Text(
+                          'Masuk ke HyperArena',
+                          style: AppTypography.headingLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppDimensions.xs),
+                        Text(
+                          'Booking lapangan olahraga jadi mudah',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.xxl),
 
-                  AppTextField(
-                    controller: _emailController,
-                    label: 'Email',
-                    hint: 'contoh@email.com',
-                    prefixIcon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    validator: Validators.email,
-                  ),
-                  const SizedBox(height: AppDimensions.base),
-
-                  AppTextField(
-                    controller: _passwordController,
-                    label: 'Password',
-                    prefixIcon: Icons.lock_outline,
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _submit(),
-                    validator: Validators.minLength(6),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                  // Form fields
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.screenHorizontal,
                     ),
-                  ),
-                  const SizedBox(height: AppDimensions.xl),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        AppTextField(
+                          controller: _emailController,
+                          label: 'Email',
+                          hint: 'contoh@email.com',
+                          prefixIcon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          validator: Validators.email,
+                        ),
+                        const SizedBox(height: AppDimensions.base),
 
-                  AppButton(
-                    label: 'Masuk',
-                    isLarge: true,
-                    isLoading: _isLoading,
-                    onPressed: _submit,
-                  ),
-                  const SizedBox(height: AppDimensions.base),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Belum punya akun? ',
-                        style: AppTypography.bodyMedium,
-                      ),
-                      GestureDetector(
-                        onTap: () => context.go('/auth/register'),
-                        child: Text(
-                          'Daftar',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
+                        AppTextField(
+                          controller: _passwordController,
+                          label: 'Password',
+                          prefixIcon: Icons.lock_outline,
+                          obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) => _submit(),
+                          validator: Validators.minLength(6),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: AppDimensions.xl),
+
+                        // Button with colored glow
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                                AppDimensions.radiusSm),
+                            boxShadow: AppShadows.colored,
+                          ),
+                          child: AppButton(
+                            label: 'Masuk',
+                            isLarge: true,
+                            isLoading: _isLoading,
+                            onPressed: _submit,
+                          ),
+                        ),
+                        const SizedBox(height: AppDimensions.base),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Belum punya akun? ',
+                              style: AppTypography.bodyMedium,
+                            ),
+                            GestureDetector(
+                              onTap: () => context.go('/auth/register'),
+                              child: Text(
+                                'Daftar',
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

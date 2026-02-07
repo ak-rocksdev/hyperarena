@@ -5,6 +5,8 @@ import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
@@ -46,14 +48,24 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             const SizedBox(height: AppDimensions.xl),
 
-            // Avatar
-            CircleAvatar(
-              radius: AppDimensions.avatarXl / 2,
-              backgroundColor: AppColors.primary50,
-              child: Text(
-                (user?.name ?? 'P').substring(0, 1).toUpperCase(),
-                style: AppTypography.displaySmall.copyWith(
+            // Avatar with ring + shadow
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
                   color: AppColors.primary,
+                  width: 3,
+                ),
+                boxShadow: AppShadows.md,
+              ),
+              child: CircleAvatar(
+                radius: AppDimensions.avatarXl / 2,
+                backgroundColor: AppColors.primary50,
+                child: Text(
+                  (user?.name ?? 'P').substring(0, 1).toUpperCase(),
+                  style: AppTypography.displaySmall.copyWith(
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ),
@@ -101,15 +113,26 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppDimensions.sm),
-            ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.radiusFull),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 8,
-                backgroundColor: AppColors.neutral100,
-                valueColor: AlwaysStoppedAnimation(
-                  gamification.levelColor(profile.levelTier),
+
+            // Custom XP progress bar
+            Container(
+              height: 8,
+              decoration: BoxDecoration(
+                color: AppColors.neutral100,
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.radiusFull),
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: progress,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: gamification.levelColor(profile.levelTier),
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusFull),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -137,21 +160,21 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppDimensions.xl),
 
-            // Menu
+            // Menu items
             _MenuItem(
               icon: Icons.edit,
               label: 'Edit Profil',
-              onTap: () {}, // Placeholder
+              onTap: () {},
             ),
             _MenuItem(
               icon: Icons.emoji_events,
               label: 'Pencapaian',
-              onTap: () {}, // Placeholder
+              onTap: () {},
             ),
             _MenuItem(
               icon: Icons.settings,
               label: 'Pengaturan',
-              onTap: () {}, // Placeholder
+              onTap: () {},
             ),
             _MenuItem(
               icon: Icons.logout,
@@ -185,8 +208,9 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.base),
       decoration: BoxDecoration(
-        color: AppColors.neutral50,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        color: AppSurfaces.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        boxShadow: AppShadows.sm,
       ),
       child: Column(
         children: [
@@ -215,19 +239,54 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive ? AppColors.error : null,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppSurfaces.surface,
+          borderRadius:
+              BorderRadius.circular(AppDimensions.radiusMd),
+          boxShadow: AppShadows.xs,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius:
+                BorderRadius.circular(AppDimensions.radiusMd),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.base,
+                vertical: AppDimensions.md,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: isDestructive
+                        ? AppColors.error
+                        : AppColors.neutral600,
+                  ),
+                  const SizedBox(width: AppDimensions.md),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: isDestructive
+                          ? AppTypography.bodyLarge
+                              .copyWith(color: AppColors.error)
+                          : AppTypography.bodyLarge,
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: AppColors.neutral400,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
-      title: Text(
-        label,
-        style: isDestructive
-            ? AppTypography.bodyLarge.copyWith(color: AppColors.error)
-            : AppTypography.bodyLarge,
-      ),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
     );
   }
 }

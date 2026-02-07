@@ -63,10 +63,12 @@ abstract final class AppTheme {
       // ── Card ────────────────────────────────────────────────────
       cardTheme: CardThemeData(
         color: AppSurfaces.surface,
-        elevation: 0,
+        elevation: 2,
+        shadowColor: AppColors.neutral900.withValues(alpha: 0.10),
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          side: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          side: BorderSide.none,
         ),
         margin: const EdgeInsets.symmetric(
           vertical: AppDimensions.md / 2,

@@ -50,9 +50,12 @@ extension AppThemeDark on AppTheme {
       // Cards
       cardTheme: light.cardTheme.copyWith(
         color: AppSurfaces.darkSurface,
+        elevation: 2,
+        shadowColor: Colors.black.withValues(alpha: 0.20),
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          side: const BorderSide(color: Color(0xFF334155)),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          side: BorderSide.none,
         ),
       ),
 

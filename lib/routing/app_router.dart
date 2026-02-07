@@ -7,7 +7,10 @@ import 'package:hyperarena/features/auth/presentation/screens/sport_selection_sc
 import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/register_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/splash_screen.dart';
+import 'package:hyperarena/features/booking/presentation/screens/booking_confirmation_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_date_screen.dart';
+import 'package:hyperarena/features/booking/presentation/screens/booking_summary_screen.dart';
+import 'package:hyperarena/features/booking/presentation/screens/payment_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/slot_selection_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
@@ -239,17 +242,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/booking/flow/summary',
-        builder: (_, _) =>
-            const _PlaceholderScreen(title: 'Booking Summary'),
+        builder: (_, _) => const BookingSummaryScreen(),
       ),
       GoRoute(
         path: '/booking/flow/payment',
-        builder: (_, _) => const _PlaceholderScreen(title: 'Payment'),
+        builder: (_, _) => const PaymentScreen(),
       ),
       GoRoute(
         path: '/booking/flow/confirmation/:bookingId',
-        builder: (_, state) => _PlaceholderScreen(
-          title: 'Confirmation ${state.pathParameters['bookingId']}',
+        builder: (_, state) => BookingConfirmationScreen(
+          bookingId: state.pathParameters['bookingId']!,
         ),
       ),
     ],

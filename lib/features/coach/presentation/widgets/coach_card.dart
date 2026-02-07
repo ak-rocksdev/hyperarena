@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
@@ -131,12 +132,7 @@ class CoachCard extends StatelessWidget {
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                'Detail coach ${coach.name} - segera hadir'),
-                          ),
-                        );
+                        context.push('/coach/${coach.id}');
                       },
                       child: const Text('Lihat'),
                     ),

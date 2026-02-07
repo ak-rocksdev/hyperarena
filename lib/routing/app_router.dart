@@ -20,6 +20,15 @@ import 'package:hyperarena/features/profile/presentation/screens/profile_screen.
 import 'package:hyperarena/features/session/presentation/screens/session_confirmation_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_detail_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_payment_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/assessment_form_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_booking_confirmation_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_booking_payment_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_booking_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_dashboard_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_detail_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_schedule_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/student_detail_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/student_list_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
 
@@ -258,6 +267,74 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/session/flow/confirmation',
         builder: (_, _) => const SessionConfirmationScreen(),
+      ),
+
+      // ── Coach booking flow (player view) ────────────────
+      GoRoute(
+        path: '/coach/booking',
+        builder: (_, _) => const CoachBookingScreen(),
+      ),
+      GoRoute(
+        path: '/coach/booking/payment',
+        builder: (_, _) => const CoachBookingPaymentScreen(),
+      ),
+      GoRoute(
+        path: '/coach/booking/confirmation',
+        builder: (_, _) => const CoachBookingConfirmationScreen(),
+      ),
+
+      // ── Coach role shell (4 tabs) ──────────────────────
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, shell) => RoleShell(
+          navigationShell: shell,
+          role: UserRole.coach,
+        ),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/coach/dashboard',
+              builder: (_, _) => const CoachDashboardScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/coach/schedule',
+              builder: (_, _) => const CoachScheduleScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/coach/students',
+              builder: (_, _) => const StudentListScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/coach/profile',
+              builder: (_, _) => const ProfileScreen(),
+            ),
+          ]),
+        ],
+      ),
+
+      // ── Coach full-screen routes ───────────────────────
+      GoRoute(
+        path: '/coach/student/:name',
+        builder: (_, state) => StudentDetailScreen(
+          studentName: Uri.decodeComponent(state.pathParameters['name']!),
+        ),
+      ),
+      GoRoute(
+        path: '/coach/assessment/new',
+        builder: (_, _) => const AssessmentFormScreen(),
+      ),
+
+      // ── Coach detail (parameterized — must come after specific /coach/* routes)
+      GoRoute(
+        path: '/coach/:id',
+        builder: (_, state) => CoachDetailScreen(
+          coachId: state.pathParameters['id']!,
+        ),
       ),
     ],
   );

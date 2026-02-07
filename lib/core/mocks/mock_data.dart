@@ -1,15 +1,21 @@
 import 'dart:math';
 
+import 'package:hyperarena/core/mocks/mock_assessments.dart';
 import 'package:hyperarena/core/mocks/mock_badges.dart';
 import 'package:hyperarena/core/mocks/mock_bookings.dart';
+import 'package:hyperarena/core/mocks/mock_coach_packages.dart';
 import 'package:hyperarena/core/mocks/mock_coaches.dart';
+import 'package:hyperarena/core/mocks/mock_coaching_bookings.dart';
 import 'package:hyperarena/core/mocks/mock_sessions.dart';
 import 'package:hyperarena/core/mocks/mock_users.dart';
 import 'package:hyperarena/core/mocks/mock_venues.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
 import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:hyperarena/features/booking/data/models/payment_method_info.dart';
+import 'package:hyperarena/features/coach/data/models/assessment.dart';
 import 'package:hyperarena/features/coach/data/models/coach.dart';
+import 'package:hyperarena/features/coach/data/models/coach_package.dart';
+import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/gamification/data/models/badge.dart';
 import 'package:hyperarena/features/profile/data/models/player_profile.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
@@ -25,6 +31,10 @@ abstract final class MockData {
   static List<Badge> get badges => MockBadges.badges;
   static List<Coach> get coaches => MockCoaches.coaches;
   static List<OpenSession> get sessions => MockSessions.sessions;
+  static List<CoachPackage> get coachPackages => MockCoachPackages.packages;
+  static List<Assessment> get assessments => MockAssessments.assessments;
+  static List<CoachingBooking> get coachingBookings =>
+      MockCoachingBookings.bookings;
 
   static List<PaymentMethodInfo> paymentMethodsForVenue(String venueId) =>
       MockVenues.paymentMethods[venueId] ?? [];

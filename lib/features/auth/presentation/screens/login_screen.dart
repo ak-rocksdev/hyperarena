@@ -192,6 +192,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: AppDimensions.xxl),
+                        Text(
+                          'Beta Release v0.0.1',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textTertiary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ],
                     ),
                   ),

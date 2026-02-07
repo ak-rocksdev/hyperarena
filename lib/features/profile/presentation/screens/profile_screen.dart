@@ -164,6 +164,11 @@ class ProfileScreen extends ConsumerWidget {
               onTap: () {},
             ),
             _MenuItem(
+              icon: Icons.info_outline,
+              label: 'Tentang Aplikasi',
+              onTap: () => _showAboutDialog(context),
+            ),
+            _MenuItem(
               icon: Icons.logout,
               label: 'Keluar',
               isDestructive: true,
@@ -177,6 +182,52 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _showAboutDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+      ),
+      title: Row(
+        children: [
+          Icon(Icons.sports_tennis, color: AppColors.primary),
+          const SizedBox(width: AppDimensions.sm),
+          const Text('HyperArena'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Beta Release v0.0.1',
+            style: AppTypography.titleSmall,
+          ),
+          const SizedBox(height: AppDimensions.md),
+          Text(
+            'Platform booking lapangan olahraga untuk tenis, padel, badminton, futsal, dan lainnya.',
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.base),
+          Text(
+            '\u00a9 2026 HyperArena',
+            style: AppTypography.caption,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Tutup'),
+        ),
+      ],
+    ),
+  );
 }
 
 class _StatCard extends StatelessWidget {

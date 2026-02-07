@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_theme.dart';
 import 'package:hyperarena/core/theme/app_theme_dark.dart';
@@ -21,6 +22,11 @@ class HyperArenaApp extends ConsumerWidget {
       themeMode: ThemeMode.system,
       locale: const Locale('id'),
       supportedLocales: const [Locale('id'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: router,
     );
   }

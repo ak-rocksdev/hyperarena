@@ -10,6 +10,7 @@ import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/date_picker_strip.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class BookingDateScreen extends ConsumerStatefulWidget {
   final String courtId;
@@ -110,7 +111,7 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
                 label: 'Lanjutkan',
                 isLarge: true,
                 onPressed: _selectedDate != null
-                    ? () => context.push('/booking/flow/slots')
+                    ? () => context.push(AppRoutes.bookingFlowSlots)
                     : null,
               ),
             ),

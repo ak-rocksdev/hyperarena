@@ -8,7 +8,9 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class BookingConfirmationScreen extends ConsumerStatefulWidget {
   final String bookingId;
@@ -156,7 +158,7 @@ class _BookingConfirmationScreenState
                   isLarge: true,
                   onPressed: () {
                     ref.read(bookingFlowProvider.notifier).reset();
-                    context.go('/player/bookings');
+                    context.go(AppRoutes.bookings(ref.read(authNotifierProvider)!.role));
                   },
                 ),
               ),
@@ -169,7 +171,7 @@ class _BookingConfirmationScreenState
                   isLarge: true,
                   onPressed: () {
                     ref.read(bookingFlowProvider.notifier).reset();
-                    context.go('/player/home');
+                    context.go(AppRoutes.home(ref.read(authNotifierProvider)!.role));
                   },
                 ),
               ),

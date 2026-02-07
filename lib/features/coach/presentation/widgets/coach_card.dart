@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/coach/data/models/coach.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class CoachCard extends StatelessWidget {
   final Coach coach;
@@ -132,7 +133,7 @@ class CoachCard extends StatelessWidget {
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () {
-                        context.push('/coach/${coach.id}');
+                        context.push(AppRoutes.coach(coach.id));
                       },
                       child: const Text('Lihat'),
                     ),

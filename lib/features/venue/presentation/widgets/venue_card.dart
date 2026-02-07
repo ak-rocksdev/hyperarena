@@ -10,6 +10,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/venue/data/models/venue.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class VenueCard extends StatelessWidget {
   final Venue venue;
@@ -28,7 +29,7 @@ class VenueCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push('/venue/${venue.id}'),
+        onTap: () => context.push(AppRoutes.venue(venue.id)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

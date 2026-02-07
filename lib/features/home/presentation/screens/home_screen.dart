@@ -13,6 +13,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/booking_card.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
 import 'package:hyperarena/features/gamification/providers/gamification_providers.dart';
@@ -75,7 +76,7 @@ class HomeScreen extends ConsumerWidget {
                 totalXp: profile.totalXp,
                 nextThreshold: nextThreshold,
                 progress: progress,
-                onTap: () => context.go('/player/profile'),
+                onTap: () => context.go(AppRoutes.profile(ref.read(authNotifierProvider)!.role)),
               ),
               const SizedBox(height: AppDimensions.xl),
 
@@ -92,7 +93,7 @@ class HomeScreen extends ConsumerWidget {
                   child: InkWell(
                     borderRadius:
                         BorderRadius.circular(AppDimensions.radiusLg),
-                    onTap: () => context.go('/player/explore'),
+                    onTap: () => context.go(AppRoutes.explore(ref.read(authNotifierProvider)!.role)),
                     child: Padding(
                       padding: const EdgeInsets.all(AppDimensions.lg),
                       child: Row(
@@ -183,7 +184,7 @@ class HomeScreen extends ConsumerWidget {
                           ref
                               .read(venueFilterProvider.notifier)
                               .setSport(sport);
-                          context.go('/player/explore');
+                          context.go(AppRoutes.explore(ref.read(authNotifierProvider)!.role));
                         },
                       ),
                     );
@@ -303,7 +304,7 @@ class HomeScreen extends ConsumerWidget {
                         photoUrl: venue.photos.isNotEmpty
                             ? venue.photos.first
                             : null,
-                        onTap: () => context.push('/venue/${venue.id}'),
+                        onTap: () => context.push(AppRoutes.venue(venue.id)),
                       ),
                     );
                   },
@@ -348,7 +349,7 @@ class HomeScreen extends ConsumerWidget {
                             statusColor:
                                 statusExt.color(recent[i].status),
                             onTap: () => context.push(
-                                '/booking/${recent[i].id}'),
+                                AppRoutes.booking(recent[i].id)),
                           ),
                           if (i < recent.length - 1)
                             const Divider(height: 1, indent: 16, endIndent: 16),

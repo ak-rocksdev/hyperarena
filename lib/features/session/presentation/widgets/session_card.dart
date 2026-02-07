@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class SessionCard extends StatelessWidget {
   final OpenSession session;
@@ -174,7 +175,7 @@ class SessionCard extends StatelessWidget {
                         ),
                         onPressed: isFull
                             ? null
-                            : () => context.push('/session/${session.id}'),
+                            : () => context.push(AppRoutes.session(session.id)),
                         child: Text(isFull ? 'Penuh' : 'Gabung'),
                       ),
                     ),

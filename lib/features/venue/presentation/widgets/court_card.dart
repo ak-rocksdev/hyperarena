@@ -9,6 +9,7 @@ import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selecto
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
 import 'package:hyperarena/features/venue/data/models/court.dart';
 import 'package:hyperarena/features/venue/data/models/venue.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class CourtCard extends ConsumerWidget {
   final Court court;
@@ -99,7 +100,7 @@ class CourtCard extends ConsumerWidget {
               variant: AppButtonVariant.tonal,
               onPressed: () {
                 ref.read(bookingFlowProvider.notifier).selectCourt(court, venue);
-                context.push('/booking/flow/court/${court.id}');
+                context.push(AppRoutes.bookingFlowCourt(court.id));
               },
             ),
           ],

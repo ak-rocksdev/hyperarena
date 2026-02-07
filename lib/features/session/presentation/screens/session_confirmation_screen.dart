@@ -8,7 +8,9 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/providers/session_join_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class SessionConfirmationScreen extends ConsumerStatefulWidget {
   const SessionConfirmationScreen({super.key});
@@ -151,7 +153,7 @@ class _SessionConfirmationScreenState
                   isLarge: true,
                   onPressed: () {
                     ref.read(sessionJoinProvider.notifier).reset();
-                    context.go('/player/explore');
+                    context.go(AppRoutes.explore(ref.read(authNotifierProvider)!.role));
                   },
                 ),
               ),
@@ -164,7 +166,7 @@ class _SessionConfirmationScreenState
                   isLarge: true,
                   onPressed: () {
                     ref.read(sessionJoinProvider.notifier).reset();
-                    context.go('/player/home');
+                    context.go(AppRoutes.home(ref.read(authNotifierProvider)!.role));
                   },
                 ),
               ),

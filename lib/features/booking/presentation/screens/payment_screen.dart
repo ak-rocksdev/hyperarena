@@ -14,6 +14,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -50,7 +51,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     // Simulate payment confirmation delay
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {
-      context.go('/booking/flow/confirmation/mock');
+      context.go(AppRoutes.bookingFlowConfirmation('mock'));
     }
   }
 

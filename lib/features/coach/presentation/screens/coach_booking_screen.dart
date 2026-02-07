@@ -11,6 +11,7 @@ import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/date_picker_strip.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class CoachBookingScreen extends ConsumerStatefulWidget {
   const CoachBookingScreen({super.key});
@@ -344,7 +345,7 @@ class _CoachBookingScreenState extends ConsumerState<CoachBookingScreen> {
                         label: 'Lanjutkan',
                         isLarge: true,
                         onPressed: bookingState.isComplete
-                            ? () => context.push('/coach/booking/payment')
+                            ? () => context.push(AppRoutes.coachBookingPayment)
                             : null,
                       ),
                     ),

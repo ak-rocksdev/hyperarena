@@ -11,6 +11,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class CoachBookingPaymentScreen extends ConsumerStatefulWidget {
   const CoachBookingPaymentScreen({super.key});
@@ -48,7 +49,7 @@ class _CoachBookingPaymentScreenState
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {
-      context.go('/coach/booking/confirmation');
+      context.go(AppRoutes.coachBookingConfirmation);
     }
   }
 

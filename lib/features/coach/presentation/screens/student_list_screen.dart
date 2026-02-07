@@ -8,6 +8,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/features/coach/providers/student_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class StudentListScreen extends ConsumerWidget {
   const StudentListScreen({super.key});
@@ -50,9 +51,7 @@ class StudentListScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: AppDimensions.sm),
                 child: GestureDetector(
                   onTap: () {
-                    context.push(
-                      '/coach/student/${Uri.encodeComponent(name)}',
-                    );
+                    context.push(AppRoutes.studentDetail(name));
                   },
                   child: Container(
                     padding: const EdgeInsets.all(AppDimensions.base),

@@ -11,6 +11,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/session/providers/session_join_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class SessionPaymentScreen extends ConsumerStatefulWidget {
   const SessionPaymentScreen({super.key});
@@ -47,7 +48,7 @@ class _SessionPaymentScreenState extends ConsumerState<SessionPaymentScreen> {
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {
-      context.go('/session/flow/confirmation');
+      context.go(AppRoutes.sessionFlowConfirmation);
     }
   }
 

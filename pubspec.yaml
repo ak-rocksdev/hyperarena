@@ -57,6 +57,16 @@ dev_dependencies:
   # Linting
   flutter_lints: ^6.0.0
 
+  # App Icon
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#2563EB"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+
 flutter:
   uses-material-design: true
 

@@ -51,14 +51,13 @@ class ProfileScreen extends ConsumerWidget {
     };
 
     final userName = user?.name ?? 'Player';
-    final userInitial = userName.substring(0, 1).toUpperCase();
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           // ── 1. Hero Header SliverAppBar ──
           SliverAppBar(
-            expandedHeight: 280,
+            expandedHeight: 310,
             pinned: true,
             backgroundColor: AppColors.primary700,
             title: const Text('Profil'),
@@ -127,11 +126,8 @@ class ProfileScreen extends ConsumerWidget {
                                 child: CircleAvatar(
                                   radius: AppDimensions.avatarXl / 2,
                                   backgroundColor: AppColors.primary50,
-                                  child: Text(
-                                    userInitial,
-                                    style: AppTypography.displaySmall.copyWith(
-                                      color: Colors.white,
-                                    ),
+                                  backgroundImage: const NetworkImage(
+                                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
                                   ),
                                 ),
                               ),
@@ -196,10 +192,9 @@ class ProfileScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 2. XP Progress Section (overlaps gradient slightly) ──
-                Transform.translate(
-                  offset: const Offset(0, -16),
-                  child: Container(
+                const SizedBox(height: AppDimensions.base),
+                // ── 2. XP Progress Section ──
+                Container(
                     margin: const EdgeInsets.symmetric(
                       horizontal: AppDimensions.screenHorizontal,
                     ),
@@ -267,8 +262,8 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                  ),
                 ),
+                const SizedBox(height: AppDimensions.md),
 
                 // ── 3. Streak Banner ──
                 if (profile.bookingStreak > 0) ...[
@@ -332,7 +327,7 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppDimensions.md),
                 SizedBox(
-                  height: 150,
+                  height: 160,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(
@@ -346,6 +341,7 @@ class ProfileScreen extends ConsumerWidget {
                       return _BadgeCard(
                         badge: badge,
                         tierColor: gamification.levelColor(profile.levelTier),
+                        onTap: () => _showBadgeDetail(context, badge),
                       );
                     },
                   ),
@@ -477,69 +473,74 @@ class ProfileScreen extends ConsumerWidget {
 class _BadgeCard extends StatelessWidget {
   final badge_model.Badge badge;
   final Color tierColor;
+  final VoidCallback? onTap;
 
   const _BadgeCard({
     required this.badge,
     required this.tierColor,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final isUnlocked = badge.isUnlocked;
-    return Opacity(
-      opacity: isUnlocked ? 1.0 : 0.5,
-      child: Container(
-        width: 100,
-        padding: const EdgeInsets.all(AppDimensions.sm),
-        decoration: BoxDecoration(
-          color: isUnlocked ? AppSurfaces.surfaceHighlight : AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          boxShadow: AppShadows.xs,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Icon circle
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isUnlocked
-                    ? AppColors.primary50
-                    : AppColors.neutral100,
-                boxShadow: isUnlocked ? AppShadows.xs : null,
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: isUnlocked ? 1.0 : 0.5,
+        child: Container(
+          width: 110,
+          padding: const EdgeInsets.all(AppDimensions.sm),
+          decoration: BoxDecoration(
+            color: isUnlocked ? AppSurfaces.surfaceHighlight : AppSurfaces.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            boxShadow: AppShadows.xs,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon circle — larger
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isUnlocked
+                      ? AppColors.primary50
+                      : AppColors.neutral100,
+                  boxShadow: isUnlocked ? AppShadows.xs : null,
+                ),
+                child: Icon(
+                  _mapBadgeIcon(badge.iconName),
+                  size: 32,
+                  color: isUnlocked ? tierColor : AppColors.neutral400,
+                ),
               ),
-              child: Icon(
-                _mapBadgeIcon(badge.iconName),
-                size: 24,
-                color: isUnlocked ? tierColor : AppColors.neutral400,
+              const SizedBox(height: AppDimensions.sm),
+              // Badge name
+              Text(
+                badge.name,
+                style: AppTypography.caption.copyWith(
+                  fontWeight: isUnlocked ? FontWeight.w600 : FontWeight.w400,
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: AppDimensions.sm),
-            // Badge name
-            Text(
-              badge.name,
-              style: AppTypography.caption.copyWith(
-                fontWeight: isUnlocked ? FontWeight.w600 : FontWeight.w400,
-                color: AppColors.textPrimary,
+              const SizedBox(height: AppDimensions.xs),
+              // Status label
+              Text(
+                isUnlocked ? 'Terbuka' : 'Terkunci',
+                style: AppTypography.caption.copyWith(
+                  fontSize: 10,
+                  color: isUnlocked
+                      ? AppColors.success
+                      : AppColors.textTertiary,
+                ),
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppDimensions.xs),
-            // Status label
-            Text(
-              isUnlocked ? 'Terbuka' : 'Terkunci',
-              style: AppTypography.caption.copyWith(
-                fontSize: 10,
-                color: isUnlocked
-                    ? AppColors.success
-                    : AppColors.textTertiary,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -816,6 +817,111 @@ IconData _mapBadgeIcon(String iconName) => switch (iconName) {
       'local_fire_department' => Icons.local_fire_department,
       _ => Icons.star,
     };
+
+// ── Badge Detail Bottom Sheet ──
+
+void _showBadgeDetail(BuildContext context, badge_model.Badge badge) {
+  final isUnlocked = badge.isUnlocked;
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(AppDimensions.radiusXl),
+      ),
+    ),
+    builder: (sheetContext) => Padding(
+      padding: const EdgeInsets.all(AppDimensions.lg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.neutral300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.lg),
+          // Badge icon — large
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isUnlocked ? AppColors.primary50 : AppColors.neutral100,
+              boxShadow: isUnlocked ? AppShadows.sm : null,
+            ),
+            child: Icon(
+              _mapBadgeIcon(badge.iconName),
+              size: 44,
+              color: isUnlocked ? AppColors.primary : AppColors.neutral400,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.base),
+          // Badge name
+          Text(
+            badge.name,
+            style: AppTypography.headingSmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppDimensions.sm),
+          // Status pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: isUnlocked ? AppColors.success.withValues(alpha: 0.1) : AppColors.neutral100,
+              borderRadius:
+                  BorderRadius.circular(AppDimensions.radiusFull),
+            ),
+            child: Text(
+              isUnlocked ? 'Terbuka' : 'Terkunci',
+              style: AppTypography.labelSmall.copyWith(
+                color: isUnlocked ? AppColors.success : AppColors.textTertiary,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.base),
+          // Description
+          Text(
+            badge.description,
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppDimensions.sm),
+          // XP reward
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.bolt, size: 16, color: AppColors.accent),
+              const SizedBox(width: 4),
+              Text(
+                '+${badge.xpReward} XP',
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          if (isUnlocked && badge.unlockedAt != null) ...[
+            const SizedBox(height: AppDimensions.sm),
+            Text(
+              'Dibuka pada ${Formatters.formatDate(badge.unlockedAt!)}',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppDimensions.lg),
+        ],
+      ),
+    ),
+  );
+}
 
 // ── About Dialog ──
 

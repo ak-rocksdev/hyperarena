@@ -137,7 +137,7 @@ class VenueDetailScreen extends ConsumerWidget {
                     (_, i) => Padding(
                       padding:
                           const EdgeInsets.only(bottom: AppDimensions.sm),
-                      child: CourtCard(court: venue.courts[i]),
+                      child: CourtCard(court: venue.courts[i], venue: venue),
                     ),
                     childCount: venue.courts.length,
                   ),

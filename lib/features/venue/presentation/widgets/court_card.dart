@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/booking/providers/booking_providers.dart';
 import 'package:hyperarena/features/venue/data/models/court.dart';
+import 'package:hyperarena/features/venue/data/models/venue.dart';
 
-class CourtCard extends StatelessWidget {
+class CourtCard extends ConsumerWidget {
   final Court court;
+  final Venue venue;
 
-  const CourtCard({super.key, required this.court});
+  const CourtCard({super.key, required this.court, required this.venue});
 
   String _envLabel(String env) => switch (env) {
         'indoor' => 'Indoor',
@@ -20,7 +24,7 @@ class CourtCard extends StatelessWidget {
       };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
 
     return Card(
@@ -83,8 +87,10 @@ class CourtCard extends StatelessWidget {
             AppButton(
               label: 'Booking',
               variant: AppButtonVariant.elevated,
-              onPressed: () =>
-                  context.push('/booking/flow/court/${court.id}'),
+              onPressed: () {
+                ref.read(bookingFlowProvider.notifier).selectCourt(court, venue);
+                context.push('/booking/flow/court/${court.id}');
+              },
             ),
           ],
         ),

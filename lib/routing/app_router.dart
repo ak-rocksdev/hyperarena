@@ -8,6 +8,7 @@ import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.
 import 'package:hyperarena/features/auth/presentation/screens/register_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/splash_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
+import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 
 /// Placeholder screen — replaced task-by-task as real screens are built.
@@ -212,8 +213,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ── Full-screen routes (outside shell) ────────────
       GoRoute(
         path: '/venue/:id',
-        builder: (_, state) => _PlaceholderScreen(
-          title: 'Venue ${state.pathParameters['id']}',
+        builder: (_, state) => VenueDetailScreen(
+          venueId: state.pathParameters['id']!,
         ),
       ),
       GoRoute(

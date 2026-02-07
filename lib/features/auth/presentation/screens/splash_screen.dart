@@ -6,6 +6,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -48,16 +49,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     final user = ref.read(authNotifierProvider);
     if (user != null) {
-      context.go('/player/home');
+      context.go(AppRoutes.home(user.role));
       return;
     }
 
     final prefs = ref.read(sharedPreferencesProvider);
     final onboardingDone = prefs.getBool('onboarding_complete') ?? false;
     if (!onboardingDone) {
-      context.go('/onboarding');
+      context.go(AppRoutes.onboarding);
     } else {
-      context.go('/auth/login');
+      context.go(AppRoutes.login);
     }
   }
 

@@ -9,6 +9,7 @@ import 'package:hyperarena/core/utils/validators.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/core/widgets/app_text_field.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -49,7 +50,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             phone: _phoneController.text.trim(),
             password: _passwordController.text,
           );
-      if (mounted) context.go('/auth/sport-selection');
+      if (mounted) context.go(AppRoutes.sportSelection);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -215,7 +216,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             style: AppTypography.bodyMedium,
                           ),
                           GestureDetector(
-                            onTap: () => context.go('/auth/login'),
+                            onTap: () => context.go(AppRoutes.login),
                             child: Text(
                               'Masuk',
                               style: AppTypography.bodyMedium.copyWith(

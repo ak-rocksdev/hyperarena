@@ -6,6 +6,7 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 
 class _OnboardingPage {
@@ -56,7 +57,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _complete() {
     ref.read(sharedPreferencesProvider).setBool('onboarding_complete', true);
-    context.go('/auth/login');
+    context.go(AppRoutes.login);
   }
 
   @override

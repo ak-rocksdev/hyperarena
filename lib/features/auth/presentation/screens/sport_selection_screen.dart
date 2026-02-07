@@ -9,6 +9,8 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class SportSelectionScreen extends ConsumerStatefulWidget {
   const SportSelectionScreen({super.key});
@@ -161,7 +163,10 @@ class _SportSelectionScreenState extends ConsumerState<SportSelectionScreen> {
                     label: 'Lanjutkan',
                     isLarge: true,
                     onPressed: hasSelection
-                        ? () => context.go('/player/home')
+                        ? () {
+                            final role = ref.read(authNotifierProvider)?.role ?? UserRole.player;
+                            context.go(AppRoutes.home(role));
+                          }
                         : null,
                   ),
                 ),

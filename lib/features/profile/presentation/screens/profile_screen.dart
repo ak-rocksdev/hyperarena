@@ -13,6 +13,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:hyperarena/features/gamification/data/models/badge.dart'
     as badge_model;
@@ -452,7 +453,7 @@ class ProfileScreen extends ConsumerWidget {
                           await ref
                               .read(authNotifierProvider.notifier)
                               .logout();
-                          if (context.mounted) context.go('/auth/login');
+                          if (context.mounted) context.go(AppRoutes.login);
                         },
                       ),
                     ],

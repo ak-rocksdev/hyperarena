@@ -715,17 +715,46 @@ git commit -m "fix: Phase 2 coach implementation polish"
 
 ---
 
+## Task Completion Status
+
+### Phase 2 Coach (Tasks 1–11) — ALL COMPLETE
+- [x] Task 1: Freezed Models — CoachPackage + Assessment + CoachingBooking (commit `5234601`)
+- [x] Task 2: Mock Data — Packages, Assessments, CoachingBookings (commit `5602a1d`)
+- [x] Task 3: Extended Coach Repository + Providers (commit `057bf26`)
+- [x] Task 4: Coach Detail Screen + PackageCard + RatingStars (commit `5a3c076`)
+- [x] Task 5: Coach Booking Flow — schedule, payment, confirmation (commit `54d2c27`)
+- [x] Task 6: Coach Dashboard Screen (commit `e5ff975`)
+- [x] Task 7: Coach Schedule Screen + CoachingBookingCard (commit `f310f77`)
+- [x] Task 8: Student List + Student Detail + RadarChartWidget (commit `ff8aa8c`)
+- [x] Task 9: Assessment Form with sliders + live radar preview (commit `3d5ba8a`)
+- [x] Task 10: Wire all routes in app_router.dart (commit `262b272`)
+- [x] Task 11: Final verification — flutter analyze (0 issues) + build (success)
+
+### Post-Phase 2 Enhancements — ALL COMPLETE
+- [x] Profile enhancement: hero header with gradient, XP progress card, booking streak banner (commit `711bba9`)
+- [x] Profile: achievement badges with icon + name + status text, tap-to-explain bottom sheet
+- [x] Profile: per-sport stats rows, recent activity feed with status badges + XP pills
+- [x] Profile: Unsplash avatar photo, bigger badge icons (60px), XP card overlap fix
+- [x] App icon: generated 1024x1024 blue gradient + tennis icon, flutter_launcher_icons for all sizes
+- [x] App rename: "HyperArena" on Android (AndroidManifest) and iOS (Info.plist)
+- [x] All changes committed and pushed (commit `3d1c5a5`)
+- [x] Beta APK built: HyperArena_beta.apk (166 MB debug)
+
 ## Verification Checklist
 
-- [ ] `flutter analyze` → zero issues
-- [ ] `flutter build apk --debug` → success
-- [ ] Coach detail screen shows coach info, packages, rating, certifications
-- [ ] Coach booking flow: package → date/time → payment → confirmation
-- [ ] Coach dashboard: stats, today's schedule, recent assessments
-- [ ] Coach schedule: upcoming/completed tabs with booking cards
-- [ ] Student list shows unique students with assessment counts
-- [ ] Student detail shows assessment history with radar charts
-- [ ] Assessment form with 5 sliders, live radar preview, sport selector, save
-- [ ] All screens use design system tokens consistently
-- [ ] Indonesian text throughout
-- [ ] Rupiah formatting correct
+- [x] `flutter analyze` → zero issues
+- [x] `flutter build apk --debug` → success
+- [x] Coach detail screen shows coach info, packages, rating, certifications
+- [x] Coach booking flow: package → date/time → payment → confirmation
+- [x] Coach dashboard: stats, today's schedule, recent assessments
+- [x] Coach schedule: upcoming/completed tabs with booking cards
+- [x] Student list shows unique students with assessment counts
+- [x] Student detail shows assessment history with radar charts
+- [x] Assessment form with 5 sliders, live radar preview, sport selector, save
+- [x] All screens use design system tokens consistently
+- [x] Indonesian text throughout
+- [x] Rupiah formatting correct
+- [x] Profile: gamification hero header + XP + badges + sport stats + recent activity
+- [x] Profile: badge tap shows detail bottom sheet with description + XP reward
+- [x] App icon matches splash screen branding
+- [x] App named "HyperArena" in launcher

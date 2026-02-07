@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
@@ -11,11 +12,13 @@ class _OnboardingPage {
   final IconData icon;
   final String title;
   final String subtitle;
+  final Color iconColor;
 
   const _OnboardingPage({
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.iconColor,
   });
 }
 
@@ -24,16 +27,19 @@ const _pages = [
     icon: Icons.sports_tennis,
     title: 'Cari & Booking Lapangan',
     subtitle: 'Temukan dan booking lapangan olahraga favoritmu dengan mudah dan cepat',
+    iconColor: AppColors.primary,
   ),
   _OnboardingPage(
     icon: Icons.school,
     title: 'Temukan Coach Terbaik',
     subtitle: 'Belajar dari coach profesional untuk meningkatkan skill olahragamu',
+    iconColor: AppColors.secondary,
   ),
   _OnboardingPage(
     icon: Icons.trending_up,
     title: 'Lacak Perkembangan',
     subtitle: 'Pantau progress, kumpulkan XP, dan naik level setiap kali bermain',
+    iconColor: AppColors.accent,
   ),
 ];
 
@@ -91,10 +97,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          page.icon,
-                          size: 100,
-                          color: AppColors.primary,
+                        // Icon with circle background + shadow
+                        Container(
+                          width: 130,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary50,
+                            shape: BoxShape.circle,
+                            boxShadow: AppShadows.md,
+                          ),
+                          child: Icon(
+                            page.icon,
+                            size: 64,
+                            color: page.iconColor,
+                          ),
                         ),
                         const SizedBox(height: AppDimensions.xxl),
                         Text(
@@ -122,18 +138,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 _pages.length,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == i ? 24 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: _currentPage == i
-                        ? AppColors.primary
-                        : AppColors.neutral300,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
+                (i) {
+                  final isActive = _currentPage == i;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: isActive ? 28 : 8,
+                    height: isActive ? 10 : 8,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? AppColors.primary
+                          : AppColors.neutral300,
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusFull),
+                      boxShadow: isActive ? AppShadows.xs : null,
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: AppDimensions.xl),

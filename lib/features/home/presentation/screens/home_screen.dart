@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
-import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/booking_card.dart';
@@ -50,14 +51,64 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.xl),
 
-              // CTA button
-              SizedBox(
-                width: double.infinity,
-                child: AppButton(
-                  label: 'Cari Lapangan',
-                  isLarge: true,
-                  icon: Icons.search,
-                  onPressed: () => context.go('/player/explore'),
+              // Hero CTA card
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusLg),
+                  boxShadow: AppShadows.colored,
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusLg),
+                    onTap: () => context.go('/player/explore'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppDimensions.lg),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.search,
+                            size: 48,
+                            color: AppColors.textOnPrimary,
+                          ),
+                          const SizedBox(width: AppDimensions.base),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Cari Lapangan',
+                                  style: AppTypography.titleMedium
+                                      .copyWith(
+                                    color: AppColors.textOnPrimary,
+                                  ),
+                                ),
+                                const SizedBox(
+                                    height: AppDimensions.xxs),
+                                Text(
+                                  'Temukan venue terdekat',
+                                  style: AppTypography.bodySmall
+                                      .copyWith(
+                                    color: AppColors.textOnPrimary
+                                        .withValues(alpha: 0.80),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: AppColors.textOnPrimary
+                                .withValues(alpha: 0.60),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: AppDimensions.xl),
@@ -111,15 +162,15 @@ class HomeScreen extends ConsumerWidget {
                       padding:
                           const EdgeInsets.all(AppDimensions.xl),
                       decoration: BoxDecoration(
-                        color: AppColors.neutral50,
+                        color: AppSurfaces.surfaceHighlight,
                         borderRadius: BorderRadius.circular(
-                            AppDimensions.radiusMd),
+                            AppDimensions.radiusLg),
                       ),
                       child: Column(
                         children: [
                           Icon(
                             Icons.calendar_today_outlined,
-                            color: AppColors.neutral300,
+                            color: AppColors.primary300,
                             size: 32,
                           ),
                           const SizedBox(height: AppDimensions.sm),
@@ -133,7 +184,14 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     );
                   }
-                  return BookingCard(booking: upcoming.first);
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusLg),
+                      boxShadow: AppShadows.sm,
+                    ),
+                    child: BookingCard(booking: upcoming.first),
+                  );
                 },
               ),
             ],

@@ -46,7 +46,7 @@ class BookingFlowNotifier extends Notifier<BookingSummary> {
   Future<Booking> submit() async {
     final repo = ref.read(bookingRepositoryProvider);
     final s = state;
-    final slots = s.slots..sort((a, b) => a.startTime.compareTo(b.startTime));
+    final slots = [...s.slots]..sort((a, b) => a.startTime.compareTo(b.startTime));
     final booking = await repo.createBooking(
       courtId: s.court!.id,
       venueId: s.venue!.id,

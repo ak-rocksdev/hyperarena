@@ -3,34 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/auth/presentation/screens/login_screen.dart';
-import 'package:hyperarena/features/auth/presentation/screens/sport_selection_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/register_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/splash_screen.dart';
+import 'package:hyperarena/features/auth/presentation/screens/sport_selection_screen.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_confirmation_screen.dart';
+import 'package:hyperarena/features/booking/presentation/screens/booking_date_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_detail_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_list_screen.dart';
-import 'package:hyperarena/features/booking/presentation/screens/booking_date_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_summary_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/payment_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/slot_selection_screen.dart';
+import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
+import 'package:hyperarena/features/profile/presentation/screens/profile_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
-import 'package:hyperarena/features/auth/providers/auth_provider.dart';
-
-/// Placeholder screen — replaced task-by-task as real screens are built.
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
-    );
-  }
-}
 
 /// Role-aware bottom navigation shell.
 class RoleShell extends StatelessWidget {
@@ -144,12 +132,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState != null;
       final isPublicRoute = _publicPaths.contains(state.matchedLocation);
 
-      // Not authenticated and trying to access protected route
       if (!isAuthenticated && !isPublicRoute) {
         return '/auth/login';
       }
 
-      // Authenticated and on auth route (but not sport-selection)
       if (isAuthenticated &&
           (state.matchedLocation == '/auth/login' ||
               state.matchedLocation == '/auth/register')) {
@@ -191,7 +177,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/player/home',
-              builder: (_, _) => const _PlaceholderScreen(title: 'Home'),
+              builder: (_, _) => const HomeScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [
@@ -209,8 +195,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/player/profile',
-              builder: (_, _) =>
-                  const _PlaceholderScreen(title: 'Profile'),
+              builder: (_, _) => const ProfileScreen(),
             ),
           ]),
         ],

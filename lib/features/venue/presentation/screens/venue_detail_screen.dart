@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
@@ -14,6 +16,17 @@ class VenueDetailScreen extends ConsumerWidget {
   final String venueId;
 
   const VenueDetailScreen({super.key, required this.venueId});
+
+  void _showPhotoViewer(
+      BuildContext context, List<String> photos, int initialIndex) {
+    showDialog(
+      context: context,
+      builder: (_) => _PhotoViewerDialog(
+        photos: photos,
+        initialIndex: initialIndex,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,16 +47,32 @@ class VenueDetailScreen extends ConsumerWidget {
               SliverAppBar(
                 expandedHeight: 250,
                 pinned: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: CachedNetworkImage(
-                    imageUrl: venue.photos.isNotEmpty
-                        ? venue.photos.first
-                        : 'https://picsum.photos/seed/default/800/450',
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) => Container(
-                      color: AppColors.neutral100,
-                      child: const Icon(Icons.image, size: 48),
-                    ),
+                  flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: venue.photos.isNotEmpty
+                            ? venue.photos.first
+                            : 'https://picsum.photos/seed/default/800/450',
+                        fit: BoxFit.cover,
+                        errorWidget: (_, _, _) => Container(
+                          color: AppColors.neutral100,
+                          child: const Icon(Icons.image, size: 48),
+                        ),
+                      ),
+                      const Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: 80,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: AppSurfaces.darkOverlay,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -108,7 +137,59 @@ class VenueDetailScreen extends ConsumerWidget {
 
                       // Facilities
                       if (venue.facilities.isNotEmpty) ...[
-                        FacilityChips(facilities: venue.facilities),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(AppDimensions.md),
+                          decoration: BoxDecoration(
+                            color: AppSurfaces.surfaceHighlight,
+                            borderRadius: BorderRadius.circular(
+                                AppDimensions.radiusMd),
+                          ),
+                          child: FacilityChips(
+                              facilities: venue.facilities),
+                        ),
+                        const SizedBox(height: AppDimensions.base),
+                      ],
+
+                      // Gallery
+                      if (venue.photos.length > 1) ...[
+                        Text('Foto', style: AppTypography.headingSmall),
+                        const SizedBox(height: AppDimensions.md),
+                        SizedBox(
+                          height: 90,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: venue.photos.length,
+                            itemBuilder: (_, i) => Padding(
+                              padding: EdgeInsets.only(
+                                right: i < venue.photos.length - 1
+                                    ? AppDimensions.sm
+                                    : 0,
+                              ),
+                              child: GestureDetector(
+                                onTap: () => _showPhotoViewer(
+                                    context, venue.photos, i),
+                                child: Container(
+                                  width: 120,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                        AppDimensions.radiusMd),
+                                    boxShadow: AppShadows.xs,
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: CachedNetworkImage(
+                                    imageUrl: venue.photos[i],
+                                    fit: BoxFit.cover,
+                                    errorWidget: (_, _, _) => Container(
+                                      color: AppColors.neutral100,
+                                      child: const Icon(Icons.image, size: 24),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: AppDimensions.base),
                       ],
 
@@ -150,6 +231,100 @@ class VenueDetailScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _PhotoViewerDialog extends StatefulWidget {
+  final List<String> photos;
+  final int initialIndex;
+
+  const _PhotoViewerDialog({
+    required this.photos,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_PhotoViewerDialog> createState() => _PhotoViewerDialogState();
+}
+
+class _PhotoViewerDialogState extends State<_PhotoViewerDialog> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      backgroundColor: Colors.black,
+      child: Stack(
+        children: [
+          // Photo PageView
+          PageView.builder(
+            controller: _pageController,
+            itemCount: widget.photos.length,
+            onPageChanged: (i) => setState(() => _currentIndex = i),
+            itemBuilder: (_, i) => InteractiveViewer(
+              child: Center(
+                child: CachedNetworkImage(
+                  imageUrl: widget.photos[i],
+                  fit: BoxFit.contain,
+                  errorWidget: (_, _, _) => Icon(
+                    Icons.image,
+                    size: 48,
+                    color: AppColors.neutral400,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Close button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + AppDimensions.sm,
+            right: AppDimensions.base,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white, size: 28),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          // Page indicator
+          if (widget.photos.length > 1)
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + AppDimensions.xl,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(widget.photos.length, (i) {
+                  return Container(
+                    width: i == _currentIndex ? 24 : 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: BoxDecoration(
+                      color: i == _currentIndex
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.4),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusFull),
+                    ),
+                  );
+                }),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -226,6 +226,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: AppDimensions.xl),
+                      Text(
+                        'Beta Release v0.0.1',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textTertiary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                       const SizedBox(height: AppDimensions.base),
                     ],
                   ),

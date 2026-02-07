@@ -15,11 +15,6 @@ import 'package:hyperarena/features/booking/presentation/screens/booking_list_sc
 import 'package:hyperarena/features/booking/presentation/screens/booking_summary_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/payment_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/slot_selection_screen.dart';
-import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
-import 'package:hyperarena/features/profile/presentation/screens/profile_screen.dart';
-import 'package:hyperarena/features/session/presentation/screens/session_confirmation_screen.dart';
-import 'package:hyperarena/features/session/presentation/screens/session_detail_screen.dart';
-import 'package:hyperarena/features/session/presentation/screens/session_payment_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/assessment_form_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_confirmation_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_payment_screen.dart';
@@ -29,8 +24,19 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_detail_scre
 import 'package:hyperarena/features/coach/presentation/screens/coach_schedule_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/student_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/student_list_screen.dart';
+import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
+import 'package:hyperarena/features/organizer/presentation/screens/organizer_community_screen.dart';
+import 'package:hyperarena/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
+import 'package:hyperarena/features/organizer/presentation/screens/organizer_session_list_screen.dart';
+import 'package:hyperarena/features/owner/presentation/screens/owner_dashboard_screen.dart';
+import 'package:hyperarena/features/owner/presentation/screens/owner_venue_list_screen.dart';
+import 'package:hyperarena/features/profile/presentation/screens/profile_screen.dart';
+import 'package:hyperarena/features/session/presentation/screens/session_confirmation_screen.dart';
+import 'package:hyperarena/features/session/presentation/screens/session_detail_screen.dart';
+import 'package:hyperarena/features/session/presentation/screens/session_payment_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 /// Role-aware bottom navigation shell.
 class RoleShell extends StatelessWidget {
@@ -162,13 +168,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isPublicRoute = _publicPaths.contains(state.matchedLocation);
 
       if (!isAuthenticated && !isPublicRoute) {
-        return '/auth/login';
+        return AppRoutes.login;
       }
 
       if (isAuthenticated && isPublicRoute) {
-        return authState.role == UserRole.coach
-            ? '/coach/dashboard'
-            : '/player/home';
+        return AppRoutes.home(authState.role);
       }
 
       return null;
@@ -352,6 +356,68 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => CoachDetailScreen(
           coachId: state.pathParameters['id']!,
         ),
+      ),
+
+      // ── Organizer role shell (4 tabs) ────────────────
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, shell) => RoleShell(
+          navigationShell: shell,
+          role: UserRole.organizer,
+        ),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/organizer/dashboard',
+              builder: (_, _) => const OrganizerDashboardScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/organizer/sessions',
+              builder: (_, _) => const OrganizerSessionListScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/organizer/community',
+              builder: (_, _) => const OrganizerCommunityScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/organizer/profile',
+              builder: (_, _) => const ProfileScreen(),
+            ),
+          ]),
+        ],
+      ),
+
+      // ── Court Owner role shell (3 tabs) ──────────────
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, shell) => RoleShell(
+          navigationShell: shell,
+          role: UserRole.courtOwner,
+        ),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/owner/dashboard',
+              builder: (_, _) => const OwnerDashboardScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/owner/venues',
+              builder: (_, _) => const OwnerVenueListScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/owner/profile',
+              builder: (_, _) => const ProfileScreen(),
+            ),
+          ]),
+        ],
       ),
     ],
   );

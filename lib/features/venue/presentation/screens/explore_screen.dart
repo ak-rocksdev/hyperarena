@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_list_screen.dart';
+import 'package:hyperarena/features/session/presentation/screens/session_list_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_list_screen.dart';
 
 class ExploreScreen extends StatelessWidget {
@@ -20,17 +21,11 @@ class ExploreScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
-            const VenueListScreen(),
-            const EmptyState(
-              message: 'Segera hadir',
-              icon: Icons.school_outlined,
-            ),
-            const EmptyState(
-              message: 'Segera hadir',
-              icon: Icons.groups_outlined,
-            ),
+            VenueListScreen(),
+            CoachListScreen(),
+            SessionListScreen(),
           ],
         ),
       ),

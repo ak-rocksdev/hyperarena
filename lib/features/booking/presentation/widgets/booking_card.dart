@@ -6,6 +6,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class BookingCard extends StatelessWidget {
   final Booking booking;
@@ -29,7 +30,7 @@ class BookingCard extends StatelessWidget {
           ),
         ),
         child: InkWell(
-        onTap: () => context.push('/booking/${booking.id}'),
+        onTap: () => context.push(AppRoutes.booking(booking.id)),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Column(

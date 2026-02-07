@@ -17,6 +17,7 @@ import 'package:hyperarena/features/coach/presentation/widgets/package_card.dart
 import 'package:hyperarena/features/coach/presentation/widgets/rating_stars.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_detail_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class CoachDetailScreen extends ConsumerWidget {
   final String coachId;
@@ -311,7 +312,7 @@ class _CoachDetailBody extends ConsumerWidget {
                                             coachBookingProvider.notifier,
                                           )
                                           .selectPackage(pkg);
-                                      context.push('/coach/booking');
+                                      context.push(AppRoutes.coachBooking);
                                     },
                                   ),
                                 );

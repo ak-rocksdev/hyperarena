@@ -15,6 +15,7 @@ import 'package:hyperarena/features/booking/presentation/widgets/slot_grid.dart'
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
 import 'package:hyperarena/features/venue/data/models/court_slot.dart';
 import 'package:hyperarena/features/venue/providers/venue_providers.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class SlotSelectionScreen extends ConsumerStatefulWidget {
   const SlotSelectionScreen({super.key});
@@ -149,7 +150,7 @@ class _SlotSelectionScreenState extends ConsumerState<SlotSelectionScreen> {
                             ref
                                 .read(bookingFlowProvider.notifier)
                                 .selectSlots(_selectedSlots);
-                            context.push('/booking/flow/summary');
+                            context.push(AppRoutes.bookingFlowSummary);
                           }
                         : null,
                   ),

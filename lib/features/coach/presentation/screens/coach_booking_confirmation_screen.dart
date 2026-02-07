@@ -9,7 +9,9 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class CoachBookingConfirmationScreen extends ConsumerStatefulWidget {
   const CoachBookingConfirmationScreen({super.key});
@@ -49,12 +51,12 @@ class _CoachBookingConfirmationScreenState
 
   void _goToExplore() {
     ref.read(coachBookingProvider.notifier).reset();
-    context.go('/player/explore');
+    context.go(AppRoutes.explore(ref.read(authNotifierProvider)!.role));
   }
 
   void _goToHome() {
     ref.read(coachBookingProvider.notifier).reset();
-    context.go('/player/home');
+    context.go(AppRoutes.home(ref.read(authNotifierProvider)!.role));
   }
 
   @override

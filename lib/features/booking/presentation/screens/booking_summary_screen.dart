@@ -10,6 +10,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class BookingSummaryScreen extends ConsumerStatefulWidget {
   const BookingSummaryScreen({super.key});
@@ -31,7 +32,7 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
           .selectPaymentMethod(_paymentMethod);
       await ref.read(bookingFlowProvider.notifier).submit();
       if (mounted) {
-        context.push('/booking/flow/payment');
+        context.push(AppRoutes.bookingFlowPayment);
       }
     } catch (e) {
       if (mounted) {

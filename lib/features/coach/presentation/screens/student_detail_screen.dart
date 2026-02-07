@@ -15,6 +15,7 @@ import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selecto
 import 'package:hyperarena/features/coach/data/models/assessment.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/radar_chart_widget.dart';
 import 'package:hyperarena/features/coach/providers/student_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class StudentDetailScreen extends ConsumerWidget {
   final String studentName;
@@ -126,7 +127,7 @@ class StudentDetailScreen extends ConsumerWidget {
                 child: AppButton(
                   label: 'Buat Penilaian Baru',
                   icon: Icons.add,
-                  onPressed: () => context.push('/coach/assessment/new'),
+                  onPressed: () => context.push(AppRoutes.assessmentNew),
                 ),
               ),
             ),

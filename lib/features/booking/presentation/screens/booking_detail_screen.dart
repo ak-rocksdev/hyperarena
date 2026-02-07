@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
@@ -51,17 +53,25 @@ class BookingDetailScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Status badge + booking code
-                      Row(
-                        children: [
-                          StatusBadge(status: booking.status),
-                          const Spacer(),
-                          Text(
-                            booking.bookingCode,
-                            style: AppTypography.labelMedium.copyWith(
-                              color: AppColors.textSecondary,
+                      Container(
+                        padding: const EdgeInsets.all(AppDimensions.md),
+                        decoration: BoxDecoration(
+                          color: AppSurfaces.surfaceHighlight,
+                          borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusLg),
+                        ),
+                        child: Row(
+                          children: [
+                            StatusBadge(status: booking.status),
+                            const Spacer(),
+                            Text(
+                              booking.bookingCode,
+                              style: AppTypography.labelMedium.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppDimensions.xl),
 
@@ -71,9 +81,10 @@ class BookingDetailScreen extends ConsumerWidget {
                         padding:
                             const EdgeInsets.all(AppDimensions.base),
                         decoration: BoxDecoration(
-                          color: AppColors.neutral50,
+                          color: AppSurfaces.surface,
                           borderRadius: BorderRadius.circular(
-                              AppDimensions.radiusMd),
+                              AppDimensions.radiusLg),
+                          boxShadow: AppShadows.sm,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,8 +144,20 @@ class BookingDetailScreen extends ConsumerWidget {
                       // Cancel button
                       if (_isCancellable(booking.status)) ...[
                         const SizedBox(height: AppDimensions.xxl),
-                        SizedBox(
+                        Container(
                           width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                                AppDimensions.radiusSm),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.error
+                                    .withValues(alpha: 0.15),
+                                offset: const Offset(0, 4),
+                                blurRadius: 12,
+                              ),
+                            ],
+                          ),
                           child: AppButton(
                             label: 'Batalkan Booking',
                             variant: AppButtonVariant.outlined,

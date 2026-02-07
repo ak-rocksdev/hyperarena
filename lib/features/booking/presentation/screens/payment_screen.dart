@@ -8,6 +8,8 @@ import 'package:hyperarena/core/mocks/mock_venues.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
@@ -83,8 +85,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             // Countdown + amount
             Container(
               width: double.infinity,
+              margin: const EdgeInsets.all(AppDimensions.base),
               padding: const EdgeInsets.all(AppDimensions.base),
-              color: AppColors.warningLight,
+              decoration: BoxDecoration(
+                color: AppColors.warningLight,
+                borderRadius: BorderRadius.circular(
+                    AppDimensions.radiusLg),
+                boxShadow: AppShadows.sm,
+              ),
               child: Column(
                 children: [
                   Text(
@@ -114,9 +122,15 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                           width: 200,
                           height: 200,
                           decoration: BoxDecoration(
-                            color: AppColors.neutral100,
+                            color: AppSurfaces.surface,
                             borderRadius: BorderRadius.circular(
-                                AppDimensions.radiusMd),
+                                AppDimensions.radiusLg),
+                            boxShadow: AppShadows.sm,
+                            border: Border.all(
+                              color: AppColors.neutral200,
+                              width: 1.5,
+                              strokeAlign: BorderSide.strokeAlignInside,
+                            ),
                           ),
                           child: const Icon(
                             Icons.qr_code_2,
@@ -145,48 +159,64 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                         ...paymentMethods
                             .where(
                                 (pm) => pm.type == PaymentMethodType.bankTransfer)
-                            .map((pm) => Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      pm.bankName ?? 'Bank',
-                                      style: AppTypography.titleMedium,
-                                    ),
-                                    const SizedBox(height: AppDimensions.md),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            pm.accountNumber ?? '',
-                                            style:
-                                                AppTypography.numberMedium,
+                            .map((pm) => Container(
+                                  margin: const EdgeInsets.only(
+                                      bottom: AppDimensions.md),
+                                  padding:
+                                      const EdgeInsets.all(AppDimensions.base),
+                                  decoration: BoxDecoration(
+                                    color: AppSurfaces.surface,
+                                    borderRadius: BorderRadius.circular(
+                                        AppDimensions.radiusMd),
+                                    boxShadow: AppShadows.xs,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        pm.bankName ?? 'Bank',
+                                        style: AppTypography.titleMedium,
+                                      ),
+                                      const SizedBox(
+                                          height: AppDimensions.md),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              pm.accountNumber ?? '',
+                                              style:
+                                                  AppTypography.numberMedium,
+                                            ),
                                           ),
-                                        ),
-                                        IconButton(
-                                          icon:
-                                              const Icon(Icons.copy, size: 20),
-                                          onPressed: () {
-                                            Clipboard.setData(ClipboardData(
-                                              text: pm.accountNumber ?? '',
-                                            ));
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                    'Nomor rekening disalin'),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: AppDimensions.xs),
-                                    Text(
-                                      'a.n. ${pm.accountHolderName ?? ''}',
-                                      style: AppTypography.bodySmall,
-                                    ),
-                                  ],
+                                          IconButton(
+                                            icon: const Icon(
+                                                Icons.copy, size: 20),
+                                            onPressed: () {
+                                              Clipboard.setData(
+                                                  ClipboardData(
+                                                text:
+                                                    pm.accountNumber ?? '',
+                                              ));
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'Nomor rekening disalin'),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(
+                                          height: AppDimensions.xs),
+                                      Text(
+                                        'a.n. ${pm.accountHolderName ?? ''}',
+                                        style: AppTypography.bodySmall,
+                                      ),
+                                    ],
+                                  ),
                                 )),
                       ],
                     ),
@@ -198,8 +228,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             // Bottom button
             Padding(
               padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
-              child: SizedBox(
+              child: Container(
                 width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusSm),
+                  boxShadow: AppShadows.colored,
+                ),
                 child: AppButton(
                   label: 'Saya Sudah Bayar',
                   isLarge: true,

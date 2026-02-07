@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
@@ -63,57 +65,96 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                   Text('Detail Booking', style: AppTypography.titleMedium),
                   const SizedBox(height: AppDimensions.md),
 
-                  _InfoRow('Venue', flow.venue?.name ?? '-'),
-                  _InfoRow('Lapangan', flow.court?.name ?? '-'),
-                  _InfoRow(
-                    'Tanggal',
-                    flow.date != null
-                        ? Formatters.formatDate(flow.date!)
-                        : '-',
-                  ),
-                  if (slots.isNotEmpty)
-                    _InfoRow(
-                      'Waktu',
-                      '${slots.first.startTime} - ${slots.last.endTime}',
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppDimensions.base),
+                    decoration: BoxDecoration(
+                      color: AppSurfaces.surface,
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusLg),
+                      boxShadow: AppShadows.sm,
                     ),
-                  _InfoRow(
-                    'Durasi',
-                    Formatters.formatDuration(slots.length),
+                    child: Column(
+                      children: [
+                        _InfoRow('Venue', flow.venue?.name ?? '-'),
+                        _InfoRow('Lapangan', flow.court?.name ?? '-'),
+                        _InfoRow(
+                          'Tanggal',
+                          flow.date != null
+                              ? Formatters.formatDate(flow.date!)
+                              : '-',
+                        ),
+                        if (slots.isNotEmpty)
+                          _InfoRow(
+                            'Waktu',
+                            '${slots.first.startTime} - ${slots.last.endTime}',
+                          ),
+                        _InfoRow(
+                          'Durasi',
+                          Formatters.formatDuration(slots.length),
+                        ),
+                      ],
+                    ),
                   ),
 
-                  const Divider(height: AppDimensions.xl),
+                  const SizedBox(height: AppDimensions.xl),
 
                   // Price breakdown
                   Text('Rincian Biaya', style: AppTypography.titleMedium),
                   const SizedBox(height: AppDimensions.md),
-                  ...slots.map((slot) => Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: AppDimensions.xs),
-                        child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${slot.startTime} - ${slot.endTime}${slot.isPeak ? ' (Peak)' : ''}',
-                              style: AppTypography.bodySmall,
-                            ),
-                            Text(
-                              Formatters.formatRupiah(slot.price),
-                              style: AppTypography.bodySmall,
-                            ),
-                          ],
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppDimensions.base),
+                    decoration: BoxDecoration(
+                      color: AppSurfaces.surface,
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusLg),
+                      boxShadow: AppShadows.sm,
+                    ),
+                    child: Column(
+                      children: [
+                        ...slots.map((slot) => Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: AppDimensions.xs),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${slot.startTime} - ${slot.endTime}${slot.isPeak ? ' (Peak)' : ''}',
+                                    style: AppTypography.bodySmall,
+                                  ),
+                                  Text(
+                                    Formatters.formatRupiah(slot.price),
+                                    style: AppTypography.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            )),
+                        const Divider(height: AppDimensions.base),
+                        Container(
+                          padding: const EdgeInsets.all(AppDimensions.sm),
+                          decoration: BoxDecoration(
+                            color: AppSurfaces.surfaceHighlight,
+                            borderRadius: BorderRadius.circular(
+                                AppDimensions.radiusMd),
+                          ),
+                          child: Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Total',
+                                  style: AppTypography.titleMedium),
+                              Text(
+                                Formatters.formatRupiah(flow.totalAmount),
+                                style: AppTypography.priceLarge,
+                              ),
+                            ],
+                          ),
                         ),
-                      )),
-                  const Divider(height: AppDimensions.base),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Total', style: AppTypography.titleMedium),
-                      Text(
-                        Formatters.formatRupiah(flow.totalAmount),
-                        style: AppTypography.priceLarge,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: AppDimensions.xl),
@@ -152,8 +193,13 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
           // Bottom button
           Padding(
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
-            child: SizedBox(
+            child: Container(
               width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                    AppDimensions.radiusSm),
+                boxShadow: AppShadows.colored,
+              ),
               child: AppButton(
                 label: 'Lanjutkan ke Pembayaran',
                 isLarge: true,

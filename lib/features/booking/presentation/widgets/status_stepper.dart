@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 
 class StatusStepper extends StatelessWidget {
@@ -30,7 +31,7 @@ class StatusStepper extends StatelessWidget {
             final isCompleted = stepIndex < activeIndex;
             return Expanded(
               child: Container(
-                height: 2,
+                height: 3,
                 color: isCompleted
                     ? (isError ? AppColors.error : AppColors.primary)
                     : AppColors.neutral200,
@@ -71,11 +72,16 @@ class StatusStepper extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 24,
-                height: 24,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: circleColor,
                   shape: BoxShape.circle,
+                  boxShadow: isCompleted
+                      ? AppShadows.xs
+                      : isActive
+                          ? AppShadows.sm
+                          : null,
                 ),
                 child: Center(child: circleChild),
               ),

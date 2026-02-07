@@ -10,6 +10,7 @@ import 'package:hyperarena/core/utils/validators.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/core/widgets/app_text_field.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -187,7 +188,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               style: AppTypography.bodyMedium,
                             ),
                             GestureDetector(
-                              onTap: () => context.go('/auth/register'),
+                              onTap: () => context.go(AppRoutes.register),
                               child: Text(
                                 'Daftar',
                                 style: AppTypography.bodyMedium.copyWith(

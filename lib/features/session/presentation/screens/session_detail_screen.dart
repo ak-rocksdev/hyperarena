@@ -10,6 +10,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
@@ -223,7 +224,7 @@ class SessionDetailScreen extends ConsumerWidget {
                               (isFull || !joinState.hasSelectedSlot)
                                   ? null
                                   : () => context
-                                      .push('/session/flow/payment'),
+                                      .push(AppRoutes.sessionFlowPayment),
                         ),
                       ),
                     ),

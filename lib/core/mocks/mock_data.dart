@@ -6,7 +6,10 @@ import 'package:hyperarena/core/mocks/mock_bookings.dart';
 import 'package:hyperarena/core/mocks/mock_coach_packages.dart';
 import 'package:hyperarena/core/mocks/mock_coaches.dart';
 import 'package:hyperarena/core/mocks/mock_coaching_bookings.dart';
+import 'package:hyperarena/core/mocks/mock_organizer_data.dart';
+import 'package:hyperarena/core/mocks/mock_owner_data.dart';
 import 'package:hyperarena/core/mocks/mock_sessions.dart';
+import 'package:hyperarena/core/mocks/mock_session_participants.dart';
 import 'package:hyperarena/core/mocks/mock_users.dart';
 import 'package:hyperarena/core/mocks/mock_venues.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
@@ -17,24 +20,96 @@ import 'package:hyperarena/features/coach/data/models/coach.dart';
 import 'package:hyperarena/features/coach/data/models/coach_package.dart';
 import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/gamification/data/models/badge.dart';
+import 'package:hyperarena/features/organizer/data/models/club_member.dart';
+import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
+import 'package:hyperarena/features/owner/data/models/court_availability_issue.dart';
 import 'package:hyperarena/features/profile/data/models/player_profile.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
+import 'package:hyperarena/features/session/data/models/session_participant.dart';
 import 'package:hyperarena/features/venue/data/models/court_slot.dart';
 import 'package:hyperarena/features/venue/data/models/venue.dart';
 
 /// Central registry for all mock data.
 abstract final class MockData {
+  static final List<Booking> _bookingStore = List.from(MockBookings.bookings);
+  static final List<OpenSession> _sessionStore = List.from(
+    MockSessions.sessions,
+  );
+  static final List<SessionParticipant> _sessionParticipantStore = List.from(
+    MockSessionParticipants.participants,
+  );
+  static final List<Venue> _venueStore = List.from(MockVenues.venues);
+  static final List<CourtAvailabilityIssue> _ownerIssueStore = List.from(
+    MockOwnerData.issues,
+  );
+
   static User get currentUser => MockUsers.currentUser;
+  static User get organizerUser => MockUsers.organizerUser;
+  static User get ownerUser => MockUsers.ownerUser;
   static PlayerProfile get currentProfile => MockUsers.currentProfile;
-  static List<Venue> get venues => MockVenues.venues;
-  static List<Booking> get bookings => MockBookings.bookings;
+  static List<Venue> get venues => _venueStore;
+  static List<Booking> get bookings => _bookingStore;
   static List<Badge> get badges => MockBadges.badges;
   static List<Coach> get coaches => MockCoaches.coaches;
-  static List<OpenSession> get sessions => MockSessions.sessions;
+  static List<OpenSession> get sessions => _sessionStore;
+  static List<SessionParticipant> get sessionParticipants =>
+      _sessionParticipantStore;
   static List<CoachPackage> get coachPackages => MockCoachPackages.packages;
   static List<Assessment> get assessments => MockAssessments.assessments;
   static List<CoachingBooking> get coachingBookings =>
       MockCoachingBookings.bookings;
+  static ClubProfile get clubProfile => MockOrganizerData.clubProfile;
+  static List<ClubMember> get clubMembers => MockOrganizerData.clubMembers;
+  static Map<String, String> get organizerSessionTemplates =>
+      MockOrganizerData.sessionTemplates;
+  static List<CourtAvailabilityIssue> get ownerIssues => _ownerIssueStore;
+
+  static void upsertBooking(Booking booking) {
+    final index = _bookingStore.indexWhere((b) => b.id == booking.id);
+    if (index == -1) {
+      _bookingStore.insert(0, booking);
+      return;
+    }
+    _bookingStore[index] = booking;
+  }
+
+  static void upsertSession(OpenSession session) {
+    final index = _sessionStore.indexWhere((s) => s.id == session.id);
+    if (index == -1) {
+      _sessionStore.insert(0, session);
+      return;
+    }
+    _sessionStore[index] = session;
+  }
+
+  static void upsertParticipant(SessionParticipant participant) {
+    final index = _sessionParticipantStore.indexWhere(
+      (p) => p.id == participant.id,
+    );
+    if (index == -1) {
+      _sessionParticipantStore.insert(0, participant);
+      return;
+    }
+    _sessionParticipantStore[index] = participant;
+  }
+
+  static void upsertVenue(Venue venue) {
+    final index = _venueStore.indexWhere((v) => v.id == venue.id);
+    if (index == -1) {
+      _venueStore.insert(0, venue);
+      return;
+    }
+    _venueStore[index] = venue;
+  }
+
+  static void upsertOwnerIssue(CourtAvailabilityIssue issue) {
+    final index = _ownerIssueStore.indexWhere((i) => i.id == issue.id);
+    if (index == -1) {
+      _ownerIssueStore.insert(0, issue);
+      return;
+    }
+    _ownerIssueStore[index] = issue;
+  }
 
   static List<PaymentMethodInfo> paymentMethodsForVenue(String venueId) =>
       MockVenues.paymentMethods[venueId] ?? [];
@@ -48,8 +123,7 @@ abstract final class MockData {
 
     return List.generate(15, (i) {
       final hour = 7 + i;
-      final isPeak =
-          (hour >= 7 && hour <= 8) || (hour >= 17 && hour <= 20);
+      final isPeak = (hour >= 7 && hour <= 8) || (hour >= 17 && hour <= 20);
       final price = isPeak ? (basePrice * 1.5).toInt() : basePrice;
       final isAvailable = random.nextDouble() > 0.3;
 

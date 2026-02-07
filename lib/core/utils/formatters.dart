@@ -1,3 +1,4 @@
+import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:intl/intl.dart';
 
 /// Formatting utilities for Rupiah, dates, times, and durations.
@@ -31,4 +32,11 @@ abstract final class Formatters {
 
   /// Format duration in hours: 2 → "2 jam"
   static String formatDuration(int hours) => '$hours jam';
+
+  /// Human-readable label for session visibility.
+  static String visibilityLabel(SessionVisibility v) => switch (v) {
+    SessionVisibility.free => 'Gratis / Terbuka',
+    SessionVisibility.invitationOnly => 'Undangan Publik',
+    SessionVisibility.membersOnly => 'Khusus Member',
+  };
 }

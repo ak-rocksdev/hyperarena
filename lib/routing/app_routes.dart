@@ -22,12 +22,14 @@ abstract final class AppRoutes {
 
   static String explore(UserRole role) => switch (role) {
     UserRole.player => '/player/explore',
-    UserRole.organizer => '/organizer/explore',
+    UserRole.organizer => organizerSessions,
+    UserRole.courtOwner => ownerVenues,
     _ => '/player/explore',
   };
 
   static String bookings(UserRole role) => switch (role) {
     UserRole.player => '/player/bookings',
+    UserRole.courtOwner => ownerBookingQueue,
     _ => '/player/bookings',
   };
 
@@ -56,6 +58,26 @@ abstract final class AppRoutes {
   // ── Session flow ───────────────────────────────────────────────────
   static const sessionFlowPayment = '/session/flow/payment';
   static const sessionFlowConfirmation = '/session/flow/confirmation';
+
+  // ── Organizer routes ───────────────────────────────────────────────
+  static const organizerDashboard = '/organizer/dashboard';
+  static const organizerSessions = '/organizer/sessions';
+  static const organizerClub = '/organizer/club';
+  static const organizerProfile = '/organizer/profile';
+  static const organizerCreateSession = '/organizer/session/create';
+  static String organizerSessionDetail(String id) => '/organizer/session/$id';
+  static String organizerParticipants(String sessionId) =>
+      '/organizer/session/$sessionId/participants';
+  static const organizerEarnings = '/organizer/earnings';
+  static const organizerInbox = '/organizer/inbox';
+  static const organizerAgenda = '/organizer/agenda';
+
+  // ── Owner routes ───────────────────────────────────────────────────
+  static const ownerDashboard = '/owner/dashboard';
+  static const ownerVenues = '/owner/venues';
+  static String ownerVenueDetail(String id) => '/owner/venue/$id';
+  static const ownerProfile = '/owner/profile';
+  static const ownerBookingQueue = '/owner/bookings';
 
   // ── Coach booking flow (player-initiated) ──────────────────────────
   static const coachBooking = '/coach/booking';

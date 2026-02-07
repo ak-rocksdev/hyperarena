@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 
-/// Placeholder screens for Phase 0 — replaced by real screens in Phase 1+
+/// Placeholder screen — replaced task-by-task as real screens are built.
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
   const _PlaceholderScreen({required this.title});
@@ -18,7 +19,6 @@ class _PlaceholderScreen extends StatelessWidget {
 }
 
 /// Role-aware bottom navigation shell.
-/// Reference: Architecture doc Section 6.2
 class RoleShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   final UserRole role;
@@ -42,82 +42,133 @@ class RoleShell extends StatelessWidget {
   }
 
   List<NavigationDestination> _destinations(UserRole role) => switch (role) {
-    UserRole.player => const [
-      NavigationDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
-        label: 'Home',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.explore_outlined),
-        selectedIcon: Icon(Icons.explore),
-        label: 'Explore',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.calendar_today_outlined),
-        selectedIcon: Icon(Icons.calendar_today),
-        label: 'Bookings',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person),
-        label: 'Profile',
-      ),
-    ],
-    UserRole.coach => const [
-      NavigationDestination(
-        icon: Icon(Icons.dashboard_outlined),
-        selectedIcon: Icon(Icons.dashboard),
-        label: 'Dashboard',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.schedule_outlined),
-        selectedIcon: Icon(Icons.schedule),
-        label: 'Schedule',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.people_outline),
-        selectedIcon: Icon(Icons.people),
-        label: 'Students',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person),
-        label: 'Profile',
-      ),
-    ],
-    UserRole.organizer => const [
-      NavigationDestination(
-        icon: Icon(Icons.dashboard_outlined),
-        selectedIcon: Icon(Icons.dashboard),
-        label: 'Dashboard',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.event_outlined),
-        selectedIcon: Icon(Icons.event),
-        label: 'Sessions',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.group_outlined),
-        selectedIcon: Icon(Icons.group),
-        label: 'Community',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person),
-        label: 'Profile',
-      ),
-    ],
-  };
+        UserRole.player => const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.explore_outlined),
+              selectedIcon: Icon(Icons.explore),
+              label: 'Explore',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.calendar_today_outlined),
+              selectedIcon: Icon(Icons.calendar_today),
+              label: 'Bookings',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        UserRole.coach => const [
+            NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined),
+              selectedIcon: Icon(Icons.dashboard),
+              label: 'Dashboard',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.schedule_outlined),
+              selectedIcon: Icon(Icons.schedule),
+              label: 'Schedule',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.people_outline),
+              selectedIcon: Icon(Icons.people),
+              label: 'Students',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        UserRole.organizer => const [
+            NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined),
+              selectedIcon: Icon(Icons.dashboard),
+              label: 'Dashboard',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.event_outlined),
+              selectedIcon: Icon(Icons.event),
+              label: 'Sessions',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.group_outlined),
+              selectedIcon: Icon(Icons.group),
+              label: 'Community',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+      };
 }
 
-/// Phase 0 router — Player shell only, placeholder screens.
-/// Coach and Organizer shells added in Phase 2+3.
+/// Auth routes that don't require authentication.
+const _publicPaths = {
+  '/splash',
+  '/onboarding',
+  '/auth/login',
+  '/auth/register',
+  '/auth/sport-selection',
+};
+
+/// Phase 1 router — Auth guards, Player shell, booking flow.
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authNotifierProvider);
+
   return GoRouter(
-    initialLocation: '/player/home',
+    initialLocation: '/splash',
+    redirect: (context, state) {
+      final isAuthenticated = authState != null;
+      final isPublicRoute = _publicPaths.contains(state.matchedLocation);
+
+      // Not authenticated and trying to access protected route
+      if (!isAuthenticated && !isPublicRoute) {
+        return '/auth/login';
+      }
+
+      // Authenticated and on auth route (but not sport-selection)
+      if (isAuthenticated &&
+          (state.matchedLocation == '/auth/login' ||
+              state.matchedLocation == '/auth/register')) {
+        return '/player/home';
+      }
+
+      return null;
+    },
     routes: [
-      // Player shell (4 tabs)
+      // ── Pre-auth routes ──────────────────────────────
+      GoRoute(
+        path: '/splash',
+        builder: (_, _) => const _PlaceholderScreen(title: 'Splash'),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (_, _) => const _PlaceholderScreen(title: 'Onboarding'),
+      ),
+      GoRoute(
+        path: '/auth/login',
+        builder: (_, _) => const _PlaceholderScreen(title: 'Login'),
+      ),
+      GoRoute(
+        path: '/auth/register',
+        builder: (_, _) => const _PlaceholderScreen(title: 'Register'),
+      ),
+      GoRoute(
+        path: '/auth/sport-selection',
+        builder: (_, _) =>
+            const _PlaceholderScreen(title: 'Sport Selection'),
+      ),
+
+      // ── Player shell (4 tabs) ────────────────────────
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => RoleShell(
           navigationShell: shell,
@@ -133,22 +184,66 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/player/explore',
-              builder: (_, _) => const _PlaceholderScreen(title: 'Explore'),
+              builder: (_, _) =>
+                  const _PlaceholderScreen(title: 'Explore'),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/player/bookings',
-              builder: (_, _) => const _PlaceholderScreen(title: 'Bookings'),
+              builder: (_, _) =>
+                  const _PlaceholderScreen(title: 'Bookings'),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/player/profile',
-              builder: (_, _) => const _PlaceholderScreen(title: 'Profile'),
+              builder: (_, _) =>
+                  const _PlaceholderScreen(title: 'Profile'),
             ),
           ]),
         ],
+      ),
+
+      // ── Full-screen routes (outside shell) ────────────
+      GoRoute(
+        path: '/venue/:id',
+        builder: (_, state) => _PlaceholderScreen(
+          title: 'Venue ${state.pathParameters['id']}',
+        ),
+      ),
+      GoRoute(
+        path: '/booking/:id',
+        builder: (_, state) => _PlaceholderScreen(
+          title: 'Booking ${state.pathParameters['id']}',
+        ),
+      ),
+
+      // ── Booking flow routes ───────────────────────────
+      GoRoute(
+        path: '/booking/flow/court/:courtId',
+        builder: (_, state) => _PlaceholderScreen(
+          title: 'Book Court ${state.pathParameters['courtId']}',
+        ),
+      ),
+      GoRoute(
+        path: '/booking/flow/slots',
+        builder: (_, _) => const _PlaceholderScreen(title: 'Slot Selection'),
+      ),
+      GoRoute(
+        path: '/booking/flow/summary',
+        builder: (_, _) =>
+            const _PlaceholderScreen(title: 'Booking Summary'),
+      ),
+      GoRoute(
+        path: '/booking/flow/payment',
+        builder: (_, _) => const _PlaceholderScreen(title: 'Payment'),
+      ),
+      GoRoute(
+        path: '/booking/flow/confirmation/:bookingId',
+        builder: (_, state) => _PlaceholderScreen(
+          title: 'Confirmation ${state.pathParameters['bookingId']}',
+        ),
       ),
     ],
   );

@@ -55,7 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _emailController.text.trim(),
             _passwordController.text,
           );
-      if (mounted) context.go('/player/home');
+      // Router redirect handles navigation by role automatically
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,6 +65,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _quickLogin(String email) {
+    _emailController.text = email;
+    _passwordController.text = MockUsers.mockPassword;
+    _submit();
   }
 
   @override
@@ -192,6 +198,71 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ],
                         ),
+                        // Quick login buttons (mock only)
+                        if (ref.read(appConfigProvider).useMockData) ...[
+                          const SizedBox(height: AppDimensions.xl),
+                          Divider(color: AppColors.neutral200),
+                          const SizedBox(height: AppDimensions.sm),
+                          Text(
+                            'Quick Login (Mock)',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: AppDimensions.sm),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _QuickLoginButton(
+                                  label: 'Player',
+                                  icon: Icons.person,
+                                  color: AppColors.primary,
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => _quickLogin(MockUsers.currentUser.email),
+                                ),
+                              ),
+                              const SizedBox(width: AppDimensions.sm),
+                              Expanded(
+                                child: _QuickLoginButton(
+                                  label: 'Coach',
+                                  icon: Icons.sports,
+                                  color: AppColors.secondary,
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => _quickLogin(MockUsers.coachUser.email),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppDimensions.sm),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _QuickLoginButton(
+                                  label: 'Host',
+                                  icon: Icons.event,
+                                  color: AppColors.accent,
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => _quickLogin(MockUsers.organizerUser.email),
+                                ),
+                              ),
+                              const SizedBox(width: AppDimensions.sm),
+                              Expanded(
+                                child: _QuickLoginButton(
+                                  label: 'Owner',
+                                  icon: Icons.store,
+                                  color: AppColors.neutral500,
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => _quickLogin(MockUsers.ownerUser.email),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: AppDimensions.xxl),
                         Text(
                           'Beta Release v0.0.1',
@@ -208,6 +279,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _QuickLoginButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  const _QuickLoginButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: color,
+        side: BorderSide(color: color),
+        padding: const EdgeInsets.symmetric(vertical: AppDimensions.sm),
       ),
     );
   }

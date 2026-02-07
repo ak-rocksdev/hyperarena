@@ -4,12 +4,18 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
+import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/booking/data/models/booking.dart';
+import 'package:hyperarena/features/gamification/data/models/badge.dart'
+    as badge_model;
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -18,164 +24,520 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authNotifierProvider);
     final profile = MockData.currentProfile;
+    final badges = MockData.badges;
+    final bookings = MockData.bookings;
     final gamification =
         Theme.of(context).extension<GamificationThemeExtension>()!;
+    final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
+    final statusTheme =
+        Theme.of(context).extension<BookingStatusThemeExtension>()!;
 
     final nextThreshold = GamificationHelpers.threshold(profile.levelTier);
     final progress = GamificationHelpers.xpProgress(
       profile.totalXp,
       profile.levelTier,
     );
+    final xpToNext = nextThreshold - profile.totalXp;
+
+    // Sort bookings by date descending, take last 3
+    final recentBookings = [...bookings]
+      ..sort((a, b) => b.bookingDate.compareTo(a.bookingDate));
+    final lastThreeBookings = recentBookings.take(3).toList();
+
+    // Hardcoded sport stats (since Booking model lacks sport field)
+    final sportStats = <Sport, Map<String, int>>{
+      Sport.tennis: {'bookings': 4, 'hours': 8},
+      Sport.badminton: {'bookings': 2, 'hours': 4},
+    };
+
+    final userName = user?.name ?? 'Player';
+    final userInitial = userName.substring(0, 1).toUpperCase();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
-        child: Column(
-          children: [
-            const SizedBox(height: AppDimensions.xl),
-
-            // Avatar with ring + shadow
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primary,
-                  width: 3,
+      body: CustomScrollView(
+        slivers: [
+          // ── 1. Hero Header SliverAppBar ──
+          SliverAppBar(
+            expandedHeight: 280,
+            pinned: true,
+            backgroundColor: AppColors.primary700,
+            title: const Text('Profil'),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: AppSurfaces.primaryGradient,
                 ),
-                boxShadow: AppShadows.md,
-              ),
-              child: CircleAvatar(
-                radius: AppDimensions.avatarXl / 2,
-                backgroundColor: AppColors.primary50,
-                child: Text(
-                  (user?.name ?? 'P').substring(0, 1).toUpperCase(),
-                  style: AppTypography.displaySmall.copyWith(
-                    color: AppColors.primary,
-                  ),
+                child: Stack(
+                  children: [
+                    // Decorative circles
+                    Positioned(
+                      top: -30,
+                      right: -20,
+                      child: Container(
+                        width: 160,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.10),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 20,
+                      left: -40,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.10),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 60,
+                      left: 30,
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.05),
+                        ),
+                      ),
+                    ),
+                    // Center content: avatar + name + level badge
+                    SafeArea(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: AppDimensions.xl),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Avatar with white border and shadow
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 3,
+                                  ),
+                                  boxShadow: AppShadows.lg,
+                                ),
+                                child: CircleAvatar(
+                                  radius: AppDimensions.avatarXl / 2,
+                                  backgroundColor: AppColors.primary50,
+                                  child: Text(
+                                    userInitial,
+                                    style: AppTypography.displaySmall.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: AppDimensions.md),
+                              // Player name
+                              Text(
+                                userName,
+                                style: AppTypography.headingMedium.copyWith(
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: AppDimensions.sm),
+                              // Level badge pill
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: gamification
+                                      .levelBackgroundColor(profile.levelTier),
+                                  borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusFull,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.star_rounded,
+                                      size: 16,
+                                      color: gamification
+                                          .levelTextColor(profile.levelTier),
+                                    ),
+                                    const SizedBox(width: AppDimensions.xs),
+                                    Text(
+                                      GamificationHelpers.tierLabel(
+                                        profile.levelTier,
+                                      ),
+                                      style:
+                                          AppTypography.labelMedium.copyWith(
+                                        color: gamification
+                                            .levelTextColor(profile.levelTier),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: AppDimensions.md),
+          ),
 
-            // Name
-            Text(
-              user?.name ?? 'Player',
-              style: AppTypography.headingMedium,
-            ),
-            const SizedBox(height: AppDimensions.sm),
-
-            // Level badge
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: gamification.levelBackgroundColor(profile.levelTier),
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusFull),
-              ),
-              child: Text(
-                GamificationHelpers.tierLabel(profile.levelTier),
-                style: AppTypography.labelMedium.copyWith(
-                  color: gamification.levelTextColor(profile.levelTier),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppDimensions.base),
-
-            // XP progress
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          // ── Rest of content ──
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${profile.totalXp} XP',
-                  style: AppTypography.labelMedium.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-                Text(
-                  ' / $nextThreshold XP',
-                  style: AppTypography.caption,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppDimensions.sm),
-
-            // Custom XP progress bar
-            Container(
-              height: 8,
-              decoration: BoxDecoration(
-                color: AppColors.neutral100,
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusFull),
-              ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: progress,
+                // ── 2. XP Progress Section (overlaps gradient slightly) ──
+                Transform.translate(
+                  offset: const Offset(0, -16),
                   child: Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.screenHorizontal,
+                    ),
+                    padding: const EdgeInsets.all(AppDimensions.base),
                     decoration: BoxDecoration(
-                      color: gamification.levelColor(profile.levelTier),
+                      color: AppSurfaces.surface,
                       borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusFull),
+                        AppDimensions.radiusXl,
+                      ),
+                      boxShadow: AppShadows.sm,
+                    ),
+                    child: Column(
+                      children: [
+                        // XP text
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${profile.totalXp}',
+                              style: AppTypography.labelMedium.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              ' / $nextThreshold XP',
+                              style: AppTypography.caption,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppDimensions.sm),
+                        // Progress bar
+                        Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppColors.neutral100,
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusFull,
+                            ),
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: FractionallySizedBox(
+                              widthFactor: progress,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: gamification
+                                      .levelColor(profile.levelTier),
+                                  borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusFull,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppDimensions.sm),
+                        // XP to next level
+                        Text(
+                          '+$xpToNext XP ke Level Berikutnya',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: AppDimensions.xl),
 
-            // Quick stats
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.calendar_today,
-                    value: '6',
-                    label: 'Total Booking',
+                // ── 3. Streak Banner ──
+                if (profile.bookingStreak > 0) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.screenHorizontal,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.base,
+                        vertical: AppDimensions.md,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent50,
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusLg,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.local_fire_department,
+                            color: AppColors.accent,
+                            size: 22,
+                          ),
+                          const SizedBox(width: AppDimensions.sm),
+                          Text(
+                            '${profile.bookingStreak} booking berturut-turut!',
+                            style: AppTypography.titleSmall.copyWith(
+                              color: AppColors.accent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppDimensions.lg),
+                ],
+
+                // ── 4. Pencapaian (Achievements) Section ──
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.screenHorizontal,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Pencapaian', style: AppTypography.titleMedium),
+                      GestureDetector(
+                        onTap: () {},
+                        child: Text(
+                          'Lihat Semua \u2192',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: AppDimensions.md),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.sports,
-                    value: '${profile.sports.length}',
-                    label: 'Olahraga',
+                const SizedBox(height: AppDimensions.md),
+                SizedBox(
+                  height: 150,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.screenHorizontal,
+                    ),
+                    itemCount: badges.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(width: AppDimensions.sm),
+                    itemBuilder: (context, index) {
+                      final badge = badges[index];
+                      return _BadgeCard(
+                        badge: badge,
+                        tierColor: gamification.levelColor(profile.levelTier),
+                      );
+                    },
                   ),
                 ),
+                const SizedBox(height: AppDimensions.xl),
+
+                // ── 5. Statistik Olahraga (Sport Stats) Section ──
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.screenHorizontal,
+                  ),
+                  child: Text(
+                    'Statistik Olahraga',
+                    style: AppTypography.titleMedium,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.md),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.screenHorizontal,
+                  ),
+                  child: Column(
+                    children: [
+                      for (final sport in profile.sports) ...[
+                        _SportStatRow(
+                          sport: sport,
+                          sportTheme: sportTheme,
+                          gamification: gamification,
+                          bookingCount:
+                              sportStats[sport]?['bookings'] ?? 0,
+                          hours: sportStats[sport]?['hours'] ?? 0,
+                          levelLabel: profile
+                                  .selfAssessedLevels[sport.name] ??
+                              'rookie',
+                        ),
+                        if (sport != profile.sports.last)
+                          const SizedBox(height: AppDimensions.sm),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.xl),
+
+                // ── 6. Aktivitas Terbaru (Recent Activity) Section ──
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.screenHorizontal,
+                  ),
+                  child: Text(
+                    'Aktivitas Terbaru',
+                    style: AppTypography.titleMedium,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.md),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.screenHorizontal,
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < lastThreeBookings.length; i++) ...[
+                        _RecentActivityCard(
+                          booking: lastThreeBookings[i],
+                          statusTheme: statusTheme,
+                          sportTheme: sportTheme,
+                          sport: profile.sports.first,
+                        ),
+                        if (i < lastThreeBookings.length - 1)
+                          const SizedBox(height: AppDimensions.sm),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.xl),
+
+                // ── 7. Menu Items ──
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.screenHorizontal,
+                  ),
+                  child: Column(
+                    children: [
+                      _MenuItem(
+                        icon: Icons.edit,
+                        label: 'Edit Profil',
+                        onTap: () {},
+                      ),
+                      _MenuItem(
+                        icon: Icons.emoji_events,
+                        label: 'Pencapaian',
+                        onTap: () {},
+                      ),
+                      _MenuItem(
+                        icon: Icons.settings,
+                        label: 'Pengaturan',
+                        onTap: () {},
+                      ),
+                      _MenuItem(
+                        icon: Icons.info_outline,
+                        label: 'Tentang Aplikasi',
+                        onTap: () => _showAboutDialog(context),
+                      ),
+                      _MenuItem(
+                        icon: Icons.logout,
+                        label: 'Keluar',
+                        isDestructive: true,
+                        onTap: () async {
+                          await ref
+                              .read(authNotifierProvider.notifier)
+                              .logout();
+                          if (context.mounted) context.go('/auth/login');
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.xxl),
               ],
             ),
-            const SizedBox(height: AppDimensions.xl),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-            // Menu items
-            _MenuItem(
-              icon: Icons.edit,
-              label: 'Edit Profil',
-              onTap: () {},
+// ── Badge Card Widget ──
+
+class _BadgeCard extends StatelessWidget {
+  final badge_model.Badge badge;
+  final Color tierColor;
+
+  const _BadgeCard({
+    required this.badge,
+    required this.tierColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isUnlocked = badge.isUnlocked;
+    return Opacity(
+      opacity: isUnlocked ? 1.0 : 0.5,
+      child: Container(
+        width: 100,
+        padding: const EdgeInsets.all(AppDimensions.sm),
+        decoration: BoxDecoration(
+          color: isUnlocked ? AppSurfaces.surfaceHighlight : AppSurfaces.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          boxShadow: AppShadows.xs,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Icon circle
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isUnlocked
+                    ? AppColors.primary50
+                    : AppColors.neutral100,
+                boxShadow: isUnlocked ? AppShadows.xs : null,
+              ),
+              child: Icon(
+                _mapBadgeIcon(badge.iconName),
+                size: 24,
+                color: isUnlocked ? tierColor : AppColors.neutral400,
+              ),
             ),
-            _MenuItem(
-              icon: Icons.emoji_events,
-              label: 'Pencapaian',
-              onTap: () {},
+            const SizedBox(height: AppDimensions.sm),
+            // Badge name
+            Text(
+              badge.name,
+              style: AppTypography.caption.copyWith(
+                fontWeight: isUnlocked ? FontWeight.w600 : FontWeight.w400,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
-            _MenuItem(
-              icon: Icons.settings,
-              label: 'Pengaturan',
-              onTap: () {},
-            ),
-            _MenuItem(
-              icon: Icons.info_outline,
-              label: 'Tentang Aplikasi',
-              onTap: () => _showAboutDialog(context),
-            ),
-            _MenuItem(
-              icon: Icons.logout,
-              label: 'Keluar',
-              isDestructive: true,
-              onTap: () async {
-                await ref.read(authNotifierProvider.notifier).logout();
-                if (context.mounted) context.go('/auth/login');
-              },
+            const SizedBox(height: AppDimensions.xs),
+            // Status label
+            Text(
+              isUnlocked ? 'Terbuka' : 'Terkunci',
+              style: AppTypography.caption.copyWith(
+                fontSize: 10,
+                color: isUnlocked
+                    ? AppColors.success
+                    : AppColors.textTertiary,
+              ),
             ),
           ],
         ),
@@ -183,6 +545,279 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 }
+
+// ── Sport Stat Row Widget ──
+
+class _SportStatRow extends StatelessWidget {
+  final Sport sport;
+  final SportThemeExtension sportTheme;
+  final GamificationThemeExtension gamification;
+  final int bookingCount;
+  final int hours;
+  final String levelLabel;
+
+  const _SportStatRow({
+    required this.sport,
+    required this.sportTheme,
+    required this.gamification,
+    required this.bookingCount,
+    required this.hours,
+    required this.levelLabel,
+  });
+
+  LevelTier _parseTier(String label) => switch (label.toLowerCase()) {
+        'rookie' => LevelTier.rookie,
+        'amateur' => LevelTier.amateur,
+        'intermediate' => LevelTier.intermediate,
+        'advanced' => LevelTier.advanced,
+        'pro' => LevelTier.pro,
+        _ => LevelTier.rookie,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final tier = _parseTier(levelLabel);
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.base),
+      decoration: BoxDecoration(
+        color: AppSurfaces.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        boxShadow: AppShadows.xs,
+      ),
+      child: Row(
+        children: [
+          // Sport icon circle
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: sportTheme.backgroundColor(sport),
+            ),
+            child: Icon(
+              SportChipSelector.sportIcon(sport),
+              size: 20,
+              color: sportTheme.color(sport),
+            ),
+          ),
+          const SizedBox(width: AppDimensions.md),
+          // Center column: sport label + level pill
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  SportChipSelector.sportLabel(sport),
+                  style: AppTypography.titleSmall,
+                ),
+                const SizedBox(height: AppDimensions.xs),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: gamification.levelBackgroundColor(tier),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusFull,
+                    ),
+                  ),
+                  child: Text(
+                    GamificationHelpers.tierLabel(tier),
+                    style: AppTypography.caption.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: gamification.levelTextColor(tier),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Right column: booking count + hours
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$bookingCount booking',
+                style: AppTypography.bodySmall,
+              ),
+              Text(
+                '$hours jam',
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Recent Activity Card Widget ──
+
+class _RecentActivityCard extends StatelessWidget {
+  final Booking booking;
+  final BookingStatusThemeExtension statusTheme;
+  final SportThemeExtension sportTheme;
+  final Sport sport;
+
+  const _RecentActivityCard({
+    required this.booking,
+    required this.statusTheme,
+    required this.sportTheme,
+    required this.sport,
+  });
+
+  String _statusLabel(BookingStatus status) => switch (status) {
+        BookingStatus.pendingPayment => 'Menunggu Bayar',
+        BookingStatus.waitingConfirmation => 'Menunggu Konfirmasi',
+        BookingStatus.confirmed => 'Dikonfirmasi',
+        BookingStatus.completed => 'Selesai',
+        BookingStatus.cancelled => 'Dibatalkan',
+        BookingStatus.rejected => 'Ditolak',
+        BookingStatus.expired => 'Kedaluwarsa',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final xpEarned = booking.totalAmount ~/ 15000;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppSurfaces.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        boxShadow: AppShadows.xs,
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            // Sport-colored left accent bar
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: sportTheme.color(sport),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(AppDimensions.radiusLg),
+                  bottomLeft: Radius.circular(AppDimensions.radiusLg),
+                ),
+              ),
+            ),
+            // Card content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppDimensions.base),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Row 1: Date + Status badge
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          Formatters.formatDate(booking.bookingDate),
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusTheme.backgroundColor(
+                              booking.status,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusFull,
+                            ),
+                          ),
+                          child: Text(
+                            _statusLabel(booking.status),
+                            style: AppTypography.caption.copyWith(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: statusTheme.textColor(booking.status),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimensions.xs),
+                    // Row 2: Venue name + Court name
+                    Text(
+                      booking.venueName ?? 'Venue',
+                      style: AppTypography.titleSmall,
+                    ),
+                    Text(
+                      booking.courtName ?? 'Court',
+                      style: AppTypography.caption,
+                    ),
+                    const SizedBox(height: AppDimensions.sm),
+                    // Row 3: Time range + XP earned pill
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          Formatters.formatTimeRange(
+                            booking.startTime,
+                            booking.endTime,
+                          ),
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.accent50,
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusFull,
+                            ),
+                          ),
+                          child: Text(
+                            '+$xpEarned XP',
+                            style: AppTypography.caption.copyWith(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.accent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Badge Icon Mapping ──
+
+IconData _mapBadgeIcon(String iconName) => switch (iconName) {
+      'emoji_events' => Icons.emoji_events,
+      'repeat' => Icons.repeat,
+      'fitness_center' => Icons.fitness_center,
+      'wb_sunny' => Icons.wb_sunny,
+      'nightlight' => Icons.nightlight,
+      'groups' => Icons.groups,
+      'explore' => Icons.explore,
+      'local_fire_department' => Icons.local_fire_department,
+      _ => Icons.star,
+    };
+
+// ── About Dialog ──
 
 void _showAboutDialog(BuildContext context) {
   showDialog(
@@ -230,37 +865,7 @@ void _showAboutDialog(BuildContext context) {
   );
 }
 
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-
-  const _StatCard({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.base),
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        boxShadow: AppShadows.sm,
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: AppColors.primary),
-          const SizedBox(height: AppDimensions.sm),
-          Text(value, style: AppTypography.numberMedium),
-          Text(label, style: AppTypography.caption),
-        ],
-      ),
-    );
-  }
-}
+// ── Menu Item Widget ──
 
 class _MenuItem extends StatelessWidget {
   final IconData icon;

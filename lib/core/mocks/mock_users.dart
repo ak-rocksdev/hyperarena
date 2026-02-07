@@ -24,6 +24,8 @@ abstract final class MockUsers {
     totalXp: 350,
     levelTier: LevelTier.rookie,
     profileCompletionPct: 75,
+    bookingStreak: 4,
+    totalHoursPlayed: 12,
   );
 
   static const user2 = User(

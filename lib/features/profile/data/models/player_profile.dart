@@ -15,6 +15,8 @@ class PlayerProfile with _$PlayerProfile {
     @Default(0) int totalXp,
     @Default(LevelTier.rookie) LevelTier levelTier,
     @Default(0) int profileCompletionPct,
+    @Default(0) int bookingStreak,
+    @Default(0) int totalHoursPlayed,
   }) = _PlayerProfile;
 
   factory PlayerProfile.fromJson(Map<String, dynamic> json) =>

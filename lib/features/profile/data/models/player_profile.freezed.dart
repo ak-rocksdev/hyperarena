@@ -30,6 +30,8 @@ mixin _$PlayerProfile {
   int get totalXp => throw _privateConstructorUsedError;
   LevelTier get levelTier => throw _privateConstructorUsedError;
   int get profileCompletionPct => throw _privateConstructorUsedError;
+  int get bookingStreak => throw _privateConstructorUsedError;
+  int get totalHoursPlayed => throw _privateConstructorUsedError;
 
   /// Serializes this PlayerProfile to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -57,6 +59,8 @@ abstract class $PlayerProfileCopyWith<$Res> {
     int totalXp,
     LevelTier levelTier,
     int profileCompletionPct,
+    int bookingStreak,
+    int totalHoursPlayed,
   });
 }
 
@@ -83,6 +87,8 @@ class _$PlayerProfileCopyWithImpl<$Res, $Val extends PlayerProfile>
     Object? totalXp = null,
     Object? levelTier = null,
     Object? profileCompletionPct = null,
+    Object? bookingStreak = null,
+    Object? totalHoursPlayed = null,
   }) {
     return _then(
       _value.copyWith(
@@ -118,6 +124,14 @@ class _$PlayerProfileCopyWithImpl<$Res, $Val extends PlayerProfile>
                 ? _value.profileCompletionPct
                 : profileCompletionPct // ignore: cast_nullable_to_non_nullable
                       as int,
+            bookingStreak: null == bookingStreak
+                ? _value.bookingStreak
+                : bookingStreak // ignore: cast_nullable_to_non_nullable
+                      as int,
+            totalHoursPlayed: null == totalHoursPlayed
+                ? _value.totalHoursPlayed
+                : totalHoursPlayed // ignore: cast_nullable_to_non_nullable
+                      as int,
           )
           as $Val,
     );
@@ -142,6 +156,8 @@ abstract class _$$PlayerProfileImplCopyWith<$Res>
     int totalXp,
     LevelTier levelTier,
     int profileCompletionPct,
+    int bookingStreak,
+    int totalHoursPlayed,
   });
 }
 
@@ -167,6 +183,8 @@ class __$$PlayerProfileImplCopyWithImpl<$Res>
     Object? totalXp = null,
     Object? levelTier = null,
     Object? profileCompletionPct = null,
+    Object? bookingStreak = null,
+    Object? totalHoursPlayed = null,
   }) {
     return _then(
       _$PlayerProfileImpl(
@@ -202,6 +220,14 @@ class __$$PlayerProfileImplCopyWithImpl<$Res>
             ? _value.profileCompletionPct
             : profileCompletionPct // ignore: cast_nullable_to_non_nullable
                   as int,
+        bookingStreak: null == bookingStreak
+            ? _value.bookingStreak
+            : bookingStreak // ignore: cast_nullable_to_non_nullable
+                  as int,
+        totalHoursPlayed: null == totalHoursPlayed
+            ? _value.totalHoursPlayed
+            : totalHoursPlayed // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -219,6 +245,8 @@ class _$PlayerProfileImpl implements _PlayerProfile {
     this.totalXp = 0,
     this.levelTier = LevelTier.rookie,
     this.profileCompletionPct = 0,
+    this.bookingStreak = 0,
+    this.totalHoursPlayed = 0,
   }) : _sports = sports,
        _selfAssessedLevels = selfAssessedLevels;
 
@@ -259,10 +287,16 @@ class _$PlayerProfileImpl implements _PlayerProfile {
   @override
   @JsonKey()
   final int profileCompletionPct;
+  @override
+  @JsonKey()
+  final int bookingStreak;
+  @override
+  @JsonKey()
+  final int totalHoursPlayed;
 
   @override
   String toString() {
-    return 'PlayerProfile(userId: $userId, bio: $bio, city: $city, sports: $sports, selfAssessedLevels: $selfAssessedLevels, totalXp: $totalXp, levelTier: $levelTier, profileCompletionPct: $profileCompletionPct)';
+    return 'PlayerProfile(userId: $userId, bio: $bio, city: $city, sports: $sports, selfAssessedLevels: $selfAssessedLevels, totalXp: $totalXp, levelTier: $levelTier, profileCompletionPct: $profileCompletionPct, bookingStreak: $bookingStreak, totalHoursPlayed: $totalHoursPlayed)';
   }
 
   @override
@@ -282,7 +316,11 @@ class _$PlayerProfileImpl implements _PlayerProfile {
             (identical(other.levelTier, levelTier) ||
                 other.levelTier == levelTier) &&
             (identical(other.profileCompletionPct, profileCompletionPct) ||
-                other.profileCompletionPct == profileCompletionPct));
+                other.profileCompletionPct == profileCompletionPct) &&
+            (identical(other.bookingStreak, bookingStreak) ||
+                other.bookingStreak == bookingStreak) &&
+            (identical(other.totalHoursPlayed, totalHoursPlayed) ||
+                other.totalHoursPlayed == totalHoursPlayed));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -297,6 +335,8 @@ class _$PlayerProfileImpl implements _PlayerProfile {
     totalXp,
     levelTier,
     profileCompletionPct,
+    bookingStreak,
+    totalHoursPlayed,
   );
 
   /// Create a copy of PlayerProfile
@@ -323,6 +363,8 @@ abstract class _PlayerProfile implements PlayerProfile {
     final int totalXp,
     final LevelTier levelTier,
     final int profileCompletionPct,
+    final int bookingStreak,
+    final int totalHoursPlayed,
   }) = _$PlayerProfileImpl;
 
   factory _PlayerProfile.fromJson(Map<String, dynamic> json) =
@@ -344,6 +386,10 @@ abstract class _PlayerProfile implements PlayerProfile {
   LevelTier get levelTier;
   @override
   int get profileCompletionPct;
+  @override
+  int get bookingStreak;
+  @override
+  int get totalHoursPlayed;
 
   /// Create a copy of PlayerProfile
   /// with the given fields replaced by the non-null parameter values.

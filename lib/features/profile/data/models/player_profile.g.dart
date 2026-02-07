@@ -27,6 +27,8 @@ _$PlayerProfileImpl _$$PlayerProfileImplFromJson(Map<String, dynamic> json) =>
           LevelTier.rookie,
       profileCompletionPct:
           (json['profile_completion_pct'] as num?)?.toInt() ?? 0,
+      bookingStreak: (json['booking_streak'] as num?)?.toInt() ?? 0,
+      totalHoursPlayed: (json['total_hours_played'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$$PlayerProfileImplToJson(_$PlayerProfileImpl instance) =>
@@ -39,6 +41,8 @@ Map<String, dynamic> _$$PlayerProfileImplToJson(_$PlayerProfileImpl instance) =>
       'total_xp': instance.totalXp,
       'level_tier': _$LevelTierEnumMap[instance.levelTier]!,
       'profile_completion_pct': instance.profileCompletionPct,
+      'booking_streak': instance.bookingStreak,
+      'total_hours_played': instance.totalHoursPlayed,
     };
 
 const _$SportEnumMap = {

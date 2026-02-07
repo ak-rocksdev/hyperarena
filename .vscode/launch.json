@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Mock",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_mock.dart"
+    },
+    {
+      "name": "Local",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_local.dart"
+    },
+    {
+      "name": "Dev",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_dev.dart"
+    },
+    {
+      "name": "Production",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    }
+  ]
+}

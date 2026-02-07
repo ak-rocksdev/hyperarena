@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 
@@ -13,8 +14,21 @@ class BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusTheme =
+        Theme.of(context).extension<BookingStatusThemeExtension>()!;
+
     return Card(
-      child: InkWell(
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: statusTheme.textColor(booking.status),
+              width: 4,
+            ),
+          ),
+        ),
+        child: InkWell(
         onTap: () => context.push('/booking/${booking.id}'),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
@@ -65,6 +79,7 @@ class BookingCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

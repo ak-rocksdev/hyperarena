@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
@@ -57,15 +60,24 @@ class _SlotSelectionScreenState extends ConsumerState<SlotSelectionScreen> {
           // Date header
           Padding(
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 18),
-                const SizedBox(width: AppDimensions.sm),
-                Text(
-                  Formatters.formatDate(date),
-                  style: AppTypography.titleSmall,
-                ),
-              ],
+            child: Container(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              decoration: BoxDecoration(
+                color: AppSurfaces.surfaceHighlight,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                boxShadow: AppShadows.xs,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today,
+                      size: 18, color: AppColors.primary),
+                  const SizedBox(width: AppDimensions.sm),
+                  Text(
+                    Formatters.formatDate(date),
+                    style: AppTypography.titleSmall,
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -102,13 +114,7 @@ class _SlotSelectionScreenState extends ConsumerState<SlotSelectionScreen> {
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
+              boxShadow: AppShadows.md,
             ),
             child: Row(
               children: [
@@ -128,16 +134,25 @@ class _SlotSelectionScreenState extends ConsumerState<SlotSelectionScreen> {
                     ],
                   ),
                 ),
-                AppButton(
-                  label: 'Lanjutkan',
-                  onPressed: _selectedSlots.isNotEmpty
-                      ? () {
-                          ref
-                              .read(bookingFlowProvider.notifier)
-                              .selectSlots(_selectedSlots);
-                          context.push('/booking/flow/summary');
-                        }
-                      : null,
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusSm),
+                    boxShadow: _selectedSlots.isNotEmpty
+                        ? AppShadows.colored
+                        : null,
+                  ),
+                  child: AppButton(
+                    label: 'Lanjutkan',
+                    onPressed: _selectedSlots.isNotEmpty
+                        ? () {
+                            ref
+                                .read(bookingFlowProvider.notifier)
+                                .selectSlots(_selectedSlots);
+                            context.push('/booking/flow/summary');
+                          }
+                        : null,
+                  ),
                 ),
               ],
             ),

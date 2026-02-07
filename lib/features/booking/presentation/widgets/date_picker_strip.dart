@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 
@@ -23,7 +25,7 @@ class DatePickerStrip extends StatelessWidget {
     );
 
     return SizedBox(
-      height: 72,
+      height: 76,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(
@@ -43,15 +45,16 @@ class DatePickerStrip extends StatelessWidget {
               onTap: () => onDateSelected(date),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: 52,
+                width: 56,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : AppColors.neutral50,
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppSurfaces.surface,
                   borderRadius:
                       BorderRadius.circular(AppDimensions.radiusMd),
-                  border: Border.all(
-                    color:
-                        isSelected ? AppColors.primary : AppColors.border,
-                  ),
+                  boxShadow: isSelected
+                      ? AppShadows.sm
+                      : AppShadows.xs,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

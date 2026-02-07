@@ -28,9 +28,19 @@ class CourtCard extends ConsumerWidget {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        child: Row(
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: sportTheme.color(court.sportType),
+              width: 4,
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          child: Row(
           children: [
             Expanded(
               child: Column(
@@ -86,7 +96,7 @@ class CourtCard extends ConsumerWidget {
             ),
             AppButton(
               label: 'Booking',
-              variant: AppButtonVariant.elevated,
+              variant: AppButtonVariant.tonal,
               onPressed: () {
                 ref.read(bookingFlowProvider.notifier).selectCourt(court, venue);
                 context.push('/booking/flow/court/${court.id}');
@@ -94,6 +104,7 @@ class CourtCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

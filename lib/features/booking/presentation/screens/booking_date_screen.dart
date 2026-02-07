@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
@@ -47,9 +49,10 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
               margin: const EdgeInsets.all(AppDimensions.screenHorizontal),
               padding: const EdgeInsets.all(AppDimensions.md),
               decoration: BoxDecoration(
-                color: AppColors.neutral50,
+                color: AppSurfaces.surfaceHighlight,
                 borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusMd),
+                    BorderRadius.circular(AppDimensions.radiusLg),
+                boxShadow: AppShadows.xs,
               ),
               child: Row(
                 children: [
@@ -97,8 +100,12 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
 
           Padding(
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
-            child: SizedBox(
+            child: Container(
               width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                boxShadow: _selectedDate != null ? AppShadows.colored : null,
+              ),
               child: AppButton(
                 label: 'Lanjutkan',
                 isLarge: true,

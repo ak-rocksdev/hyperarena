@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
@@ -51,27 +53,36 @@ class _SportSelectionScreenState extends ConsumerState<SportSelectionScreen> {
                     const SizedBox(height: AppDimensions.xl),
 
                     // Sport chips grid
-                    Wrap(
-                      spacing: AppDimensions.sm,
-                      runSpacing: AppDimensions.sm,
-                      children: Sport.values.map((sport) {
-                        final isSelected = _selectedSports.contains(sport);
-                        return SportChipSelector(
-                          sport: sport,
-                          isSelected: isSelected,
-                          onToggle: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedSports.add(sport);
-                                _levels[sport] = LevelTier.rookie;
-                              } else {
-                                _selectedSports.remove(sport);
-                                _levels.remove(sport);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(AppDimensions.base),
+                      decoration: BoxDecoration(
+                        color: AppSurfaces.surface,
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                        boxShadow: AppShadows.sm,
+                      ),
+                      child: Wrap(
+                        spacing: AppDimensions.sm,
+                        runSpacing: AppDimensions.sm,
+                        children: Sport.values.map((sport) {
+                          final isSelected = _selectedSports.contains(sport);
+                          return SportChipSelector(
+                            sport: sport,
+                            isSelected: isSelected,
+                            onToggle: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedSports.add(sport);
+                                  _levels[sport] = LevelTier.rookie;
+                                } else {
+                                  _selectedSports.remove(sport);
+                                  _levels.remove(sport);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
                     ),
 
                     // Level dropdowns for selected sports
@@ -82,42 +93,54 @@ class _SportSelectionScreenState extends ConsumerState<SportSelectionScreen> {
                         style: AppTypography.titleMedium,
                       ),
                       const SizedBox(height: AppDimensions.md),
-                      ...(_selectedSports.toList()..sort((a, b) => a.index.compareTo(b.index))).map((sport) {
-                        return Padding(
-                          padding:
-                              const EdgeInsets.only(bottom: AppDimensions.md),
-                          child: Row(
-                            children: [
-                              Icon(
-                                SportChipSelector.sportIcon(sport),
-                                size: 20,
-                              ),
-                              const SizedBox(width: AppDimensions.sm),
-                              Expanded(
-                                child: Text(
-                                  SportChipSelector.sportLabel(sport),
-                                  style: AppTypography.bodyMedium,
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(AppDimensions.base),
+                        decoration: BoxDecoration(
+                          color: AppSurfaces.surfaceHighlight,
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                        ),
+                        child: Column(
+                          children: [
+                            ...(_selectedSports.toList()..sort((a, b) => a.index.compareTo(b.index))).map((sport) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.only(bottom: AppDimensions.md),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      SportChipSelector.sportIcon(sport),
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: AppDimensions.sm),
+                                    Expanded(
+                                      child: Text(
+                                        SportChipSelector.sportLabel(sport),
+                                        style: AppTypography.bodyMedium,
+                                      ),
+                                    ),
+                                    DropdownButton<LevelTier>(
+                                      value: _levels[sport] ?? LevelTier.rookie,
+                                      underline: const SizedBox.shrink(),
+                                      items: LevelTier.values.map((tier) {
+                                        return DropdownMenuItem(
+                                          value: tier,
+                                          child: Text(_tierLabel(tier)),
+                                        );
+                                      }).toList(),
+                                      onChanged: (tier) {
+                                        if (tier != null) {
+                                          setState(() => _levels[sport] = tier);
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              DropdownButton<LevelTier>(
-                                value: _levels[sport] ?? LevelTier.rookie,
-                                underline: const SizedBox.shrink(),
-                                items: LevelTier.values.map((tier) {
-                                  return DropdownMenuItem(
-                                    value: tier,
-                                    child: Text(_tierLabel(tier)),
-                                  );
-                                }).toList(),
-                                onChanged: (tier) {
-                                  if (tier != null) {
-                                    setState(() => _levels[sport] = tier);
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -127,14 +150,20 @@ class _SportSelectionScreenState extends ConsumerState<SportSelectionScreen> {
             // Bottom button
             Padding(
               padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
-              child: SizedBox(
-                width: double.infinity,
-                child: AppButton(
-                  label: 'Lanjutkan',
-                  isLarge: true,
-                  onPressed: hasSelection
-                      ? () => context.go('/player/home')
-                      : null,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                  boxShadow: hasSelection ? AppShadows.colored : null,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: AppButton(
+                    label: 'Lanjutkan',
+                    isLarge: true,
+                    onPressed: hasSelection
+                        ? () => context.go('/player/home')
+                        : null,
+                  ),
                 ),
               ),
             ),

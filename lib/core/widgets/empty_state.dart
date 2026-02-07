@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 
 class EmptyState extends StatelessWidget {
@@ -25,7 +26,20 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: AppDimensions.iconXl, color: AppColors.neutral300),
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.neutral50,
+                shape: BoxShape.circle,
+                boxShadow: AppShadows.xs,
+              ),
+              child: Icon(
+                icon,
+                size: AppDimensions.iconXl,
+                color: AppColors.neutral300,
+              ),
+            ),
             const SizedBox(height: AppDimensions.base),
             Text(
               message,

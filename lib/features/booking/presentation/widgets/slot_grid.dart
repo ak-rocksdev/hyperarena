@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/venue/data/models/court_slot.dart';
@@ -46,19 +48,25 @@ class SlotGrid extends StatelessWidget {
           bgColor = AppColors.primary50;
           textColor = AppColors.primary;
         } else {
-          bgColor = AppColors.successLight;
+          bgColor = AppSurfaces.surface;
           textColor = AppColors.textPrimary;
         }
 
         return GestureDetector(
           onTap: isAvailable ? () => onSlotToggle(slot) : null,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
               border: isSelected
                   ? Border.all(color: AppColors.primary, width: 2)
                   : null,
+              boxShadow: !isAvailable
+                  ? null
+                  : isSelected
+                      ? AppShadows.sm
+                      : AppShadows.xs,
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -75,10 +83,21 @@ class SlotGrid extends StatelessWidget {
                   ),
                 ),
                 if (slot.isPeak)
-                  Text(
-                    'Peak',
-                    style: AppTypography.badge.copyWith(
-                      color: AppColors.accent,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent50,
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusXs),
+                    ),
+                    child: Text(
+                      'Peak',
+                      style: AppTypography.badge.copyWith(
+                        color: AppColors.accent,
+                      ),
                     ),
                   ),
               ],

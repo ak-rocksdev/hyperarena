@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
@@ -34,16 +35,33 @@ class VenueCard extends StatelessWidget {
             // Venue photo
             AspectRatio(
               aspectRatio: AppDimensions.imageAspectVenue,
-              child: CachedNetworkImage(
-                imageUrl: venue.photos.isNotEmpty
-                    ? venue.photos.first
-                    : 'https://picsum.photos/seed/default/800/450',
-                fit: BoxFit.cover,
-                placeholder: (_, _) => ShimmerLoading.card(height: 200),
-                errorWidget: (_, _, _) => Container(
-                  color: AppColors.neutral100,
-                  child: const Icon(Icons.image, size: 48),
-                ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: venue.photos.isNotEmpty
+                        ? venue.photos.first
+                        : 'https://picsum.photos/seed/default/800/450',
+                    fit: BoxFit.cover,
+                    placeholder: (_, _) => ShimmerLoading.card(height: 200),
+                    errorWidget: (_, _, _) => Container(
+                      color: AppColors.neutral100,
+                      child: const Icon(Icons.image, size: 48),
+                    ),
+                  ),
+                  // Dark gradient overlay for text contrast
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 60,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: AppSurfaces.darkOverlay,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -81,7 +99,7 @@ class VenueCard extends StatelessWidget {
                   // Rating + sport chips + price
                   Row(
                     children: [
-                      Icon(Icons.star, size: 16, color: const Color(0xFFFFC107)),
+                      Icon(Icons.star, size: 18, color: const Color(0xFFFFC107)),
                       const SizedBox(width: 2),
                       Text(
                         venue.avgRating.toStringAsFixed(1),

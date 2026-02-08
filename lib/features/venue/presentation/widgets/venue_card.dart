@@ -100,7 +100,7 @@ class VenueCard extends StatelessWidget {
                   // Rating + sport chips + price
                   Row(
                     children: [
-                      Icon(Icons.star, size: 18, color: const Color(0xFFFFC107)),
+                      Icon(Icons.star, size: 18, color: AppColors.starRating),
                       const SizedBox(width: 2),
                       Text(
                         venue.avgRating.toStringAsFixed(1),

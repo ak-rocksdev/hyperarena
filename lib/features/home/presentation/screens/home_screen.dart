@@ -11,6 +11,7 @@ import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
@@ -212,10 +213,7 @@ class HomeScreen extends ConsumerWidget {
               Text('Booking Mendatang', style: AppTypography.titleMedium),
               const SizedBox(height: AppDimensions.md),
               bookingsAsync.when(
-                loading: () => const SizedBox(
-                  height: 80,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+                loading: () => ShimmerLoading.card(),
                 error: (_, _) => const SizedBox.shrink(),
                 data: (bookings) {
                   final upcoming = bookings
@@ -268,10 +266,7 @@ class HomeScreen extends ConsumerWidget {
               _SectionHeader(title: 'Pencapaian', actionLabel: 'Lihat Semua'),
               const SizedBox(height: AppDimensions.md),
               badgesAsync.when(
-                loading: () => const SizedBox(
-                  height: 56,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+                loading: () => ShimmerLoading.card(),
                 error: (_, _) => const SizedBox.shrink(),
                 data: (badges) => SizedBox(
                   height: 72,
@@ -331,10 +326,7 @@ class HomeScreen extends ConsumerWidget {
               _SectionHeader(title: 'Aktivitas Terkini'),
               const SizedBox(height: AppDimensions.md),
               bookingsAsync.when(
-                loading: () => const SizedBox(
-                  height: 60,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+                loading: () => ShimmerLoading.card(),
                 error: (_, _) => const SizedBox.shrink(),
                 data: (bookings) {
                   final recent = ([...bookings]
@@ -595,7 +587,7 @@ class _BadgeCircle extends StatelessWidget {
             child: Icon(
               _mapIcon(),
               size: 24,
-              color: isUnlocked ? AppColors.primary : AppColors.neutral400,
+              color: isUnlocked ? AppColors.primary : AppColors.neutral500,
             ),
           ),
         ),
@@ -702,7 +694,7 @@ class _PopularVenueCard extends StatelessWidget {
       child: Center(
         child: Icon(
           Icons.sports_tennis,
-          color: AppColors.neutral400,
+          color: AppColors.neutral500,
           size: 32,
         ),
       ),

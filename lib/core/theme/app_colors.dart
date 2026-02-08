@@ -68,6 +68,10 @@ abstract final class AppColors {
   static const infoLight = Color(0xFFE0E7FF);
   static const infoDark = Color(0xFF4F46E5);
 
+  // ── Semantic: specific-use colors ──────────────────────────
+  static const starRating = Color(0xFFFFC107);
+  static const whatsappGreen = Color(0xFF25D366);
+
   // ── Text ────────────────────────────────────────────────────
   static const textPrimary = Color(0xFF0F172A);
   static const textSecondary = Color(0xFF475569);

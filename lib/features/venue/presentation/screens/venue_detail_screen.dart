@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/launcher_helpers.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/review/data/models/venue_rating_aggregate.dart';
 import 'package:hyperarena/features/review/presentation/widgets/rating_stars.dart';
@@ -42,7 +43,7 @@ class VenueDetailScreen extends ConsumerWidget {
     return Scaffold(
       body: AsyncValueWidget(
         value: venueAsync,
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => ShimmerLoading.card(),
         error: (e, _) => ErrorView(
           error: e,
           onRetry: () => ref.invalidate(venueDetailProvider(venueId)),
@@ -127,7 +128,7 @@ class VenueDetailScreen extends ConsumerWidget {
                       Row(
                         children: [
                           Icon(Icons.star,
-                              size: 18, color: const Color(0xFFFFC107)),
+                              size: 18, color: AppColors.starRating),
                           const SizedBox(width: 4),
                           Text(
                             venue.avgRating.toStringAsFixed(1),
@@ -160,7 +161,7 @@ class VenueDetailScreen extends ConsumerWidget {
                             icon: const Icon(Icons.chat_outlined),
                             label: const Text('Hubungi via WhatsApp'),
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF25D366),
+                              backgroundColor: AppColors.whatsappGreen,
                               foregroundColor: Colors.white,
                               minimumSize: const Size(
                                 0,
@@ -207,23 +208,28 @@ class VenueDetailScreen extends ConsumerWidget {
                                     ? AppDimensions.sm
                                     : 0,
                               ),
-                              child: GestureDetector(
-                                onTap: () => _showPhotoViewer(
-                                    context, venue.photos, i),
-                                child: Container(
-                                  width: 120,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(
-                                        AppDimensions.radiusMd),
-                                    boxShadow: AppShadows.xs,
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: CachedNetworkImage(
-                                    imageUrl: venue.photos[i],
-                                    fit: BoxFit.cover,
-                                    errorWidget: (_, _, _) => Container(
-                                      color: AppColors.neutral100,
-                                      child: const Icon(Icons.image, size: 24),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(
+                                      AppDimensions.radiusMd),
+                                  onTap: () => _showPhotoViewer(
+                                      context, venue.photos, i),
+                                  child: Container(
+                                    width: 120,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(
+                                          AppDimensions.radiusMd),
+                                      boxShadow: AppShadows.xs,
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: CachedNetworkImage(
+                                      imageUrl: venue.photos[i],
+                                      fit: BoxFit.cover,
+                                      errorWidget: (_, _, _) => Container(
+                                        color: AppColors.neutral100,
+                                        child: const Icon(Icons.image, size: 24),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -307,7 +313,7 @@ class _VenueRatingSection extends ConsumerWidget {
 
           // Rating aggregate
           ratingAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => ShimmerLoading.card(),
             error: (_, _) => const SizedBox.shrink(),
             data: (aggregate) {
               if (aggregate.totalReviews == 0) {
@@ -319,7 +325,7 @@ class _VenueRatingSection extends ConsumerWidget {
                     child: Text(
                       'Belum ada ulasan',
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.textTertiary,
+                        color: AppColors.neutral600,
                       ),
                     ),
                   ),

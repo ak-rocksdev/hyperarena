@@ -27,3 +27,5 @@ enum LevelTier { rookie, amateur, intermediate, advanced, pro }
 enum UserRole { player, coach, organizer, courtOwner }
 
 enum PaymentMethodType { qris, bankTransfer }
+
+enum ClubMemberRole { admin, captain, member }

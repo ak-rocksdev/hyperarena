@@ -34,15 +34,18 @@ class CoachingBookingCard extends StatelessWidget {
     final statusTheme =
         Theme.of(context).extension<BookingStatusThemeExtension>()!;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          boxShadow: AppShadows.sm,
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        onTap: onTap,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: AppSurfaces.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            boxShadow: AppShadows.sm,
+          ),
         child: IntrinsicHeight(
           child: Row(
             children: [
@@ -193,6 +196,7 @@ class CoachingBookingCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

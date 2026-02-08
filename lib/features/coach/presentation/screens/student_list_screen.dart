@@ -64,40 +64,45 @@ class StudentListScreen extends ConsumerWidget {
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-                child: GestureDetector(
-                  onTap: () {
-                    context.push(AppRoutes.studentDetail(name));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(AppDimensions.base),
-                    decoration: BoxDecoration(
-                      color: AppSurfaces.surface,
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusMd),
-                      boxShadow: AppShadows.xs,
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: AppDimensions.avatarMd / 2,
-                          backgroundColor: AppColors.primary50,
-                          child: Text(
-                            _initials(name),
-                            style: AppTypography.titleSmall.copyWith(
-                              color: AppColors.primary,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusMd),
+                    onTap: () {
+                      context.push(AppRoutes.studentDetail(name));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(AppDimensions.base),
+                      decoration: BoxDecoration(
+                        color: AppSurfaces.surface,
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.radiusMd),
+                        boxShadow: AppShadows.xs,
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: AppDimensions.avatarMd / 2,
+                            backgroundColor: AppColors.primary50,
+                            child: Text(
+                              _initials(name),
+                              style: AppTypography.titleSmall.copyWith(
+                                color: AppColors.primary,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: AppDimensions.md),
-                        Expanded(
-                          child: Text(name, style: AppTypography.titleSmall),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: AppColors.neutral400,
-                          size: AppDimensions.iconMd,
-                        ),
-                      ],
+                          const SizedBox(width: AppDimensions.md),
+                          Expanded(
+                            child: Text(name, style: AppTypography.titleSmall),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: AppColors.neutral400,
+                            size: AppDimensions.iconMd,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

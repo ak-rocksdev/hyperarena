@@ -202,13 +202,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               'Belum punya akun? ',
                               style: AppTypography.bodyMedium,
                             ),
-                            GestureDetector(
-                              onTap: () => context.go(AppRoutes.register),
-                              child: Text(
-                                'Daftar',
-                                style: AppTypography.bodyMedium.copyWith(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(4),
+                                onTap: () => context.go(AppRoutes.register),
+                                child: Text(
+                                  'Daftar',
+                                  style: AppTypography.bodyMedium.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),

@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_stepper.dart';
@@ -32,7 +33,7 @@ class BookingDetailScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Detail Booking')),
       body: AsyncValueWidget(
         value: bookingAsync,
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => ShimmerLoading.card(),
         error: (e, _) => ErrorView(
           error: e,
           onRetry: () =>
@@ -183,6 +184,7 @@ class BookingDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: AppDimensions.screenBottom),
               ],
             ),
           );

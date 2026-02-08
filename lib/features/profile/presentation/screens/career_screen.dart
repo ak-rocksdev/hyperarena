@@ -76,7 +76,6 @@ class _CareerScreenState extends ConsumerState<CareerScreen>
 
     return AsyncValueWidget(
       value: assessmentsAsync,
-      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => ErrorView(
         error: e,
         onRetry: () => ref.invalidate(
@@ -169,6 +168,7 @@ class _CareerScreenState extends ConsumerState<CareerScreen>
               Text('Riwayat Penilaian', style: AppTypography.titleMedium),
               const SizedBox(height: AppDimensions.md),
               ...assessments.map((a) => _buildAssessmentTimelineItem(a)),
+              const SizedBox(height: AppDimensions.screenBottom),
             ],
           ),
         );
@@ -183,7 +183,6 @@ class _CareerScreenState extends ConsumerState<CareerScreen>
 
     return AsyncValueWidget(
       value: reviewsAsync,
-      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => ErrorView(
         error: e,
         onRetry: () => ref.invalidate(
@@ -482,12 +481,12 @@ class _CareerScreenState extends ConsumerState<CareerScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: AppDimensions.iconXl, color: AppColors.neutral300),
+          Icon(icon, size: AppDimensions.iconXl, color: AppColors.neutral500),
           const SizedBox(height: AppDimensions.base),
           Text(
             message,
             style: AppTypography.bodyLarge.copyWith(
-              color: AppColors.neutral400,
+              color: AppColors.neutral600,
             ),
           ),
         ],

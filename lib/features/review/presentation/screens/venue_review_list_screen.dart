@@ -33,7 +33,6 @@ class _VenueReviewListScreenState extends ConsumerState<VenueReviewListScreen> {
       appBar: AppBar(title: const Text('Ulasan Venue')),
       body: AsyncValueWidget(
         value: reviewsAsync,
-        loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => ErrorView(
           error: e,
           onRetry: () {
@@ -78,6 +77,7 @@ class _VenueReviewListScreenState extends ConsumerState<VenueReviewListScreen> {
                   _buildEmptyState()
                 else
                   ...filtered.map((r) => VenueReviewCard(review: r)),
+                const SizedBox(height: AppDimensions.screenBottom),
               ],
             ),
           );
@@ -212,13 +212,13 @@ class _VenueReviewListScreenState extends ConsumerState<VenueReviewListScreen> {
             Icon(
               Icons.rate_review_outlined,
               size: AppDimensions.iconXl,
-              color: AppColors.neutral300,
+              color: AppColors.neutral500,
             ),
             const SizedBox(height: AppDimensions.base),
             Text(
               'Belum ada ulasan untuk venue ini',
               style: AppTypography.bodyLarge.copyWith(
-                color: AppColors.neutral400,
+                color: AppColors.neutral600,
               ),
             ),
           ],

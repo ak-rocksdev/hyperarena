@@ -80,14 +80,17 @@ class OrganizerSessionCard extends StatelessWidget {
     final sportColor = sportExt.color(session.sport);
     final accentBarColor = _hasCriticalIssues ? AppColors.error : sportColor;
 
-    return GestureDetector(
-      onTap: onTap ?? () => context.push(AppRoutes.organizerSessionDetail(session.id)),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          boxShadow: AppShadows.sm,
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        onTap: onTap ?? () => context.push(AppRoutes.organizerSessionDetail(session.id)),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppSurfaces.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            boxShadow: AppShadows.sm,
+          ),
         child: IntrinsicHeight(
           child: Row(
             children: [
@@ -127,6 +130,7 @@ class OrganizerSessionCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

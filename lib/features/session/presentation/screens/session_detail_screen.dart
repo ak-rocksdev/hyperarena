@@ -12,6 +12,7 @@ import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
@@ -34,7 +35,7 @@ class SessionDetailScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Detail Sesi')),
       body: AsyncValueWidget(
         value: sessionAsync,
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => ShimmerLoading.card(),
         error: (e, _) => ErrorView(
           error: e,
           onRetry: () => ref.invalidate(sessionListProvider),

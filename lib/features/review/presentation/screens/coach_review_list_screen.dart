@@ -33,7 +33,6 @@ class _CoachReviewListScreenState extends ConsumerState<CoachReviewListScreen> {
       appBar: AppBar(title: const Text('Ulasan Saya')),
       body: AsyncValueWidget(
         value: reviewsAsync,
-        loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => ErrorView(
           error: e,
           onRetry: () {
@@ -78,6 +77,7 @@ class _CoachReviewListScreenState extends ConsumerState<CoachReviewListScreen> {
                   _buildEmptyState()
                 else
                   ...filtered.map((r) => ReviewCard(review: r)),
+                const SizedBox(height: AppDimensions.screenBottom),
               ],
             ),
           );
@@ -212,13 +212,13 @@ class _CoachReviewListScreenState extends ConsumerState<CoachReviewListScreen> {
             Icon(
               Icons.rate_review_outlined,
               size: AppDimensions.iconXl,
-              color: AppColors.neutral300,
+              color: AppColors.neutral500,
             ),
             const SizedBox(height: AppDimensions.base),
             Text(
               'Belum ada ulasan',
               style: AppTypography.bodyLarge.copyWith(
-                color: AppColors.neutral400,
+                color: AppColors.neutral600,
               ),
             ),
           ],

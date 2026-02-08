@@ -527,22 +527,22 @@ flutter build apk --debug -t lib/main_mock.dart
 
 ## Deliverables Checklist
 
-- [ ] `SessionVisibility` enum updated to `free/invitationOnly/membersOnly`.
-- [ ] Owner repo has `markBookingSettled` method.
-- [ ] Organizer dashboard is action-led with greeting, attention items, sessions, CTA, earnings.
-- [ ] `OrganizerSessionCard` widget reusable across dashboard + session list.
-- [ ] Session list has upcoming/past toggle with proper filtering.
-- [ ] Session detail shows full participant roster with inline status chips + action bottom sheets.
-- [ ] Create session wizard has 4 polished steps with visibility selector.
-- [ ] Participant management screen has filter chips + batch actions.
-- [ ] Earnings screen shows 3 summary cards + per-session settlements.
-- [ ] Community screen shows followers + invite CTA.
-- [ ] Owner dashboard has greeting, pending banner, stats, venue cards, court issues.
-- [ ] Owner venue screens show court list with availability toggles.
-- [ ] Owner booking queue has filter + confirm/settle/reject actions with bottom sheets.
-- [ ] All labels in Indonesian (consistent with rest of app).
-- [ ] Full app analyze/build passes in mock mode.
-- [ ] Manual role-switch test passes for all 4 roles.
+- [x] `SessionVisibility` enum updated to `free/invitationOnly/membersOnly`.
+- [x] Owner repo has `markBookingSettled` method.
+- [x] Organizer dashboard is action-led with greeting, attention items, sessions, CTA, earnings.
+- [x] `OrganizerSessionCard` widget reusable across dashboard + session list.
+- [x] Session list has upcoming/past toggle with proper filtering.
+- [x] Session detail shows full participant roster with inline status chips + action bottom sheets.
+- [x] Create session wizard has 4 polished steps with visibility selector.
+- [x] Participant management screen has filter chips + batch actions.
+- [x] Earnings screen shows 3 summary cards + per-session settlements.
+- [x] Community screen redesigned as Klub with club identity card, stats strip, enriched member list + invite CTA.
+- [x] Owner dashboard has greeting, pending banner, stats, venue cards, court issues.
+- [x] Owner venue screens show court list with availability toggles.
+- [x] Owner booking queue has filter + confirm/settle/reject actions with bottom sheets.
+- [x] All labels in Indonesian (consistent with rest of app).
+- [x] Full app analyze/build passes in mock mode.
+- [x] Manual role-switch test passes for all 4 roles.
 
 ---
 

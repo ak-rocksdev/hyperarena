@@ -779,17 +779,24 @@ String? actionRoute, relatedId;
 
 ## Implementation Checklist
 
-- [ ] **Task 1:** Extend Assessment model with session link + improvement fields
-- [ ] **Task 2:** Create Review model + repository + mock data
-- [ ] **Task 3:** Create Review providers + routes
-- [ ] **Task 4:** Build Submit Review screen (player → coach)
-- [ ] **Task 5:** Build Coach Review List screen (coach views reviews)
-- [ ] **Task 6:** Build Session Assessment form (coach → player, per session)
-- [ ] **Task 7:** Build Post-Session Review trigger (banner on completed sessions)
-- [ ] **Task 8:** Build Coach Assessment entry points (per session player list)
-- [ ] **Task 9:** Build Career Dashboard (player assessment history + radar chart)
-- [ ] **Task 10:** Build Notification model + repository + screen
-- [ ] **Task 11:** Wire Notification badge to app shell
-- [ ] **Task 12:** Build Achievements screen
-- [ ] **Task 13:** Build Edit Profile + Settings screens
-- [ ] **Task 14:** Integrate reviews into Coach profile/detail screens
+- [x] **Task 1:** Extend Assessment model with session link + improvement fields
+- [x] **Task 2:** Create Review model + repository + mock data
+- [x] **Task 3:** Create Review providers + routes
+- [x] **Task 4:** Build Submit Review screen (player → coach)
+- [x] **Task 5:** Build Coach Review List screen (coach views reviews)
+- [x] **Task 6:** Build Session Assessment form (coach → player, per session)
+- [x] **Task 7:** Build Post-Session Review trigger (banner on completed sessions)
+- [x] **Task 8:** Build Coach Assessment entry points (per session player list)
+- [x] **Task 9:** Build Career Dashboard (player assessment history + radar chart)
+- [x] **Task 10:** Build Notification model + repository + screen
+- [x] **Task 11:** Wire Notification badge to app shell
+- [x] **Task 12:** Build Achievements screen
+- [x] **Task 13:** Build Edit Profile + Settings screens
+- [x] **Task 14:** Integrate reviews into Coach profile/detail screens
+
+### Post-Implementation Fixes (from user testing)
+
+- [x] Fix notification "Bayar sebelum jam 15:00" crash — coaching booking route mismatch
+- [x] Remove inconsistent hourly rate from coach detail bottom bar
+- [x] Make completed coaching sessions clickable → detail screen + assessment entry
+- [x] Add venue association to coach packages → auto-populate in booking flow

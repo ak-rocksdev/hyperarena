@@ -17,6 +17,7 @@ import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/booking_card.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
 import 'package:hyperarena/features/gamification/providers/gamification_providers.dart';
+import 'package:hyperarena/features/notification/presentation/widgets/notification_bell.dart';
 import 'package:hyperarena/features/venue/providers/venue_providers.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -56,16 +57,30 @@ class HomeScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppDimensions.base),
 
-              // Greeting
-              Text(
-                '${_greeting()},',
-                style: AppTypography.bodyLarge.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              Text(
-                user?.name ?? 'Player',
-                style: AppTypography.headingLarge,
+              // Greeting + Notification bell
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_greeting()},',
+                          style: AppTypography.bodyLarge.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        Text(
+                          user?.name ?? 'Player',
+                          style: AppTypography.headingLarge,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const NotificationBell(),
+                ],
               ),
               const SizedBox(height: AppDimensions.base),
 

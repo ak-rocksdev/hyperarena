@@ -16,6 +16,8 @@ class CoachPackage with _$CoachPackage {
     required int pricePerSession,
     required int durationMinutes,
     @Default(true) bool isActive,
+    String? venueId,
+    String? venueName,
   }) = _CoachPackage;
 
   factory CoachPackage.fromJson(Map<String, dynamic> json) =>

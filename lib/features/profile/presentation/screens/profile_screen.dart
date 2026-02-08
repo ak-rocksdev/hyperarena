@@ -314,7 +314,7 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       Text('Pencapaian', style: AppTypography.titleMedium),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () => context.push(AppRoutes.achievements),
                         child: Text(
                           'Lihat Semua \u2192',
                           style: AppTypography.bodySmall.copyWith(
@@ -428,17 +428,22 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.edit,
                         label: 'Edit Profil',
-                        onTap: () {},
+                        onTap: () => context.push(AppRoutes.editProfile),
+                      ),
+                      _MenuItem(
+                        icon: Icons.show_chart,
+                        label: 'Perkembangan',
+                        onTap: () => context.push(AppRoutes.career),
                       ),
                       _MenuItem(
                         icon: Icons.emoji_events,
                         label: 'Pencapaian',
-                        onTap: () {},
+                        onTap: () => context.push(AppRoutes.achievements),
                       ),
                       _MenuItem(
                         icon: Icons.settings,
                         label: 'Pengaturan',
-                        onTap: () {},
+                        onTap: () => context.push(AppRoutes.settings),
                       ),
                       _MenuItem(
                         icon: Icons.info_outline,

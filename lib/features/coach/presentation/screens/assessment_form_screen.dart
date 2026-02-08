@@ -6,13 +6,33 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/radar_chart_widget.dart';
 
 /// Assessment form screen where a coach fills in scores for a student.
+/// When [sessionId] is provided, runs in session-linked mode with
+/// pre-filled context and improvement feedback fields.
 class AssessmentFormScreen extends ConsumerStatefulWidget {
-  const AssessmentFormScreen({super.key});
+  final String? sessionId;
+  final String? sessionTitle;
+  final String? studentId;
+  final String? studentName;
+  final Sport? sport;
+  final DateTime? sessionDate;
+
+  const AssessmentFormScreen({
+    super.key,
+    this.sessionId,
+    this.sessionTitle,
+    this.studentId,
+    this.studentName,
+    this.sport,
+    this.sessionDate,
+  });
+
+  bool get isSessionLinked => sessionId != null;
 
   @override
   ConsumerState<AssessmentFormScreen> createState() =>
@@ -23,6 +43,9 @@ class _AssessmentFormScreenState extends ConsumerState<AssessmentFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _notesController = TextEditingController();
+  final _strengthController = TextEditingController();
+  final _improveController = TextEditingController();
+  final _styleController = TextEditingController();
 
   Sport? _selectedSport;
   int _technique = 5;
@@ -50,9 +73,21 @@ class _AssessmentFormScreenState extends ConsumerState<AssessmentFormScreen> {
       };
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.isSessionLinked) {
+      _nameController.text = widget.studentName ?? '';
+      _selectedSport = widget.sport;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _notesController.dispose();
+    _strengthController.dispose();
+    _improveController.dispose();
+    _styleController.dispose();
     super.dispose();
   }
 
@@ -87,57 +122,116 @@ class _AssessmentFormScreenState extends ConsumerState<AssessmentFormScreen> {
             children: [
               const SizedBox(height: AppDimensions.base),
 
-              // ── Student Name ────────────────────────────────────
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Murid',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Nama murid wajib diisi';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppDimensions.xl),
-
-              // ── Sport Selector ──────────────────────────────────
-              Text('Cabang Olahraga', style: AppTypography.titleSmall),
-              const SizedBox(height: AppDimensions.sm),
-              Wrap(
-                spacing: AppDimensions.sm,
-                runSpacing: AppDimensions.sm,
-                children: _availableSports.map((sport) {
-                  final isSelected = _selectedSport == sport;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedSport = sport),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.md,
-                        vertical: AppDimensions.sm,
+              // ── Session context banner (session-linked mode) ──
+              if (widget.isSessionLinked) ...[
+                Container(
+                  padding: const EdgeInsets.all(AppDimensions.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary50,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusMd),
+                    border: Border.all(color: AppColors.primary100),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.event_outlined,
+                        color: AppColors.primary700,
+                        size: AppDimensions.iconMd,
                       ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? sportTheme.backgroundColor(sport)
-                            : AppColors.neutral100,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusFull),
-                      ),
-                      child: Text(
-                        _sportLabel(sport),
-                        style: AppTypography.labelMedium.copyWith(
-                          color: isSelected
-                              ? sportTheme.textColor(sport)
-                              : AppColors.neutral600,
+                      const SizedBox(width: AppDimensions.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.sessionTitle ?? 'Sesi Latihan',
+                              style: AppTypography.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary800,
+                              ),
+                            ),
+                            if (widget.sessionDate != null) ...[
+                              const SizedBox(height: AppDimensions.xxs),
+                              Text(
+                                Formatters.formatDate(widget.sessionDate!),
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: AppDimensions.xl),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.base),
+                // Show student name as read-only
+                Text(
+                  'Murid: ${widget.studentName ?? "-"}',
+                  style: AppTypography.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.xl),
+              ],
+
+              // ── Student Name (standalone mode only) ──────────
+              if (!widget.isSessionLinked) ...[
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nama Murid',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Nama murid wajib diisi';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppDimensions.xl),
+              ],
+
+              // ── Sport Selector (standalone mode only) ────────
+              if (!widget.isSessionLinked) ...[
+                Text('Cabang Olahraga', style: AppTypography.titleSmall),
+                const SizedBox(height: AppDimensions.sm),
+                Wrap(
+                  spacing: AppDimensions.sm,
+                  runSpacing: AppDimensions.sm,
+                  children: _availableSports.map((sport) {
+                    final isSelected = _selectedSport == sport;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedSport = sport),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.md,
+                          vertical: AppDimensions.sm,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? sportTheme.backgroundColor(sport)
+                              : AppColors.neutral100,
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.radiusFull),
+                        ),
+                        child: Text(
+                          _sportLabel(sport),
+                          style: AppTypography.labelMedium.copyWith(
+                            color: isSelected
+                                ? sportTheme.textColor(sport)
+                                : AppColors.neutral600,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: AppDimensions.xl),
+              ],
 
               // ── Sliders ─────────────────────────────────────────
               _buildSlider(
@@ -223,6 +317,90 @@ class _AssessmentFormScreenState extends ConsumerState<AssessmentFormScreen> {
                   alignLabelWithHint: true,
                 ),
               ),
+
+              // ── Improvement fields (session-linked mode only) ──
+              if (widget.isSessionLinked) ...[
+                const SizedBox(height: AppDimensions.xl),
+                const Divider(),
+                const SizedBox(height: AppDimensions.base),
+                Text(
+                  'Feedback Detail Sesi',
+                  style: AppTypography.titleSmall,
+                ),
+                const SizedBox(height: AppDimensions.base),
+
+                TextFormField(
+                  controller: _strengthController,
+                  decoration: const InputDecoration(
+                    labelText: 'Kelebihan Utama',
+                    hintText:
+                        'Apa kelebihan utama pemain ini di sesi ini?',
+                    prefixIcon: Icon(Icons.star_outline),
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.base),
+
+                TextFormField(
+                  controller: _improveController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Yang Perlu Diperbaiki',
+                    hintText:
+                        'Apa yang perlu diperbaiki? Berikan saran spesifik.',
+                    alignLabelWithHint: true,
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.only(bottom: 48),
+                      child: Icon(Icons.trending_up),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.base),
+
+                TextFormField(
+                  controller: _styleController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Catatan Gaya Bermain',
+                    hintText:
+                        'Catatan tentang gaya bermain, pola permainan, atau kebiasaan.',
+                    alignLabelWithHint: true,
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.only(bottom: 48),
+                      child: Icon(Icons.sports),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.md),
+
+                // Privacy notice
+                Container(
+                  padding: const EdgeInsets.all(AppDimensions.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.neutral50,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusSm),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.lock_outline,
+                        size: AppDimensions.iconSm,
+                        color: AppColors.neutral400,
+                      ),
+                      const SizedBox(width: AppDimensions.sm),
+                      Expanded(
+                        child: Text(
+                          'Catatan ini hanya dapat dilihat oleh Anda dan pemain.',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.neutral500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               const SizedBox(height: AppDimensions.xxl),
 
               // ── Submit Button ───────────────────────────────────

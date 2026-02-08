@@ -17,6 +17,7 @@ import 'package:hyperarena/features/booking/presentation/screens/payment_screen.
 import 'package:hyperarena/features/booking/presentation/screens/slot_selection_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/assessment_form_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_confirmation_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coaching_booking_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_payment_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_dashboard_screen.dart';
@@ -34,7 +35,14 @@ import 'package:hyperarena/features/owner/presentation/screens/owner_dashboard_s
 import 'package:hyperarena/features/owner/presentation/screens/owner_booking_queue_screen.dart';
 import 'package:hyperarena/features/owner/presentation/screens/owner_venue_detail_screen.dart';
 import 'package:hyperarena/features/owner/presentation/screens/owner_venue_list_screen.dart';
+import 'package:hyperarena/features/gamification/presentation/screens/achievements_screen.dart';
+import 'package:hyperarena/features/notification/presentation/screens/notifications_screen.dart';
+import 'package:hyperarena/features/profile/presentation/screens/career_screen.dart';
+import 'package:hyperarena/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:hyperarena/features/profile/presentation/screens/profile_screen.dart';
+import 'package:hyperarena/features/profile/presentation/screens/settings_screen.dart';
+import 'package:hyperarena/features/review/presentation/screens/coach_review_list_screen.dart';
+import 'package:hyperarena/features/review/presentation/screens/submit_review_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_confirmation_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_detail_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_payment_screen.dart';
@@ -306,6 +314,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const CoachBookingConfirmationScreen(),
       ),
 
+      // ── Coaching booking detail (coach view) ────────────
+      GoRoute(
+        path: '/coaching-booking/:id',
+        builder: (_, state) => CoachingBookingDetailScreen(
+          bookingId: state.pathParameters['id']!,
+        ),
+      ),
+
       // ── Coach role shell (4 tabs) ──────────────────────
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) =>
@@ -355,7 +371,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/coach/assessment/new',
-        builder: (_, _) => const AssessmentFormScreen(),
+        builder: (_, state) {
+          final query = state.uri.queryParameters;
+          return AssessmentFormScreen(
+            sessionId: query['sessionId'],
+            sessionTitle: query['sessionTitle'],
+            studentId: query['studentId'],
+            studentName: query['studentName'],
+            sport: query['sport'] != null
+                ? Sport.values.firstWhere(
+                    (s) => s.name == query['sport'],
+                    orElse: () => Sport.tennis,
+                  )
+                : null,
+          );
+        },
       ),
 
       // ── Coach detail (parameterized — must come after specific /coach/* routes)
@@ -464,6 +494,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.organizerAgenda,
         builder: (_, _) => const OrganizerSessionListScreen(),
+      ),
+
+      // ── Career route ──────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.career,
+        builder: (_, _) => const CareerScreen(),
+      ),
+
+      // ── Review routes ────────────────────────────────────
+      GoRoute(
+        path: '/review/create/:sessionId',
+        builder: (_, state) => SubmitReviewScreen(
+          sessionId: state.pathParameters['sessionId']!,
+          coachId: state.uri.queryParameters['coachId'] ?? '',
+          coachName: state.uri.queryParameters['coachName'] ?? '',
+          sessionTitle: state.uri.queryParameters['sessionTitle'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/coach/:id/reviews',
+        builder: (_, state) => CoachReviewListScreen(
+          coachId: state.pathParameters['id']!,
+        ),
+      ),
+
+      // ── Notification route ──────────────────────────────
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (_, _) => const NotificationsScreen(),
+      ),
+
+      // ── Achievements route ──────────────────────────────
+      GoRoute(
+        path: AppRoutes.achievements,
+        builder: (_, _) => const AchievementsScreen(),
+      ),
+
+      // ── Edit Profile + Settings routes ──────────────────
+      GoRoute(
+        path: AppRoutes.editProfile,
+        builder: (_, _) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (_, _) => const SettingsScreen(),
       ),
 
       // ── Owner full-screen routes ───────────────────────

@@ -24,6 +24,11 @@ _$AssessmentImpl _$$AssessmentImplFromJson(Map<String, dynamic> json) =>
       recommendedLevel:
           $enumDecodeNullable(_$LevelTierEnumMap, json['recommended_level']) ??
           LevelTier.rookie,
+      sessionId: json['session_id'] as String?,
+      sessionTitle: json['session_title'] as String?,
+      whatToImprove: json['what_to_improve'] as String?,
+      playingStyleNotes: json['playing_style_notes'] as String?,
+      strengthHighlight: json['strength_highlight'] as String?,
     );
 
 Map<String, dynamic> _$$AssessmentImplToJson(_$AssessmentImpl instance) =>
@@ -42,6 +47,11 @@ Map<String, dynamic> _$$AssessmentImplToJson(_$AssessmentImpl instance) =>
       'consistency': instance.consistency,
       'notes': instance.notes,
       'recommended_level': _$LevelTierEnumMap[instance.recommendedLevel]!,
+      'session_id': instance.sessionId,
+      'session_title': instance.sessionTitle,
+      'what_to_improve': instance.whatToImprove,
+      'playing_style_notes': instance.playingStyleNotes,
+      'strength_highlight': instance.strengthHighlight,
     };
 
 const _$SportEnumMap = {

@@ -34,7 +34,14 @@ mixin _$Assessment {
   int get mentality => throw _privateConstructorUsedError;
   int get consistency => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
-  LevelTier get recommendedLevel => throw _privateConstructorUsedError;
+  LevelTier get recommendedLevel =>
+      throw _privateConstructorUsedError; // Session link
+  String? get sessionId => throw _privateConstructorUsedError;
+  String? get sessionTitle =>
+      throw _privateConstructorUsedError; // Structured improvement feedback
+  String? get whatToImprove => throw _privateConstructorUsedError;
+  String? get playingStyleNotes => throw _privateConstructorUsedError;
+  String? get strengthHighlight => throw _privateConstructorUsedError;
 
   /// Serializes this Assessment to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -68,6 +75,11 @@ abstract class $AssessmentCopyWith<$Res> {
     int consistency,
     String? notes,
     LevelTier recommendedLevel,
+    String? sessionId,
+    String? sessionTitle,
+    String? whatToImprove,
+    String? playingStyleNotes,
+    String? strengthHighlight,
   });
 }
 
@@ -100,6 +112,11 @@ class _$AssessmentCopyWithImpl<$Res, $Val extends Assessment>
     Object? consistency = null,
     Object? notes = freezed,
     Object? recommendedLevel = null,
+    Object? sessionId = freezed,
+    Object? sessionTitle = freezed,
+    Object? whatToImprove = freezed,
+    Object? playingStyleNotes = freezed,
+    Object? strengthHighlight = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -159,6 +176,26 @@ class _$AssessmentCopyWithImpl<$Res, $Val extends Assessment>
                 ? _value.recommendedLevel
                 : recommendedLevel // ignore: cast_nullable_to_non_nullable
                       as LevelTier,
+            sessionId: freezed == sessionId
+                ? _value.sessionId
+                : sessionId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sessionTitle: freezed == sessionTitle
+                ? _value.sessionTitle
+                : sessionTitle // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            whatToImprove: freezed == whatToImprove
+                ? _value.whatToImprove
+                : whatToImprove // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            playingStyleNotes: freezed == playingStyleNotes
+                ? _value.playingStyleNotes
+                : playingStyleNotes // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            strengthHighlight: freezed == strengthHighlight
+                ? _value.strengthHighlight
+                : strengthHighlight // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -189,6 +226,11 @@ abstract class _$$AssessmentImplCopyWith<$Res>
     int consistency,
     String? notes,
     LevelTier recommendedLevel,
+    String? sessionId,
+    String? sessionTitle,
+    String? whatToImprove,
+    String? playingStyleNotes,
+    String? strengthHighlight,
   });
 }
 
@@ -220,6 +262,11 @@ class __$$AssessmentImplCopyWithImpl<$Res>
     Object? consistency = null,
     Object? notes = freezed,
     Object? recommendedLevel = null,
+    Object? sessionId = freezed,
+    Object? sessionTitle = freezed,
+    Object? whatToImprove = freezed,
+    Object? playingStyleNotes = freezed,
+    Object? strengthHighlight = freezed,
   }) {
     return _then(
       _$AssessmentImpl(
@@ -279,6 +326,26 @@ class __$$AssessmentImplCopyWithImpl<$Res>
             ? _value.recommendedLevel
             : recommendedLevel // ignore: cast_nullable_to_non_nullable
                   as LevelTier,
+        sessionId: freezed == sessionId
+            ? _value.sessionId
+            : sessionId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sessionTitle: freezed == sessionTitle
+            ? _value.sessionTitle
+            : sessionTitle // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        whatToImprove: freezed == whatToImprove
+            ? _value.whatToImprove
+            : whatToImprove // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        playingStyleNotes: freezed == playingStyleNotes
+            ? _value.playingStyleNotes
+            : playingStyleNotes // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        strengthHighlight: freezed == strengthHighlight
+            ? _value.strengthHighlight
+            : strengthHighlight // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -302,6 +369,11 @@ class _$AssessmentImpl implements _Assessment {
     required this.consistency,
     this.notes,
     this.recommendedLevel = LevelTier.rookie,
+    this.sessionId,
+    this.sessionTitle,
+    this.whatToImprove,
+    this.playingStyleNotes,
+    this.strengthHighlight,
   });
 
   factory _$AssessmentImpl.fromJson(Map<String, dynamic> json) =>
@@ -336,10 +408,22 @@ class _$AssessmentImpl implements _Assessment {
   @override
   @JsonKey()
   final LevelTier recommendedLevel;
+  // Session link
+  @override
+  final String? sessionId;
+  @override
+  final String? sessionTitle;
+  // Structured improvement feedback
+  @override
+  final String? whatToImprove;
+  @override
+  final String? playingStyleNotes;
+  @override
+  final String? strengthHighlight;
 
   @override
   String toString() {
-    return 'Assessment(id: $id, coachId: $coachId, coachName: $coachName, studentId: $studentId, studentName: $studentName, sport: $sport, date: $date, technique: $technique, stamina: $stamina, tactics: $tactics, mentality: $mentality, consistency: $consistency, notes: $notes, recommendedLevel: $recommendedLevel)';
+    return 'Assessment(id: $id, coachId: $coachId, coachName: $coachName, studentId: $studentId, studentName: $studentName, sport: $sport, date: $date, technique: $technique, stamina: $stamina, tactics: $tactics, mentality: $mentality, consistency: $consistency, notes: $notes, recommendedLevel: $recommendedLevel, sessionId: $sessionId, sessionTitle: $sessionTitle, whatToImprove: $whatToImprove, playingStyleNotes: $playingStyleNotes, strengthHighlight: $strengthHighlight)';
   }
 
   @override
@@ -367,12 +451,22 @@ class _$AssessmentImpl implements _Assessment {
                 other.consistency == consistency) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.recommendedLevel, recommendedLevel) ||
-                other.recommendedLevel == recommendedLevel));
+                other.recommendedLevel == recommendedLevel) &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
+            (identical(other.sessionTitle, sessionTitle) ||
+                other.sessionTitle == sessionTitle) &&
+            (identical(other.whatToImprove, whatToImprove) ||
+                other.whatToImprove == whatToImprove) &&
+            (identical(other.playingStyleNotes, playingStyleNotes) ||
+                other.playingStyleNotes == playingStyleNotes) &&
+            (identical(other.strengthHighlight, strengthHighlight) ||
+                other.strengthHighlight == strengthHighlight));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     coachId,
@@ -388,7 +482,12 @@ class _$AssessmentImpl implements _Assessment {
     consistency,
     notes,
     recommendedLevel,
-  );
+    sessionId,
+    sessionTitle,
+    whatToImprove,
+    playingStyleNotes,
+    strengthHighlight,
+  ]);
 
   /// Create a copy of Assessment
   /// with the given fields replaced by the non-null parameter values.
@@ -420,6 +519,11 @@ abstract class _Assessment implements Assessment {
     required final int consistency,
     final String? notes,
     final LevelTier recommendedLevel,
+    final String? sessionId,
+    final String? sessionTitle,
+    final String? whatToImprove,
+    final String? playingStyleNotes,
+    final String? strengthHighlight,
   }) = _$AssessmentImpl;
 
   factory _Assessment.fromJson(Map<String, dynamic> json) =
@@ -452,7 +556,17 @@ abstract class _Assessment implements Assessment {
   @override
   String? get notes;
   @override
-  LevelTier get recommendedLevel;
+  LevelTier get recommendedLevel; // Session link
+  @override
+  String? get sessionId;
+  @override
+  String? get sessionTitle; // Structured improvement feedback
+  @override
+  String? get whatToImprove;
+  @override
+  String? get playingStyleNotes;
+  @override
+  String? get strengthHighlight;
 
   /// Create a copy of Assessment
   /// with the given fields replaced by the non-null parameter values.

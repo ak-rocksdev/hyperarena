@@ -13,6 +13,8 @@ abstract final class MockCoachPackages {
       sessions: 4,
       pricePerSession: 550000,
       durationMinutes: 60,
+      venueId: 'venue-001',
+      venueName: 'GOR Senayan Sports Center',
     ),
     const CoachPackage(
       id: 'pkg-002',
@@ -24,6 +26,8 @@ abstract final class MockCoachPackages {
       sessions: 8,
       pricePerSession: 500000,
       durationMinutes: 90,
+      venueId: 'venue-001',
+      venueName: 'GOR Senayan Sports Center',
     ),
     const CoachPackage(
       id: 'pkg-003',
@@ -35,6 +39,8 @@ abstract final class MockCoachPackages {
       sessions: 4,
       pricePerSession: 420000,
       durationMinutes: 60,
+      venueId: 'venue-004',
+      venueName: 'Lapangan Badminton Sudirman',
     ),
     const CoachPackage(
       id: 'pkg-004',
@@ -46,6 +52,8 @@ abstract final class MockCoachPackages {
       sessions: 12,
       pricePerSession: 380000,
       durationMinutes: 90,
+      venueId: 'venue-004',
+      venueName: 'Lapangan Badminton Sudirman',
     ),
     const CoachPackage(
       id: 'pkg-005',
@@ -57,6 +65,8 @@ abstract final class MockCoachPackages {
       sessions: 4,
       pricePerSession: 350000,
       durationMinutes: 60,
+      venueId: 'venue-003',
+      venueName: 'Padel House PIK',
     ),
     const CoachPackage(
       id: 'pkg-006',
@@ -68,6 +78,8 @@ abstract final class MockCoachPackages {
       sessions: 8,
       pricePerSession: 320000,
       durationMinutes: 60,
+      venueId: 'venue-003',
+      venueName: 'Padel House PIK',
     ),
     const CoachPackage(
       id: 'pkg-007',
@@ -79,6 +91,8 @@ abstract final class MockCoachPackages {
       sessions: 8,
       pricePerSession: 450000,
       durationMinutes: 60,
+      venueId: 'venue-001',
+      venueName: 'GOR Senayan Sports Center',
     ),
     const CoachPackage(
       id: 'pkg-008',
@@ -90,6 +104,8 @@ abstract final class MockCoachPackages {
       sessions: 4,
       pricePerSession: 400000,
       durationMinutes: 90,
+      venueId: 'venue-001',
+      venueName: 'GOR Senayan Sports Center',
     ),
     const CoachPackage(
       id: 'pkg-009',
@@ -101,6 +117,8 @@ abstract final class MockCoachPackages {
       sessions: 4,
       pricePerSession: 400000,
       durationMinutes: 90,
+      venueId: 'venue-005',
+      venueName: 'Futsal Arena Kelapa Gading',
     ),
     const CoachPackage(
       id: 'pkg-010',
@@ -112,6 +130,8 @@ abstract final class MockCoachPackages {
       sessions: 8,
       pricePerSession: 370000,
       durationMinutes: 120,
+      venueId: 'venue-005',
+      venueName: 'Futsal Arena Kelapa Gading',
     ),
   ];
 }

@@ -8,6 +8,8 @@ import 'package:hyperarena/core/mocks/mock_coaches.dart';
 import 'package:hyperarena/core/mocks/mock_coaching_bookings.dart';
 import 'package:hyperarena/core/mocks/mock_organizer_data.dart';
 import 'package:hyperarena/core/mocks/mock_owner_data.dart';
+import 'package:hyperarena/core/mocks/mock_notifications.dart';
+import 'package:hyperarena/core/mocks/mock_reviews.dart';
 import 'package:hyperarena/core/mocks/mock_sessions.dart';
 import 'package:hyperarena/core/mocks/mock_session_participants.dart';
 import 'package:hyperarena/core/mocks/mock_users.dart';
@@ -20,6 +22,8 @@ import 'package:hyperarena/features/coach/data/models/coach.dart';
 import 'package:hyperarena/features/coach/data/models/coach_package.dart';
 import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/gamification/data/models/badge.dart';
+import 'package:hyperarena/features/notification/data/models/notification_item.dart';
+import 'package:hyperarena/features/review/data/models/review.dart';
 import 'package:hyperarena/features/organizer/data/models/club_member.dart';
 import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/owner/data/models/court_availability_issue.dart';
@@ -42,6 +46,10 @@ abstract final class MockData {
   static final List<CourtAvailabilityIssue> _ownerIssueStore = List.from(
     MockOwnerData.issues,
   );
+  static final List<Review> _reviewStore = List.from(MockReviews.reviews);
+  static final List<NotificationItem> _notificationStore = List.from(
+    MockNotifications.notifications,
+  );
 
   static User get currentUser => MockUsers.currentUser;
   static User get organizerUser => MockUsers.organizerUser;
@@ -63,6 +71,8 @@ abstract final class MockData {
   static Map<String, String> get organizerSessionTemplates =>
       MockOrganizerData.sessionTemplates;
   static List<CourtAvailabilityIssue> get ownerIssues => _ownerIssueStore;
+  static List<Review> get reviews => _reviewStore;
+  static List<NotificationItem> get notifications => _notificationStore;
 
   static void upsertBooking(Booking booking) {
     final index = _bookingStore.indexWhere((b) => b.id == booking.id);
@@ -100,6 +110,27 @@ abstract final class MockData {
       return;
     }
     _venueStore[index] = venue;
+  }
+
+  static void addReview(Review review) {
+    _reviewStore.insert(0, review);
+  }
+
+  static void markNotificationRead(String id) {
+    final index = _notificationStore.indexWhere((n) => n.id == id);
+    if (index != -1) {
+      _notificationStore[index] = _notificationStore[index].copyWith(
+        isRead: true,
+      );
+    }
+  }
+
+  static void markAllNotificationsRead() {
+    for (var i = 0; i < _notificationStore.length; i++) {
+      if (!_notificationStore[i].isRead) {
+        _notificationStore[i] = _notificationStore[i].copyWith(isRead: true);
+      }
+    }
   }
 
   static void upsertOwnerIssue(CourtAvailabilityIssue issue) {

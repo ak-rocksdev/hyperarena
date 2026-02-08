@@ -83,9 +83,26 @@ abstract final class AppRoutes {
   static const coachBooking = '/coach/booking';
   static const coachBookingPayment = '/coach/booking/payment';
   static const coachBookingConfirmation = '/coach/booking/confirmation';
+  static String coachingBookingDetail(String id) => '/coaching-booking/$id';
 
   // ── Coach role-specific ────────────────────────────────────────────
   static String studentDetail(String name) =>
       '/coach/student/${Uri.encodeComponent(name)}';
   static const assessmentNew = '/coach/assessment/new';
+
+  // ── Review routes ────────────────────────────────────────────────
+  static String submitReview(String sessionId) => '/review/create/$sessionId';
+  static const myReviews = '/player/reviews';
+  static String coachReviews(String coachId) => '/coach/$coachId/reviews';
+
+  // ── Profile sub-routes ──────────────────────────────────────────
+  static const career = '/player/career';
+  static const editProfile = '/player/profile/edit';
+  static const settings = '/player/settings';
+
+  // ── Notification routes ───────────────────────────────────────
+  static const notifications = '/notifications';
+
+  // ── Gamification routes ───────────────────────────────────────
+  static const achievements = '/player/achievements';
 }

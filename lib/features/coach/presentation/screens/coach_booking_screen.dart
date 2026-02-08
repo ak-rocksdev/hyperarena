@@ -252,7 +252,7 @@ class _CoachBookingScreenState extends ConsumerState<CoachBookingScreen> {
                       horizontal: AppDimensions.screenHorizontal,
                     ),
                     child: Text(
-                      'Nama Venue',
+                      'Lokasi Venue',
                       style: AppTypography.titleMedium,
                     ),
                   ),
@@ -261,41 +261,89 @@ class _CoachBookingScreenState extends ConsumerState<CoachBookingScreen> {
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppDimensions.screenHorizontal,
                     ),
-                    child: TextField(
-                      controller: _venueController,
-                      onChanged: (value) => notifier.setVenueName(value),
-                      decoration: InputDecoration(
-                        hintText: 'Contoh: GOR Senayan',
-                        prefixIcon: const Icon(Icons.location_on_outlined),
-                        filled: true,
-                        fillColor: AppSurfaces.surface,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.radiusMd,
+                    child: package.venueName != null
+                        ? Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppDimensions.base),
+                            decoration: BoxDecoration(
+                              color: AppSurfaces.surface,
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.radiusMd,
+                              ),
+                              boxShadow: AppShadows.xs,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  color: AppColors.primary,
+                                  size: AppDimensions.iconMd,
+                                ),
+                                const SizedBox(width: AppDimensions.sm),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        package.venueName!,
+                                        style: AppTypography.titleSmall,
+                                      ),
+                                      const SizedBox(
+                                          height: AppDimensions.xs),
+                                      Text(
+                                        'Dari paket coaching',
+                                        style:
+                                            AppTypography.caption.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : TextField(
+                            controller: _venueController,
+                            onChanged: (value) =>
+                                notifier.setVenueName(value),
+                            decoration: InputDecoration(
+                              hintText: 'Contoh: GOR Senayan',
+                              prefixIcon: const Icon(
+                                  Icons.location_on_outlined),
+                              filled: true,
+                              fillColor: AppSurfaces.surface,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppDimensions.radiusMd,
+                                ),
+                                borderSide: BorderSide(
+                                    color: AppColors.neutral200),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppDimensions.radiusMd,
+                                ),
+                                borderSide: BorderSide(
+                                    color: AppColors.neutral200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppDimensions.radiusMd,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.5,
+                                ),
+                              ),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(
+                                horizontal: AppDimensions.base,
+                                vertical: AppDimensions.md,
+                              ),
+                            ),
                           ),
-                          borderSide: BorderSide(color: AppColors.neutral200),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.radiusMd,
-                          ),
-                          borderSide: BorderSide(color: AppColors.neutral200),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.radiusMd,
-                          ),
-                          borderSide: const BorderSide(
-                            color: AppColors.primary,
-                            width: 1.5,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.base,
-                          vertical: AppDimensions.md,
-                        ),
-                      ),
-                    ),
                   ),
 
                   const SizedBox(height: AppDimensions.xxl),

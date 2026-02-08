@@ -17,6 +17,8 @@ _$CoachPackageImpl _$$CoachPackageImplFromJson(Map<String, dynamic> json) =>
       pricePerSession: (json['price_per_session'] as num).toInt(),
       durationMinutes: (json['duration_minutes'] as num).toInt(),
       isActive: json['is_active'] as bool? ?? true,
+      venueId: json['venue_id'] as String?,
+      venueName: json['venue_name'] as String?,
     );
 
 Map<String, dynamic> _$$CoachPackageImplToJson(_$CoachPackageImpl instance) =>
@@ -30,6 +32,8 @@ Map<String, dynamic> _$$CoachPackageImplToJson(_$CoachPackageImpl instance) =>
       'price_per_session': instance.pricePerSession,
       'duration_minutes': instance.durationMinutes,
       'is_active': instance.isActive,
+      'venue_id': instance.venueId,
+      'venue_name': instance.venueName,
     };
 
 const _$SportEnumMap = {

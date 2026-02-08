@@ -30,6 +30,8 @@ mixin _$CoachPackage {
   int get pricePerSession => throw _privateConstructorUsedError;
   int get durationMinutes => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
+  String? get venueId => throw _privateConstructorUsedError;
+  String? get venueName => throw _privateConstructorUsedError;
 
   /// Serializes this CoachPackage to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -58,6 +60,8 @@ abstract class $CoachPackageCopyWith<$Res> {
     int pricePerSession,
     int durationMinutes,
     bool isActive,
+    String? venueId,
+    String? venueName,
   });
 }
 
@@ -85,6 +89,8 @@ class _$CoachPackageCopyWithImpl<$Res, $Val extends CoachPackage>
     Object? pricePerSession = null,
     Object? durationMinutes = null,
     Object? isActive = null,
+    Object? venueId = freezed,
+    Object? venueName = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -124,6 +130,14 @@ class _$CoachPackageCopyWithImpl<$Res, $Val extends CoachPackage>
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
                       as bool,
+            venueId: freezed == venueId
+                ? _value.venueId
+                : venueId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            venueName: freezed == venueName
+                ? _value.venueName
+                : venueName // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -149,6 +163,8 @@ abstract class _$$CoachPackageImplCopyWith<$Res>
     int pricePerSession,
     int durationMinutes,
     bool isActive,
+    String? venueId,
+    String? venueName,
   });
 }
 
@@ -175,6 +191,8 @@ class __$$CoachPackageImplCopyWithImpl<$Res>
     Object? pricePerSession = null,
     Object? durationMinutes = null,
     Object? isActive = null,
+    Object? venueId = freezed,
+    Object? venueName = freezed,
   }) {
     return _then(
       _$CoachPackageImpl(
@@ -214,6 +232,14 @@ class __$$CoachPackageImplCopyWithImpl<$Res>
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
                   as bool,
+        venueId: freezed == venueId
+            ? _value.venueId
+            : venueId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        venueName: freezed == venueName
+            ? _value.venueName
+            : venueName // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -232,6 +258,8 @@ class _$CoachPackageImpl implements _CoachPackage {
     required this.pricePerSession,
     required this.durationMinutes,
     this.isActive = true,
+    this.venueId,
+    this.venueName,
   });
 
   factory _$CoachPackageImpl.fromJson(Map<String, dynamic> json) =>
@@ -256,10 +284,14 @@ class _$CoachPackageImpl implements _CoachPackage {
   @override
   @JsonKey()
   final bool isActive;
+  @override
+  final String? venueId;
+  @override
+  final String? venueName;
 
   @override
   String toString() {
-    return 'CoachPackage(id: $id, coachId: $coachId, name: $name, description: $description, sport: $sport, sessions: $sessions, pricePerSession: $pricePerSession, durationMinutes: $durationMinutes, isActive: $isActive)';
+    return 'CoachPackage(id: $id, coachId: $coachId, name: $name, description: $description, sport: $sport, sessions: $sessions, pricePerSession: $pricePerSession, durationMinutes: $durationMinutes, isActive: $isActive, venueId: $venueId, venueName: $venueName)';
   }
 
   @override
@@ -280,7 +312,10 @@ class _$CoachPackageImpl implements _CoachPackage {
             (identical(other.durationMinutes, durationMinutes) ||
                 other.durationMinutes == durationMinutes) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive));
+                other.isActive == isActive) &&
+            (identical(other.venueId, venueId) || other.venueId == venueId) &&
+            (identical(other.venueName, venueName) ||
+                other.venueName == venueName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -296,6 +331,8 @@ class _$CoachPackageImpl implements _CoachPackage {
     pricePerSession,
     durationMinutes,
     isActive,
+    venueId,
+    venueName,
   );
 
   /// Create a copy of CoachPackage
@@ -323,6 +360,8 @@ abstract class _CoachPackage implements CoachPackage {
     required final int pricePerSession,
     required final int durationMinutes,
     final bool isActive,
+    final String? venueId,
+    final String? venueName,
   }) = _$CoachPackageImpl;
 
   factory _CoachPackage.fromJson(Map<String, dynamic> json) =
@@ -346,6 +385,10 @@ abstract class _CoachPackage implements CoachPackage {
   int get durationMinutes;
   @override
   bool get isActive;
+  @override
+  String? get venueId;
+  @override
+  String? get venueName;
 
   /// Create a copy of CoachPackage
   /// with the given fields replaced by the non-null parameter values.

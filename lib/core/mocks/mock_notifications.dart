@@ -1,0 +1,103 @@
+import 'package:hyperarena/features/notification/data/models/notification_item.dart';
+
+abstract final class MockNotifications {
+  static List<NotificationItem> get notifications {
+    final now = DateTime.now();
+    return [
+      NotificationItem(
+        id: 'notif-001',
+        type: NotificationType.reviewRequest,
+        title: 'Beri ulasan untuk Coach Andi',
+        body: 'Sesi Latihan Tennis Pagi sudah selesai. Bagaimana pengalaman Anda?',
+        createdAt: now.subtract(const Duration(hours: 1)),
+        actionRoute: '/review/create/session-completed-1',
+        relatedId: 'session-completed-1',
+      ),
+      NotificationItem(
+        id: 'notif-002',
+        type: NotificationType.assessmentReceived,
+        title: 'Penilaian baru dari Coach Andi',
+        body: 'Coach Andi Prasetyo memberikan penilaian untuk sesi Latihan Tennis Pagi. Lihat perkembangan Anda.',
+        createdAt: now.subtract(const Duration(hours: 2)),
+        actionRoute: '/player/career',
+        relatedId: 'assess-005',
+      ),
+      NotificationItem(
+        id: 'notif-003',
+        type: NotificationType.sessionReminder,
+        title: 'Sesi dimulai 1 jam lagi',
+        body: 'Badminton Sore di GOR Senayan Sports Center dimulai jam 16:00.',
+        createdAt: now.subtract(const Duration(hours: 3)),
+        actionRoute: '/session/session-today-1',
+        relatedId: 'session-today-1',
+      ),
+      NotificationItem(
+        id: 'notif-004',
+        type: NotificationType.bookingConfirmed,
+        title: 'Booking dikonfirmasi',
+        body: 'Kelas Privat Tennis dengan Coach Andi sudah dikonfirmasi.',
+        createdAt: now.subtract(const Duration(hours: 5)),
+        isRead: true,
+        actionRoute: '/coaching-booking/cb-001',
+        relatedId: 'cb-001',
+      ),
+      NotificationItem(
+        id: 'notif-005',
+        type: NotificationType.paymentReminder,
+        title: 'Bayar sebelum jam 15:00',
+        body: 'Booking Intro Padel menunggu pembayaran. Bayar sekarang sebelum hangus.',
+        createdAt: now.subtract(const Duration(hours: 6)),
+        actionRoute: '/coaching-booking/cb-003',
+        relatedId: 'cb-003',
+      ),
+      NotificationItem(
+        id: 'notif-006',
+        type: NotificationType.badge,
+        title: 'Badge baru: First Timer!',
+        body: 'Selamat! Anda mendapatkan badge First Timer setelah menyelesaikan sesi pertama.',
+        createdAt: now.subtract(const Duration(days: 1)),
+        isRead: true,
+        actionRoute: '/player/achievements',
+        relatedId: 'badge-001',
+      ),
+      NotificationItem(
+        id: 'notif-007',
+        type: NotificationType.sessionFull,
+        title: 'Sesi sudah penuh',
+        body: 'Tenis Doubles Pagi sudah mencapai kapasitas maksimum 4 pemain.',
+        createdAt: now.subtract(const Duration(days: 1, hours: 2)),
+        isRead: true,
+        actionRoute: '/session/session-001',
+        relatedId: 'session-001',
+      ),
+      NotificationItem(
+        id: 'notif-008',
+        type: NotificationType.reviewRequest,
+        title: 'Beri ulasan untuk Coach Maya',
+        body: 'Sesi Badminton Sore Rabu sudah selesai. Beri ulasan untuk pengalaman latihan Anda.',
+        createdAt: now.subtract(const Duration(days: 2)),
+        isRead: true,
+        actionRoute: '/review/create/session-completed-2',
+        relatedId: 'session-completed-2',
+      ),
+      NotificationItem(
+        id: 'notif-009',
+        type: NotificationType.general,
+        title: 'Selamat datang di HyperArena!',
+        body: 'Mulai petualangan olahraga Anda. Jelajahi venue dan temukan partner bermain.',
+        createdAt: now.subtract(const Duration(days: 5)),
+        isRead: true,
+      ),
+      NotificationItem(
+        id: 'notif-010',
+        type: NotificationType.assessmentReceived,
+        title: 'Penilaian baru dari Coach Maya',
+        body: 'Coach Maya Sari memberikan penilaian untuk sesi Badminton Pemula. Lihat perkembangan Anda.',
+        createdAt: now.subtract(const Duration(days: 3)),
+        isRead: true,
+        actionRoute: '/player/career',
+        relatedId: 'assess-002',
+      ),
+    ];
+  }
+}

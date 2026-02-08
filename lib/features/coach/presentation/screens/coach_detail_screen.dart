@@ -7,7 +7,6 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
-import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
@@ -17,6 +16,8 @@ import 'package:hyperarena/features/coach/presentation/widgets/package_card.dart
 import 'package:hyperarena/features/coach/presentation/widgets/rating_stars.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_detail_provider.dart';
+import 'package:hyperarena/features/review/data/models/coach_rating_aggregate.dart';
+import 'package:hyperarena/features/review/providers/review_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 class CoachDetailScreen extends ConsumerWidget {
@@ -268,6 +269,152 @@ class _CoachDetailBody extends ConsumerWidget {
                       const SizedBox(height: AppDimensions.lg),
                     ],
 
+                    // ── Ulasan (Review Aggregate) section ──
+                    Text('Ulasan', style: AppTypography.titleMedium),
+                    const SizedBox(height: AppDimensions.md),
+                    AsyncValueWidget<CoachRatingAggregate>(
+                      value: ref.watch(coachRatingProvider(coach.id)),
+                      data: (aggregate) {
+                        if (aggregate.totalReviews == 0) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppDimensions.md,
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Belum ada ulasan',
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: AppColors.textTertiary,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        return Column(
+                          children: [
+                            // Average rating + stars + count
+                            Row(
+                              children: [
+                                Text(
+                                  aggregate.averageRating.toStringAsFixed(1),
+                                  style: AppTypography.displayMedium.copyWith(
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: AppDimensions.md),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    RatingStars(
+                                      rating: aggregate.averageRating,
+                                    ),
+                                    const SizedBox(height: AppDimensions.xs),
+                                    Text(
+                                      '${aggregate.totalReviews} ulasan',
+                                      style: AppTypography.bodySmall.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppDimensions.md),
+                            // Distribution bars (5 → 1)
+                            ...List.generate(5, (i) {
+                              final star = 5 - i;
+                              final count =
+                                  aggregate.distribution[star] ?? 0;
+                              final fraction = aggregate.totalReviews > 0
+                                  ? count / aggregate.totalReviews
+                                  : 0.0;
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppDimensions.xs,
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 16,
+                                      child: Text(
+                                        '$star',
+                                        style: AppTypography.caption,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppDimensions.xs),
+                                    Icon(
+                                      Icons.star,
+                                      size: 14,
+                                      color: AppColors.accent,
+                                    ),
+                                    const SizedBox(width: AppDimensions.sm),
+                                    Expanded(
+                                      child: Container(
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.neutral100,
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                            AppDimensions.radiusFull,
+                                          ),
+                                        ),
+                                        child: FractionallySizedBox(
+                                          alignment: Alignment.centerLeft,
+                                          widthFactor: fraction,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: AppColors.accent,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                AppDimensions.radiusFull,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppDimensions.sm),
+                                    SizedBox(
+                                      width: 24,
+                                      child: Text(
+                                        '$count',
+                                        style:
+                                            AppTypography.caption.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                            const SizedBox(height: AppDimensions.md),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                onPressed: () => context.push(
+                                  AppRoutes.coachReviews(coach.id),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(
+                                    color: AppColors.primary,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      AppDimensions.radiusMd,
+                                    ),
+                                  ),
+                                ),
+                                child: const Text('Lihat Semua Ulasan'),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: AppDimensions.lg),
+
                     // Packages section
                     Text('Paket Coaching', style: AppTypography.titleMedium),
                     const SizedBox(height: AppDimensions.md),
@@ -347,47 +494,31 @@ class _CoachDetailBody extends ConsumerWidget {
               color: AppSurfaces.surface,
               boxShadow: AppShadows.bottomNav,
             ),
-            child: Row(
-              children: [
-                // Hourly rate
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        Formatters.formatRupiah(coach.hourlyRate),
-                        style: AppTypography.priceLarge,
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Fitur hubungi coach segera hadir',
                       ),
-                      Text('/jam', style: AppTypography.caption),
-                    ],
-                  ),
-                ),
-                // Contact button
-                FilledButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Fitur hubungi coach segera hadir',
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.chat_outlined),
-                  label: const Text('Hubungi Coach'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(0, AppDimensions.buttonHeightMd),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusMd,
-                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.chat_outlined),
+                label: const Text('Hubungi Coach'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(0, AppDimensions.buttonHeightMd),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusMd,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),

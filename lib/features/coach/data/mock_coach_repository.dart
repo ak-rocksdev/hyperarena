@@ -118,6 +118,11 @@ class MockCoachRepository implements CoachRepository {
     required int consistency,
     String? notes,
     required LevelTier recommendedLevel,
+    String? sessionId,
+    String? sessionTitle,
+    String? whatToImprove,
+    String? playingStyleNotes,
+    String? strengthHighlight,
   }) async {
     await Future.delayed(config.mockDelay);
     final coach =
@@ -137,6 +142,11 @@ class MockCoachRepository implements CoachRepository {
       consistency: consistency,
       notes: notes,
       recommendedLevel: recommendedLevel,
+      sessionId: sessionId,
+      sessionTitle: sessionTitle,
+      whatToImprove: whatToImprove,
+      playingStyleNotes: playingStyleNotes,
+      strengthHighlight: strengthHighlight,
     );
   }
 

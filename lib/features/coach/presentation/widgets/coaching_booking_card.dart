@@ -14,8 +14,9 @@ import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 /// Reused in both coach dashboard and schedule screens.
 class CoachingBookingCard extends StatelessWidget {
   final CoachingBooking booking;
+  final VoidCallback? onTap;
 
-  const CoachingBookingCard({super.key, required this.booking});
+  const CoachingBookingCard({super.key, required this.booking, this.onTap});
 
   String _statusLabel(BookingStatus status) => switch (status) {
         BookingStatus.pendingPayment => 'Menunggu Bayar',
@@ -33,161 +34,164 @@ class CoachingBookingCard extends StatelessWidget {
     final statusTheme =
         Theme.of(context).extension<BookingStatusThemeExtension>()!;
 
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        boxShadow: AppShadows.sm,
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            // Sport-colored left accent bar
-            Container(
-              width: 4,
-              color: sportTheme.color(booking.sport),
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: AppSurfaces.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          boxShadow: AppShadows.sm,
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              // Sport-colored left accent bar
+              Container(
+                width: 4,
+                color: sportTheme.color(booking.sport),
+              ),
 
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimensions.base),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Row 1: Student name + Status badge
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            booking.playerName,
-                            style: AppTypography.titleSmall,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: AppDimensions.sm),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.sm,
-                            vertical: AppDimensions.xxs,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                statusTheme.backgroundColor(booking.status),
-                            borderRadius: BorderRadius.circular(
-                              AppDimensions.radiusFull,
+              // Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimensions.base),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Row 1: Student name + Status badge
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              booking.playerName,
+                              style: AppTypography.titleSmall,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          child: Text(
-                            _statusLabel(booking.status),
-                            style: AppTypography.labelMedium.copyWith(
+                          const SizedBox(width: AppDimensions.sm),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimensions.sm,
+                              vertical: AppDimensions.xxs,
+                            ),
+                            decoration: BoxDecoration(
                               color:
-                                  statusTheme.textColor(booking.status),
+                                  statusTheme.backgroundColor(booking.status),
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.radiusFull,
+                              ),
+                            ),
+                            child: Text(
+                              _statusLabel(booking.status),
+                              style: AppTypography.labelMedium.copyWith(
+                                color:
+                                    statusTheme.textColor(booking.status),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppDimensions.sm),
+                        ],
+                      ),
+                      const SizedBox(height: AppDimensions.sm),
 
-                    // Row 2: Date + Time
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: AppDimensions.iconXs,
-                          color: AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: AppDimensions.xs),
-                        Text(
-                          Formatters.formatDate(booking.date),
-                          style: AppTypography.bodySmall,
-                        ),
-                        const SizedBox(width: AppDimensions.md),
-                        Icon(
-                          Icons.access_time,
-                          size: AppDimensions.iconXs,
-                          color: AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: AppDimensions.xs),
-                        Text(
-                          Formatters.formatTimeRange(
-                            booking.startTime,
-                            booking.endTime,
+                      // Row 2: Date + Time
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: AppDimensions.iconXs,
+                            color: AppColors.textSecondary,
                           ),
-                          style: AppTypography.bodySmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppDimensions.xs),
-
-                    // Row 3: Venue
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          size: AppDimensions.iconXs,
-                          color: AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: AppDimensions.xs),
-                        Expanded(
-                          child: Text(
-                            booking.venueName,
+                          const SizedBox(width: AppDimensions.xs),
+                          Text(
+                            Formatters.formatDate(booking.date),
                             style: AppTypography.bodySmall,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppDimensions.sm),
-
-                    // Row 4: Package name + Amount
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            booking.packageName,
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textTertiary,
+                          const SizedBox(width: AppDimensions.md),
+                          Icon(
+                            Icons.access_time,
+                            size: AppDimensions.iconXs,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: AppDimensions.xs),
+                          Text(
+                            Formatters.formatTimeRange(
+                              booking.startTime,
+                              booking.endTime,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.bodySmall,
                           ),
-                        ),
-                        Text(
-                          Formatters.formatRupiah(booking.amount),
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppDimensions.sm),
+                        ],
+                      ),
+                      const SizedBox(height: AppDimensions.xs),
 
-                    // Sport pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.sm,
-                        vertical: AppDimensions.xxs,
+                      // Row 3: Venue
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: AppDimensions.iconXs,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: AppDimensions.xs),
+                          Expanded(
+                            child: Text(
+                              booking.venueName,
+                              style: AppTypography.bodySmall,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      decoration: BoxDecoration(
-                        color: sportTheme.backgroundColor(booking.sport),
-                        borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusFull,
+                      const SizedBox(height: AppDimensions.sm),
+
+                      // Row 4: Package name + Amount
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              booking.packageName,
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textTertiary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            Formatters.formatRupiah(booking.amount),
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppDimensions.sm),
+
+                      // Sport pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.sm,
+                          vertical: AppDimensions.xxs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: sportTheme.backgroundColor(booking.sport),
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusFull,
+                          ),
+                        ),
+                        child: Text(
+                          SportChipSelector.sportLabel(booking.sport),
+                          style: AppTypography.badge.copyWith(
+                            color: sportTheme.textColor(booking.sport),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        SportChipSelector.sportLabel(booking.sport),
-                        style: AppTypography.badge.copyWith(
-                          color: sportTheme.textColor(booking.sport),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

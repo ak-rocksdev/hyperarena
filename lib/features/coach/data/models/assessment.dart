@@ -21,6 +21,13 @@ class Assessment with _$Assessment {
     required int consistency,
     String? notes,
     @Default(LevelTier.rookie) LevelTier recommendedLevel,
+    // Session link
+    String? sessionId,
+    String? sessionTitle,
+    // Structured improvement feedback
+    String? whatToImprove,
+    String? playingStyleNotes,
+    String? strengthHighlight,
   }) = _Assessment;
 
   factory Assessment.fromJson(Map<String, dynamic> json) =>

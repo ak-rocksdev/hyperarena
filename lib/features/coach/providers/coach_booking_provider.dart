@@ -46,6 +46,7 @@ class CoachBookingNotifier extends Notifier<CoachBookingState> {
     state = CoachBookingState(
       coach: state.coach,
       package: pkg,
+      venueName: pkg.venueName,
     );
   }
 

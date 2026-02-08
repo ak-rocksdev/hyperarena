@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
@@ -8,6 +9,7 @@ import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/coaching_booking_card.dart';
 import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 /// Coach's schedule tab screen with "Mendatang" (upcoming) and "Selesai" (done) tabs.
 class CoachScheduleScreen extends ConsumerWidget {
@@ -109,9 +111,15 @@ class _BookingListTab extends StatelessWidget {
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
             itemCount: filtered.length,
             itemBuilder: (context, index) {
+              final booking = filtered[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppDimensions.md),
-                child: CoachingBookingCard(booking: filtered[index]),
+                child: CoachingBookingCard(
+                  booking: booking,
+                  onTap: () => context.push(
+                    AppRoutes.coachingBookingDetail(booking.id),
+                  ),
+                ),
               );
             },
           ),

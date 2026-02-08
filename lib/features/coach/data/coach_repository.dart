@@ -35,6 +35,11 @@ abstract class CoachRepository {
     required int consistency,
     String? notes,
     required LevelTier recommendedLevel,
+    String? sessionId,
+    String? sessionTitle,
+    String? whatToImprove,
+    String? playingStyleNotes,
+    String? strengthHighlight,
   });
   Future<List<String>> getStudentNames(String coachId);
 }

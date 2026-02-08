@@ -16,6 +16,19 @@ final organizerRepositoryProvider = Provider<OrganizerRepository>((ref) {
   return MockOrganizerRepository(config);
 });
 
+// ── Dashboard filter state (shared between KPI strip & filter bar) ──────
+enum DashboardDateRange { today, tomorrow, thisWeek }
+
+enum DashboardFilter { none, pendingPayment, lowQuota, dispute, confirmed }
+
+final dashboardDateRangeProvider = StateProvider<DashboardDateRange>(
+  (ref) => DashboardDateRange.thisWeek,
+);
+
+final dashboardFilterProvider = StateProvider<DashboardFilter>(
+  (ref) => DashboardFilter.none,
+);
+
 final organizerDateRangeProvider = StateProvider<DateTimeRange>((ref) {
   final now = DateTime.now();
   return DateTimeRange(

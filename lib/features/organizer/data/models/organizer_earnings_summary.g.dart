@@ -58,6 +58,9 @@ _$OrganizerEarningsSummaryImpl _$$OrganizerEarningsSummaryImplFromJson(
           )
           .toList() ??
       const [],
+  pendingPlayerBalance: (json['pending_player_balance'] as num?)?.toInt() ?? 0,
+  pendingVenueBalance: (json['pending_venue_balance'] as num?)?.toInt() ?? 0,
+  disputeHoldBalance: (json['dispute_hold_balance'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$$OrganizerEarningsSummaryImplToJson(
@@ -67,4 +70,7 @@ Map<String, dynamic> _$$OrganizerEarningsSummaryImplToJson(
   'pending_balance': instance.pendingBalance,
   'paid_out_this_month': instance.paidOutThisMonth,
   'settlements': instance.settlements,
+  'pending_player_balance': instance.pendingPlayerBalance,
+  'pending_venue_balance': instance.pendingVenueBalance,
+  'dispute_hold_balance': instance.disputeHoldBalance,
 };

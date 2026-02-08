@@ -25,6 +25,10 @@ mixin _$SessionHealth {
   bool get isLowSignupRisk => throw _privateConstructorUsedError;
   bool get isJoinDeadlineAtRisk => throw _privateConstructorUsedError;
   int get trendScore => throw _privateConstructorUsedError;
+  int get pendingPaymentAmount => throw _privateConstructorUsedError;
+  int get slotsRemaining => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _healthDurationFromJson, toJson: _healthDurationToJson)
+  Duration? get timeToStart => throw _privateConstructorUsedError;
 
   /// Serializes this SessionHealth to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -48,6 +52,10 @@ abstract class $SessionHealthCopyWith<$Res> {
     bool isLowSignupRisk,
     bool isJoinDeadlineAtRisk,
     int trendScore,
+    int pendingPaymentAmount,
+    int slotsRemaining,
+    @JsonKey(fromJson: _healthDurationFromJson, toJson: _healthDurationToJson)
+    Duration? timeToStart,
   });
 }
 
@@ -70,6 +78,9 @@ class _$SessionHealthCopyWithImpl<$Res, $Val extends SessionHealth>
     Object? isLowSignupRisk = null,
     Object? isJoinDeadlineAtRisk = null,
     Object? trendScore = null,
+    Object? pendingPaymentAmount = null,
+    Object? slotsRemaining = null,
+    Object? timeToStart = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -89,6 +100,18 @@ class _$SessionHealthCopyWithImpl<$Res, $Val extends SessionHealth>
                 ? _value.trendScore
                 : trendScore // ignore: cast_nullable_to_non_nullable
                       as int,
+            pendingPaymentAmount: null == pendingPaymentAmount
+                ? _value.pendingPaymentAmount
+                : pendingPaymentAmount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            slotsRemaining: null == slotsRemaining
+                ? _value.slotsRemaining
+                : slotsRemaining // ignore: cast_nullable_to_non_nullable
+                      as int,
+            timeToStart: freezed == timeToStart
+                ? _value.timeToStart
+                : timeToStart // ignore: cast_nullable_to_non_nullable
+                      as Duration?,
           )
           as $Val,
     );
@@ -109,6 +132,10 @@ abstract class _$$SessionHealthImplCopyWith<$Res>
     bool isLowSignupRisk,
     bool isJoinDeadlineAtRisk,
     int trendScore,
+    int pendingPaymentAmount,
+    int slotsRemaining,
+    @JsonKey(fromJson: _healthDurationFromJson, toJson: _healthDurationToJson)
+    Duration? timeToStart,
   });
 }
 
@@ -130,6 +157,9 @@ class __$$SessionHealthImplCopyWithImpl<$Res>
     Object? isLowSignupRisk = null,
     Object? isJoinDeadlineAtRisk = null,
     Object? trendScore = null,
+    Object? pendingPaymentAmount = null,
+    Object? slotsRemaining = null,
+    Object? timeToStart = freezed,
   }) {
     return _then(
       _$SessionHealthImpl(
@@ -149,6 +179,18 @@ class __$$SessionHealthImplCopyWithImpl<$Res>
             ? _value.trendScore
             : trendScore // ignore: cast_nullable_to_non_nullable
                   as int,
+        pendingPaymentAmount: null == pendingPaymentAmount
+            ? _value.pendingPaymentAmount
+            : pendingPaymentAmount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        slotsRemaining: null == slotsRemaining
+            ? _value.slotsRemaining
+            : slotsRemaining // ignore: cast_nullable_to_non_nullable
+                  as int,
+        timeToStart: freezed == timeToStart
+            ? _value.timeToStart
+            : timeToStart // ignore: cast_nullable_to_non_nullable
+                  as Duration?,
       ),
     );
   }
@@ -162,6 +204,10 @@ class _$SessionHealthImpl implements _SessionHealth {
     this.isLowSignupRisk = false,
     this.isJoinDeadlineAtRisk = false,
     this.trendScore = 0,
+    this.pendingPaymentAmount = 0,
+    this.slotsRemaining = 0,
+    @JsonKey(fromJson: _healthDurationFromJson, toJson: _healthDurationToJson)
+    this.timeToStart,
   });
 
   factory _$SessionHealthImpl.fromJson(Map<String, dynamic> json) =>
@@ -179,10 +225,19 @@ class _$SessionHealthImpl implements _SessionHealth {
   @override
   @JsonKey()
   final int trendScore;
+  @override
+  @JsonKey()
+  final int pendingPaymentAmount;
+  @override
+  @JsonKey()
+  final int slotsRemaining;
+  @override
+  @JsonKey(fromJson: _healthDurationFromJson, toJson: _healthDurationToJson)
+  final Duration? timeToStart;
 
   @override
   String toString() {
-    return 'SessionHealth(pendingPayments: $pendingPayments, isLowSignupRisk: $isLowSignupRisk, isJoinDeadlineAtRisk: $isJoinDeadlineAtRisk, trendScore: $trendScore)';
+    return 'SessionHealth(pendingPayments: $pendingPayments, isLowSignupRisk: $isLowSignupRisk, isJoinDeadlineAtRisk: $isJoinDeadlineAtRisk, trendScore: $trendScore, pendingPaymentAmount: $pendingPaymentAmount, slotsRemaining: $slotsRemaining, timeToStart: $timeToStart)';
   }
 
   @override
@@ -197,7 +252,13 @@ class _$SessionHealthImpl implements _SessionHealth {
             (identical(other.isJoinDeadlineAtRisk, isJoinDeadlineAtRisk) ||
                 other.isJoinDeadlineAtRisk == isJoinDeadlineAtRisk) &&
             (identical(other.trendScore, trendScore) ||
-                other.trendScore == trendScore));
+                other.trendScore == trendScore) &&
+            (identical(other.pendingPaymentAmount, pendingPaymentAmount) ||
+                other.pendingPaymentAmount == pendingPaymentAmount) &&
+            (identical(other.slotsRemaining, slotsRemaining) ||
+                other.slotsRemaining == slotsRemaining) &&
+            (identical(other.timeToStart, timeToStart) ||
+                other.timeToStart == timeToStart));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -208,6 +269,9 @@ class _$SessionHealthImpl implements _SessionHealth {
     isLowSignupRisk,
     isJoinDeadlineAtRisk,
     trendScore,
+    pendingPaymentAmount,
+    slotsRemaining,
+    timeToStart,
   );
 
   /// Create a copy of SessionHealth
@@ -230,6 +294,10 @@ abstract class _SessionHealth implements SessionHealth {
     final bool isLowSignupRisk,
     final bool isJoinDeadlineAtRisk,
     final int trendScore,
+    final int pendingPaymentAmount,
+    final int slotsRemaining,
+    @JsonKey(fromJson: _healthDurationFromJson, toJson: _healthDurationToJson)
+    final Duration? timeToStart,
   }) = _$SessionHealthImpl;
 
   factory _SessionHealth.fromJson(Map<String, dynamic> json) =
@@ -243,6 +311,13 @@ abstract class _SessionHealth implements SessionHealth {
   bool get isJoinDeadlineAtRisk;
   @override
   int get trendScore;
+  @override
+  int get pendingPaymentAmount;
+  @override
+  int get slotsRemaining;
+  @override
+  @JsonKey(fromJson: _healthDurationFromJson, toJson: _healthDurationToJson)
+  Duration? get timeToStart;
 
   /// Create a copy of SessionHealth
   /// with the given fields replaced by the non-null parameter values.

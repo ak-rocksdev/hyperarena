@@ -16,6 +16,9 @@ abstract final class MockCoaches {
       level: LevelTier.pro,
       totalStudents: 120,
       certifications: ['ITF Level 2', 'PELTI Nasional'],
+      availableDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+      availableStartTime: '07:00',
+      availableEndTime: '20:00',
     ),
     const Coach(
       id: 'coach-002',
@@ -30,6 +33,9 @@ abstract final class MockCoaches {
       level: LevelTier.advanced,
       totalStudents: 85,
       certifications: ['PBSI Level 1'],
+      availableDays: ['monday', 'wednesday', 'friday', 'saturday'],
+      availableStartTime: '08:00',
+      availableEndTime: '18:00',
     ),
     const Coach(
       id: 'coach-003',
@@ -44,6 +50,9 @@ abstract final class MockCoaches {
       level: LevelTier.advanced,
       totalStudents: 40,
       certifications: ['FIP Level 1', 'Padel Coach Spain'],
+      availableDays: ['tuesday', 'thursday', 'saturday', 'sunday'],
+      availableStartTime: '09:00',
+      availableEndTime: '21:00',
     ),
     const Coach(
       id: 'coach-004',
@@ -58,6 +67,9 @@ abstract final class MockCoaches {
       level: LevelTier.intermediate,
       totalStudents: 95,
       certifications: ['ITF Level 1'],
+      availableDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+      availableStartTime: '08:00',
+      availableEndTime: '19:00',
     ),
     const Coach(
       id: 'coach-005',
@@ -72,6 +84,9 @@ abstract final class MockCoaches {
       level: LevelTier.advanced,
       totalStudents: 150,
       certifications: ['Lisensi C AFC Futsal'],
+      availableDays: ['wednesday', 'friday', 'saturday', 'sunday'],
+      availableStartTime: '10:00',
+      availableEndTime: '22:00',
     ),
   ];
 }

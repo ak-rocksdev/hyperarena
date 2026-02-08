@@ -30,6 +30,9 @@ mixin _$OrganizerActionItem {
   String? get participantId => throw _privateConstructorUsedError;
   DateTime? get dueAt => throw _privateConstructorUsedError;
   String? get actionableRoute => throw _privateConstructorUsedError;
+  int? get amountImpact => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _durationFromJson, toJson: _durationToJson)
+  Duration? get timeToStart => throw _privateConstructorUsedError;
 
   /// Serializes this OrganizerActionItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -58,6 +61,9 @@ abstract class $OrganizerActionItemCopyWith<$Res> {
     String? participantId,
     DateTime? dueAt,
     String? actionableRoute,
+    int? amountImpact,
+    @JsonKey(fromJson: _durationFromJson, toJson: _durationToJson)
+    Duration? timeToStart,
   });
 }
 
@@ -85,6 +91,8 @@ class _$OrganizerActionItemCopyWithImpl<$Res, $Val extends OrganizerActionItem>
     Object? participantId = freezed,
     Object? dueAt = freezed,
     Object? actionableRoute = freezed,
+    Object? amountImpact = freezed,
+    Object? timeToStart = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -124,6 +132,14 @@ class _$OrganizerActionItemCopyWithImpl<$Res, $Val extends OrganizerActionItem>
                 ? _value.actionableRoute
                 : actionableRoute // ignore: cast_nullable_to_non_nullable
                       as String?,
+            amountImpact: freezed == amountImpact
+                ? _value.amountImpact
+                : amountImpact // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            timeToStart: freezed == timeToStart
+                ? _value.timeToStart
+                : timeToStart // ignore: cast_nullable_to_non_nullable
+                      as Duration?,
           )
           as $Val,
     );
@@ -149,6 +165,9 @@ abstract class _$$OrganizerActionItemImplCopyWith<$Res>
     String? participantId,
     DateTime? dueAt,
     String? actionableRoute,
+    int? amountImpact,
+    @JsonKey(fromJson: _durationFromJson, toJson: _durationToJson)
+    Duration? timeToStart,
   });
 }
 
@@ -175,6 +194,8 @@ class __$$OrganizerActionItemImplCopyWithImpl<$Res>
     Object? participantId = freezed,
     Object? dueAt = freezed,
     Object? actionableRoute = freezed,
+    Object? amountImpact = freezed,
+    Object? timeToStart = freezed,
   }) {
     return _then(
       _$OrganizerActionItemImpl(
@@ -214,6 +235,14 @@ class __$$OrganizerActionItemImplCopyWithImpl<$Res>
             ? _value.actionableRoute
             : actionableRoute // ignore: cast_nullable_to_non_nullable
                   as String?,
+        amountImpact: freezed == amountImpact
+            ? _value.amountImpact
+            : amountImpact // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        timeToStart: freezed == timeToStart
+            ? _value.timeToStart
+            : timeToStart // ignore: cast_nullable_to_non_nullable
+                  as Duration?,
       ),
     );
   }
@@ -232,6 +261,9 @@ class _$OrganizerActionItemImpl implements _OrganizerActionItem {
     this.participantId,
     this.dueAt,
     this.actionableRoute,
+    this.amountImpact,
+    @JsonKey(fromJson: _durationFromJson, toJson: _durationToJson)
+    this.timeToStart,
   });
 
   factory _$OrganizerActionItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -256,10 +288,15 @@ class _$OrganizerActionItemImpl implements _OrganizerActionItem {
   final DateTime? dueAt;
   @override
   final String? actionableRoute;
+  @override
+  final int? amountImpact;
+  @override
+  @JsonKey(fromJson: _durationFromJson, toJson: _durationToJson)
+  final Duration? timeToStart;
 
   @override
   String toString() {
-    return 'OrganizerActionItem(id: $id, type: $type, severity: $severity, title: $title, subtitle: $subtitle, sessionId: $sessionId, participantId: $participantId, dueAt: $dueAt, actionableRoute: $actionableRoute)';
+    return 'OrganizerActionItem(id: $id, type: $type, severity: $severity, title: $title, subtitle: $subtitle, sessionId: $sessionId, participantId: $participantId, dueAt: $dueAt, actionableRoute: $actionableRoute, amountImpact: $amountImpact, timeToStart: $timeToStart)';
   }
 
   @override
@@ -280,7 +317,11 @@ class _$OrganizerActionItemImpl implements _OrganizerActionItem {
                 other.participantId == participantId) &&
             (identical(other.dueAt, dueAt) || other.dueAt == dueAt) &&
             (identical(other.actionableRoute, actionableRoute) ||
-                other.actionableRoute == actionableRoute));
+                other.actionableRoute == actionableRoute) &&
+            (identical(other.amountImpact, amountImpact) ||
+                other.amountImpact == amountImpact) &&
+            (identical(other.timeToStart, timeToStart) ||
+                other.timeToStart == timeToStart));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -296,6 +337,8 @@ class _$OrganizerActionItemImpl implements _OrganizerActionItem {
     participantId,
     dueAt,
     actionableRoute,
+    amountImpact,
+    timeToStart,
   );
 
   /// Create a copy of OrganizerActionItem
@@ -326,6 +369,9 @@ abstract class _OrganizerActionItem implements OrganizerActionItem {
     final String? participantId,
     final DateTime? dueAt,
     final String? actionableRoute,
+    final int? amountImpact,
+    @JsonKey(fromJson: _durationFromJson, toJson: _durationToJson)
+    final Duration? timeToStart,
   }) = _$OrganizerActionItemImpl;
 
   factory _OrganizerActionItem.fromJson(Map<String, dynamic> json) =
@@ -349,6 +395,11 @@ abstract class _OrganizerActionItem implements OrganizerActionItem {
   DateTime? get dueAt;
   @override
   String? get actionableRoute;
+  @override
+  int? get amountImpact;
+  @override
+  @JsonKey(fromJson: _durationFromJson, toJson: _durationToJson)
+  Duration? get timeToStart;
 
   /// Create a copy of OrganizerActionItem
   /// with the given fields replaced by the non-null parameter values.

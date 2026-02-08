@@ -7,6 +7,9 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
+import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/core/widgets/error_view.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/coach/providers/student_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -29,15 +32,27 @@ class StudentListScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Murid Saya')),
       body: AsyncValueWidget<List<String>>(
         value: studentsAsync,
+        loading: () => Padding(
+          padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+          child: Column(
+            children: List.generate(
+              4,
+              (_) => Padding(
+                padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+                child: ShimmerLoading.card(height: 64),
+              ),
+            ),
+          ),
+        ),
+        error: (e, _) => ErrorView(
+          error: e,
+          onRetry: () => ref.invalidate(studentListProvider),
+        ),
         data: (students) {
           if (students.isEmpty) {
-            return Center(
-              child: Text(
-                'Belum ada murid',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.textTertiary,
-                ),
-              ),
+            return const EmptyState(
+              message: 'Belum ada murid',
+              icon: Icons.people_outline,
             );
           }
 

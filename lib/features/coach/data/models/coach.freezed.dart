@@ -34,6 +34,9 @@ mixin _$Coach {
   LevelTier get level => throw _privateConstructorUsedError;
   int get totalStudents => throw _privateConstructorUsedError;
   List<String> get certifications => throw _privateConstructorUsedError;
+  List<String> get availableDays => throw _privateConstructorUsedError;
+  String? get availableStartTime => throw _privateConstructorUsedError;
+  String? get availableEndTime => throw _privateConstructorUsedError;
 
   /// Serializes this Coach to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -63,6 +66,9 @@ abstract class $CoachCopyWith<$Res> {
     LevelTier level,
     int totalStudents,
     List<String> certifications,
+    List<String> availableDays,
+    String? availableStartTime,
+    String? availableEndTime,
   });
 }
 
@@ -94,6 +100,9 @@ class _$CoachCopyWithImpl<$Res, $Val extends Coach>
     Object? level = null,
     Object? totalStudents = null,
     Object? certifications = null,
+    Object? availableDays = null,
+    Object? availableStartTime = freezed,
+    Object? availableEndTime = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -149,6 +158,18 @@ class _$CoachCopyWithImpl<$Res, $Val extends Coach>
                 ? _value.certifications
                 : certifications // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            availableDays: null == availableDays
+                ? _value.availableDays
+                : availableDays // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            availableStartTime: freezed == availableStartTime
+                ? _value.availableStartTime
+                : availableStartTime // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            availableEndTime: freezed == availableEndTime
+                ? _value.availableEndTime
+                : availableEndTime // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -177,6 +198,9 @@ abstract class _$$CoachImplCopyWith<$Res> implements $CoachCopyWith<$Res> {
     LevelTier level,
     int totalStudents,
     List<String> certifications,
+    List<String> availableDays,
+    String? availableStartTime,
+    String? availableEndTime,
   });
 }
 
@@ -207,6 +231,9 @@ class __$$CoachImplCopyWithImpl<$Res>
     Object? level = null,
     Object? totalStudents = null,
     Object? certifications = null,
+    Object? availableDays = null,
+    Object? availableStartTime = freezed,
+    Object? availableEndTime = freezed,
   }) {
     return _then(
       _$CoachImpl(
@@ -262,6 +289,18 @@ class __$$CoachImplCopyWithImpl<$Res>
             ? _value._certifications
             : certifications // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        availableDays: null == availableDays
+            ? _value._availableDays
+            : availableDays // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        availableStartTime: freezed == availableStartTime
+            ? _value.availableStartTime
+            : availableStartTime // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        availableEndTime: freezed == availableEndTime
+            ? _value.availableEndTime
+            : availableEndTime // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -284,8 +323,12 @@ class _$CoachImpl implements _Coach {
     this.level = LevelTier.amateur,
     this.totalStudents = 0,
     final List<String> certifications = const [],
+    final List<String> availableDays = const [],
+    this.availableStartTime,
+    this.availableEndTime,
   }) : _sports = sports,
-       _certifications = certifications;
+       _certifications = certifications,
+       _availableDays = availableDays;
 
   factory _$CoachImpl.fromJson(Map<String, dynamic> json) =>
       _$$CoachImplFromJson(json);
@@ -335,9 +378,23 @@ class _$CoachImpl implements _Coach {
     return EqualUnmodifiableListView(_certifications);
   }
 
+  final List<String> _availableDays;
+  @override
+  @JsonKey()
+  List<String> get availableDays {
+    if (_availableDays is EqualUnmodifiableListView) return _availableDays;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_availableDays);
+  }
+
+  @override
+  final String? availableStartTime;
+  @override
+  final String? availableEndTime;
+
   @override
   String toString() {
-    return 'Coach(id: $id, name: $name, bio: $bio, avatarUrl: $avatarUrl, sports: $sports, rating: $rating, totalReviews: $totalReviews, hourlyRate: $hourlyRate, city: $city, isVerified: $isVerified, level: $level, totalStudents: $totalStudents, certifications: $certifications)';
+    return 'Coach(id: $id, name: $name, bio: $bio, avatarUrl: $avatarUrl, sports: $sports, rating: $rating, totalReviews: $totalReviews, hourlyRate: $hourlyRate, city: $city, isVerified: $isVerified, level: $level, totalStudents: $totalStudents, certifications: $certifications, availableDays: $availableDays, availableStartTime: $availableStartTime, availableEndTime: $availableEndTime)';
   }
 
   @override
@@ -365,7 +422,15 @@ class _$CoachImpl implements _Coach {
             const DeepCollectionEquality().equals(
               other._certifications,
               _certifications,
-            ));
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._availableDays,
+              _availableDays,
+            ) &&
+            (identical(other.availableStartTime, availableStartTime) ||
+                other.availableStartTime == availableStartTime) &&
+            (identical(other.availableEndTime, availableEndTime) ||
+                other.availableEndTime == availableEndTime));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -385,6 +450,9 @@ class _$CoachImpl implements _Coach {
     level,
     totalStudents,
     const DeepCollectionEquality().hash(_certifications),
+    const DeepCollectionEquality().hash(_availableDays),
+    availableStartTime,
+    availableEndTime,
   );
 
   /// Create a copy of Coach
@@ -416,6 +484,9 @@ abstract class _Coach implements Coach {
     final LevelTier level,
     final int totalStudents,
     final List<String> certifications,
+    final List<String> availableDays,
+    final String? availableStartTime,
+    final String? availableEndTime,
   }) = _$CoachImpl;
 
   factory _Coach.fromJson(Map<String, dynamic> json) = _$CoachImpl.fromJson;
@@ -446,6 +517,12 @@ abstract class _Coach implements Coach {
   int get totalStudents;
   @override
   List<String> get certifications;
+  @override
+  List<String> get availableDays;
+  @override
+  String? get availableStartTime;
+  @override
+  String? get availableEndTime;
 
   /// Create a copy of Coach
   /// with the given fields replaced by the non-null parameter values.

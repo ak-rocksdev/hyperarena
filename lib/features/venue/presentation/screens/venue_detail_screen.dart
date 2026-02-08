@@ -1,16 +1,23 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/launcher_helpers.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
+import 'package:hyperarena/features/review/data/models/venue_rating_aggregate.dart';
+import 'package:hyperarena/features/review/presentation/widgets/rating_stars.dart';
+import 'package:hyperarena/features/review/presentation/widgets/venue_review_card.dart';
+import 'package:hyperarena/features/review/providers/venue_review_providers.dart';
 import 'package:hyperarena/features/venue/presentation/widgets/court_card.dart';
 import 'package:hyperarena/features/venue/presentation/widgets/facility_chips.dart';
 import 'package:hyperarena/features/venue/providers/venue_providers.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class VenueDetailScreen extends ConsumerWidget {
   final String venueId;
@@ -133,6 +140,40 @@ class VenueDetailScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: AppDimensions.md),
+
+                      // WhatsApp contact button
+                      if (venue.whatsappNumber != null ||
+                          venue.phone != null)
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              final phone =
+                                  venue.whatsappNumber ?? venue.phone!;
+                              LauncherHelpers.openWhatsApp(
+                                phone,
+                                message:
+                                    'Halo, saya ingin bertanya tentang ${venue.name}',
+                              );
+                            },
+                            icon: const Icon(Icons.chat_outlined),
+                            label: const Text('Hubungi via WhatsApp'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF25D366),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(
+                                0,
+                                AppDimensions.buttonHeightMd,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppDimensions.radiusMd,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: AppDimensions.base),
 
                       // Facilities
@@ -225,6 +266,11 @@ class VenueDetailScreen extends ConsumerWidget {
                 ),
               ),
 
+              // Reviews section
+              SliverToBoxAdapter(
+                child: _VenueRatingSection(venueId: venue.id),
+              ),
+
               const SliverToBoxAdapter(
                 child: SizedBox(height: AppDimensions.screenBottom),
               ),
@@ -232,6 +278,202 @@ class VenueDetailScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _VenueRatingSection extends ConsumerWidget {
+  final String venueId;
+
+  const _VenueRatingSection({required this.venueId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ratingAsync = ref.watch(venueRatingProvider(venueId));
+    final reviewsAsync = ref.watch(venueReviewsProvider(venueId));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.screenHorizontal,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: AppDimensions.xl),
+
+          // Section title
+          Text('Ulasan', style: AppTypography.headingSmall),
+          const SizedBox(height: AppDimensions.md),
+
+          // Rating aggregate
+          ratingAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, _) => const SizedBox.shrink(),
+            data: (aggregate) {
+              if (aggregate.totalReviews == 0) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppDimensions.md,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Belum ada ulasan',
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return Column(
+                children: [
+                  // Average rating + stars + distribution
+                  _buildRatingAggregate(aggregate),
+                  const SizedBox(height: AppDimensions.md),
+
+                  // Recent reviews (latest 3)
+                  reviewsAsync.whenOrNull(
+                        data: (reviews) {
+                          final recent = reviews.take(3).toList();
+                          if (recent.isEmpty) return const SizedBox.shrink();
+                          return Column(
+                            children: [
+                              ...recent.map((r) => VenueReviewCard(review: r)),
+                            ],
+                          );
+                        },
+                      ) ??
+                      const SizedBox.shrink(),
+
+                  const SizedBox(height: AppDimensions.md),
+
+                  // "Lihat Semua Ulasan" button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => context.push(
+                        AppRoutes.venueReviews(venueId),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusMd,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        'Lihat Semua Ulasan (${aggregate.totalReviews})',
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingAggregate(VenueRatingAggregate aggregate) {
+    return Column(
+      children: [
+        // Average rating + stars + count
+        Row(
+          children: [
+            Text(
+              aggregate.averageRating.toStringAsFixed(1),
+              style: AppTypography.displayMedium.copyWith(
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: AppDimensions.md),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RatingStars(
+                  rating: 0,
+                  showAverage: true,
+                  averageRating: aggregate.averageRating,
+                  size: 20,
+                ),
+                const SizedBox(height: AppDimensions.xs),
+                Text(
+                  '${aggregate.totalReviews} ulasan',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: AppDimensions.md),
+        // Distribution bars (5 -> 1)
+        ...List.generate(5, (i) {
+          final star = 5 - i;
+          final count = aggregate.distribution[star] ?? 0;
+          final fraction = aggregate.totalReviews > 0
+              ? count / aggregate.totalReviews
+              : 0.0;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppDimensions.xs),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 16,
+                  child: Text(
+                    '$star',
+                    style: AppTypography.caption,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(width: AppDimensions.xs),
+                Icon(
+                  Icons.star,
+                  size: 14,
+                  color: AppColors.accent,
+                ),
+                const SizedBox(width: AppDimensions.sm),
+                Expanded(
+                  child: Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppColors.neutral100,
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusFull,
+                      ),
+                    ),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: fraction,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusFull,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppDimensions.sm),
+                SizedBox(
+                  width: 24,
+                  child: Text(
+                    '$count',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 }

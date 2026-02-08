@@ -13,6 +13,9 @@ class OrganizerDashboardStats with _$OrganizerDashboardStats {
     @Default(0.0) double averageRating,
     @Default(0) int monthlyEarnings,
     @Default(0) int atRiskSessions,
+    @Default(0) int totalUnpaidAmount,
+    @Default(0) int revenueCollectedToday,
+    @Default(0) int revenueExpectedToday,
   }) = _OrganizerDashboardStats;
 
   factory OrganizerDashboardStats.fromJson(Map<String, dynamic> json) =>

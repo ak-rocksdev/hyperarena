@@ -89,16 +89,25 @@ abstract final class AppRoutes {
   static String studentDetail(String name) =>
       '/coach/student/${Uri.encodeComponent(name)}';
   static const assessmentNew = '/coach/assessment/new';
+  static const coachAvailability = '/coach/availability';
 
   // ── Review routes ────────────────────────────────────────────────
   static String submitReview(String sessionId) => '/review/create/$sessionId';
   static const myReviews = '/player/reviews';
   static String coachReviews(String coachId) => '/coach/$coachId/reviews';
 
+  // ── Venue review routes ─────────────────────────────────────
+  static String submitVenueReview(String bookingId) =>
+      '/review/venue/$bookingId';
+  static String venueReviews(String venueId) => '/venue/$venueId/reviews';
+
   // ── Profile sub-routes ──────────────────────────────────────────
   static const career = '/player/career';
   static const editProfile = '/player/profile/edit';
   static const settings = '/player/settings';
+
+  // ── Auth sub-routes ─────────────────────────────────────────
+  static const forgotPassword = '/auth/forgot-password';
 
   // ── Notification routes ───────────────────────────────────────
   static const notifications = '/notifications';

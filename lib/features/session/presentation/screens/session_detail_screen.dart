@@ -14,6 +14,9 @@ import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
+import 'package:hyperarena/features/session/data/models/open_session.dart'
+    show OpenSessionStatus;
 import 'package:hyperarena/features/session/providers/session_join_provider.dart';
 import 'package:hyperarena/features/session/providers/session_providers.dart';
 
@@ -139,6 +142,16 @@ class SessionDetailScreen extends ConsumerWidget {
                             style: AppTypography.bodyMedium),
                         const SizedBox(height: AppDimensions.xl),
                       ],
+
+                      // Review banner (completed sessions with host)
+                      if (session.status == OpenSessionStatus.completed)
+                        PostSessionReviewBanner(
+                          sessionId: session.id,
+                          coachId: session.hostId,
+                          coachName: session.hostName,
+                          sessionTitle: session.title,
+                          currentPlayerId: 'user-001',
+                        ),
 
                       // Participants section
                       Text('Peserta', style: AppTypography.titleMedium),

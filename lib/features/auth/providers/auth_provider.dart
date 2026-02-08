@@ -15,7 +15,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   if (config.useMockData) {
     return MockAuthRepository(config);
   }
-  // TODO: return real API implementation
+  // Phase 5+: return real API implementation (ApiAuthRepository)
   return MockAuthRepository(config);
 });
 

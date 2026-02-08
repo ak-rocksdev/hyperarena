@@ -29,6 +29,9 @@ class OrganizerEarningsSummary with _$OrganizerEarningsSummary {
     @Default(0) int pendingBalance,
     @Default(0) int paidOutThisMonth,
     @Default([]) List<OrganizerSessionSettlement> settlements,
+    @Default(0) int pendingPlayerBalance,
+    @Default(0) int pendingVenueBalance,
+    @Default(0) int disputeHoldBalance,
   }) = _OrganizerEarningsSummary;
 
   factory OrganizerEarningsSummary.fromJson(Map<String, dynamic> json) =>

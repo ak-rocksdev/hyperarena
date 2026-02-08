@@ -22,6 +22,8 @@ _$OrganizerActionItemImpl _$$OrganizerActionItemImplFromJson(
       ? null
       : DateTime.parse(json['due_at'] as String),
   actionableRoute: json['actionable_route'] as String?,
+  amountImpact: (json['amount_impact'] as num?)?.toInt(),
+  timeToStart: _durationFromJson((json['time_to_start'] as num?)?.toInt()),
 );
 
 Map<String, dynamic> _$$OrganizerActionItemImplToJson(
@@ -36,6 +38,8 @@ Map<String, dynamic> _$$OrganizerActionItemImplToJson(
   'participant_id': instance.participantId,
   'due_at': instance.dueAt?.toIso8601String(),
   'actionable_route': instance.actionableRoute,
+  'amount_impact': instance.amountImpact,
+  'time_to_start': _durationToJson(instance.timeToStart),
 };
 
 const _$OrganizerActionTypeEnumMap = {

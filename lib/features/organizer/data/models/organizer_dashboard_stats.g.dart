@@ -17,6 +17,10 @@ _$OrganizerDashboardStatsImpl _$$OrganizerDashboardStatsImplFromJson(
   averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0.0,
   monthlyEarnings: (json['monthly_earnings'] as num?)?.toInt() ?? 0,
   atRiskSessions: (json['at_risk_sessions'] as num?)?.toInt() ?? 0,
+  totalUnpaidAmount: (json['total_unpaid_amount'] as num?)?.toInt() ?? 0,
+  revenueCollectedToday:
+      (json['revenue_collected_today'] as num?)?.toInt() ?? 0,
+  revenueExpectedToday: (json['revenue_expected_today'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$$OrganizerDashboardStatsImplToJson(
@@ -29,4 +33,7 @@ Map<String, dynamic> _$$OrganizerDashboardStatsImplToJson(
   'average_rating': instance.averageRating,
   'monthly_earnings': instance.monthlyEarnings,
   'at_risk_sessions': instance.atRiskSessions,
+  'total_unpaid_amount': instance.totalUnpaidAmount,
+  'revenue_collected_today': instance.revenueCollectedToday,
+  'revenue_expected_today': instance.revenueExpectedToday,
 };

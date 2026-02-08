@@ -10,6 +10,7 @@ import 'package:hyperarena/core/mocks/mock_organizer_data.dart';
 import 'package:hyperarena/core/mocks/mock_owner_data.dart';
 import 'package:hyperarena/core/mocks/mock_notifications.dart';
 import 'package:hyperarena/core/mocks/mock_reviews.dart';
+import 'package:hyperarena/core/mocks/mock_venue_reviews.dart';
 import 'package:hyperarena/core/mocks/mock_sessions.dart';
 import 'package:hyperarena/core/mocks/mock_session_participants.dart';
 import 'package:hyperarena/core/mocks/mock_users.dart';
@@ -24,6 +25,7 @@ import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/gamification/data/models/badge.dart';
 import 'package:hyperarena/features/notification/data/models/notification_item.dart';
 import 'package:hyperarena/features/review/data/models/review.dart';
+import 'package:hyperarena/features/review/data/models/venue_review.dart';
 import 'package:hyperarena/features/organizer/data/models/club_member.dart';
 import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/owner/data/models/court_availability_issue.dart';
@@ -47,6 +49,7 @@ abstract final class MockData {
     MockOwnerData.issues,
   );
   static final List<Review> _reviewStore = List.from(MockReviews.reviews);
+  static final List<VenueReview> _venueReviewStore = List.from(MockVenueReviews.reviews);
   static final List<NotificationItem> _notificationStore = List.from(
     MockNotifications.notifications,
   );
@@ -72,6 +75,7 @@ abstract final class MockData {
       MockOrganizerData.sessionTemplates;
   static List<CourtAvailabilityIssue> get ownerIssues => _ownerIssueStore;
   static List<Review> get reviews => _reviewStore;
+  static List<VenueReview> get venueReviews => _venueReviewStore;
   static List<NotificationItem> get notifications => _notificationStore;
 
   static void upsertBooking(Booking booking) {
@@ -114,6 +118,10 @@ abstract final class MockData {
 
   static void addReview(Review review) {
     _reviewStore.insert(0, review);
+  }
+
+  static void addVenueReview(VenueReview review) {
+    _venueReviewStore.insert(0, review);
   }
 
   static void markNotificationRead(String id) {

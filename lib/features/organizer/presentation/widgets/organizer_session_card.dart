@@ -227,18 +227,30 @@ class OrganizerSessionCard extends StatelessWidget {
 
   Widget _buildHealthChips() {
     final chips = <Widget>[];
+    final h = session.health;
 
-    if (session.health.pendingPayments > 0) {
+    if (h.pendingPayments > 0) {
+      final amountStr = h.pendingPaymentAmount > 0
+          ? ' (${Formatters.formatRupiahCompact(h.pendingPaymentAmount)})'
+          : '';
       chips.add(_healthChip(
-        '${session.health.pendingPayments} belum bayar',
+        '${h.pendingPayments} belum bayar$amountStr',
         AppColors.warning,
       ));
     }
-    if (session.health.isJoinDeadlineAtRisk) {
+    if (h.timeToStart != null && h.timeToStart!.inHours <= 24) {
+      chips.add(_healthChip(
+        'Mulai ${_formatCountdown(h.timeToStart!)}',
+        AppColors.info,
+      ));
+    } else if (h.isJoinDeadlineAtRisk) {
       chips.add(_healthChip('Deadline segera', AppColors.warning));
     }
-    if (session.health.isLowSignupRisk) {
-      chips.add(_healthChip('Kuota rendah', AppColors.warning));
+    if (h.isLowSignupRisk) {
+      chips.add(_healthChip(
+        '${h.slotsRemaining} slot lagi',
+        AppColors.warning,
+      ));
     }
 
     return Wrap(
@@ -246,6 +258,12 @@ class OrganizerSessionCard extends StatelessWidget {
       runSpacing: AppDimensions.xs,
       children: chips,
     );
+  }
+
+  static String _formatCountdown(Duration d) {
+    if (d.inDays > 0) return '${d.inDays} hari lagi';
+    if (d.inHours > 0) return '${d.inHours} jam lagi';
+    return '${d.inMinutes} menit lagi';
   }
 
   Widget _healthChip(String label, Color color) {
@@ -263,42 +281,123 @@ class OrganizerSessionCard extends StatelessWidget {
   }
 
   Widget _buildBottomRow(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: Formatters.formatRupiah(session.pricePerPerson),
-                style: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              TextSpan(
-                text: '/orang',
-                style: AppTypography.caption,
-              ),
-            ],
-          ),
-        ),
-        if (session.status != OpenSessionStatus.cancelled)
-          FilledButton.tonal(
-            onPressed: onTap ??
-                () => context.push(
-                      AppRoutes.organizerSessionDetail(session.id),
-                    ),
-            style: FilledButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-            ),
-            child: const Text('Kelola'),
-          )
-        else
+    if (session.status == OpenSessionStatus.cancelled) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _priceLabel(),
           Text(
             'Dibatalkan',
             style: AppTypography.caption.copyWith(color: AppColors.neutral400),
           ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        _priceLabel(),
+        const Spacer(),
+        // Quick action: Undang (share invite)
+        _QuickActionButton(
+          icon: Icons.share_outlined,
+          label: 'Undang',
+          onPressed: () {
+            // Phase 5+: share invite link via Share Sheet / deep link
+          },
+        ),
+        const SizedBox(width: AppDimensions.xs),
+        // Quick action: Ingatkan (send payment reminder)
+        if (session.health.pendingPayments > 0) ...[
+          _QuickActionButton(
+            icon: Icons.notifications_outlined,
+            label: 'Ingatkan',
+            onPressed: () {
+              // Phase 5+: send payment reminder via push notification
+            },
+          ),
+          const SizedBox(width: AppDimensions.xs),
+        ],
+        // Overflow menu
+        SizedBox(
+          width: 32,
+          height: 32,
+          child: PopupMenuButton<String>(
+            padding: EdgeInsets.zero,
+            iconSize: 20,
+            icon: const Icon(Icons.more_vert, color: AppColors.neutral400),
+            onSelected: (value) {
+              switch (value) {
+                case 'manage':
+                  context.push(AppRoutes.organizerSessionDetail(session.id));
+                case 'reschedule':
+                  // Phase 5+: reschedule flow with date/time picker
+                  break;
+                case 'duplicate':
+                  // Phase 5+: duplicate session (pre-fill create form)
+                  break;
+                case 'cancel':
+                  // Phase 5+: cancel session with confirmation dialog
+                  break;
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: 'manage', child: Text('Kelola')),
+              const PopupMenuItem(value: 'reschedule', child: Text('Reschedule')),
+              const PopupMenuItem(value: 'duplicate', child: Text('Duplikat')),
+              const PopupMenuItem(value: 'cancel', child: Text('Batalkan')),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _priceLabel() {
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: Formatters.formatRupiah(session.pricePerPerson),
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          TextSpan(
+            text: '/orang',
+            style: AppTypography.caption,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionButton extends StatelessWidget {
+  const _QuickActionButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 30,
+      child: TextButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 16),
+        label: Text(label),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.sm),
+          visualDensity: VisualDensity.compact,
+          textStyle: AppTypography.labelSmall,
+        ),
+      ),
     );
   }
 }

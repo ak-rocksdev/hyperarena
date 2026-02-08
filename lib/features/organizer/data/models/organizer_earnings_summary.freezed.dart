@@ -369,6 +369,9 @@ mixin _$OrganizerEarningsSummary {
   int get paidOutThisMonth => throw _privateConstructorUsedError;
   List<OrganizerSessionSettlement> get settlements =>
       throw _privateConstructorUsedError;
+  int get pendingPlayerBalance => throw _privateConstructorUsedError;
+  int get pendingVenueBalance => throw _privateConstructorUsedError;
+  int get disputeHoldBalance => throw _privateConstructorUsedError;
 
   /// Serializes this OrganizerEarningsSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -392,6 +395,9 @@ abstract class $OrganizerEarningsSummaryCopyWith<$Res> {
     int pendingBalance,
     int paidOutThisMonth,
     List<OrganizerSessionSettlement> settlements,
+    int pendingPlayerBalance,
+    int pendingVenueBalance,
+    int disputeHoldBalance,
   });
 }
 
@@ -417,6 +423,9 @@ class _$OrganizerEarningsSummaryCopyWithImpl<
     Object? pendingBalance = null,
     Object? paidOutThisMonth = null,
     Object? settlements = null,
+    Object? pendingPlayerBalance = null,
+    Object? pendingVenueBalance = null,
+    Object? disputeHoldBalance = null,
   }) {
     return _then(
       _value.copyWith(
@@ -436,6 +445,18 @@ class _$OrganizerEarningsSummaryCopyWithImpl<
                 ? _value.settlements
                 : settlements // ignore: cast_nullable_to_non_nullable
                       as List<OrganizerSessionSettlement>,
+            pendingPlayerBalance: null == pendingPlayerBalance
+                ? _value.pendingPlayerBalance
+                : pendingPlayerBalance // ignore: cast_nullable_to_non_nullable
+                      as int,
+            pendingVenueBalance: null == pendingVenueBalance
+                ? _value.pendingVenueBalance
+                : pendingVenueBalance // ignore: cast_nullable_to_non_nullable
+                      as int,
+            disputeHoldBalance: null == disputeHoldBalance
+                ? _value.disputeHoldBalance
+                : disputeHoldBalance // ignore: cast_nullable_to_non_nullable
+                      as int,
           )
           as $Val,
     );
@@ -456,6 +477,9 @@ abstract class _$$OrganizerEarningsSummaryImplCopyWith<$Res>
     int pendingBalance,
     int paidOutThisMonth,
     List<OrganizerSessionSettlement> settlements,
+    int pendingPlayerBalance,
+    int pendingVenueBalance,
+    int disputeHoldBalance,
   });
 }
 
@@ -481,6 +505,9 @@ class __$$OrganizerEarningsSummaryImplCopyWithImpl<$Res>
     Object? pendingBalance = null,
     Object? paidOutThisMonth = null,
     Object? settlements = null,
+    Object? pendingPlayerBalance = null,
+    Object? pendingVenueBalance = null,
+    Object? disputeHoldBalance = null,
   }) {
     return _then(
       _$OrganizerEarningsSummaryImpl(
@@ -500,6 +527,18 @@ class __$$OrganizerEarningsSummaryImplCopyWithImpl<$Res>
             ? _value._settlements
             : settlements // ignore: cast_nullable_to_non_nullable
                   as List<OrganizerSessionSettlement>,
+        pendingPlayerBalance: null == pendingPlayerBalance
+            ? _value.pendingPlayerBalance
+            : pendingPlayerBalance // ignore: cast_nullable_to_non_nullable
+                  as int,
+        pendingVenueBalance: null == pendingVenueBalance
+            ? _value.pendingVenueBalance
+            : pendingVenueBalance // ignore: cast_nullable_to_non_nullable
+                  as int,
+        disputeHoldBalance: null == disputeHoldBalance
+            ? _value.disputeHoldBalance
+            : disputeHoldBalance // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -513,6 +552,9 @@ class _$OrganizerEarningsSummaryImpl implements _OrganizerEarningsSummary {
     this.pendingBalance = 0,
     this.paidOutThisMonth = 0,
     final List<OrganizerSessionSettlement> settlements = const [],
+    this.pendingPlayerBalance = 0,
+    this.pendingVenueBalance = 0,
+    this.disputeHoldBalance = 0,
   }) : _settlements = settlements;
 
   factory _$OrganizerEarningsSummaryImpl.fromJson(Map<String, dynamic> json) =>
@@ -537,8 +579,18 @@ class _$OrganizerEarningsSummaryImpl implements _OrganizerEarningsSummary {
   }
 
   @override
+  @JsonKey()
+  final int pendingPlayerBalance;
+  @override
+  @JsonKey()
+  final int pendingVenueBalance;
+  @override
+  @JsonKey()
+  final int disputeHoldBalance;
+
+  @override
   String toString() {
-    return 'OrganizerEarningsSummary(availableBalance: $availableBalance, pendingBalance: $pendingBalance, paidOutThisMonth: $paidOutThisMonth, settlements: $settlements)';
+    return 'OrganizerEarningsSummary(availableBalance: $availableBalance, pendingBalance: $pendingBalance, paidOutThisMonth: $paidOutThisMonth, settlements: $settlements, pendingPlayerBalance: $pendingPlayerBalance, pendingVenueBalance: $pendingVenueBalance, disputeHoldBalance: $disputeHoldBalance)';
   }
 
   @override
@@ -555,7 +607,13 @@ class _$OrganizerEarningsSummaryImpl implements _OrganizerEarningsSummary {
             const DeepCollectionEquality().equals(
               other._settlements,
               _settlements,
-            ));
+            ) &&
+            (identical(other.pendingPlayerBalance, pendingPlayerBalance) ||
+                other.pendingPlayerBalance == pendingPlayerBalance) &&
+            (identical(other.pendingVenueBalance, pendingVenueBalance) ||
+                other.pendingVenueBalance == pendingVenueBalance) &&
+            (identical(other.disputeHoldBalance, disputeHoldBalance) ||
+                other.disputeHoldBalance == disputeHoldBalance));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -566,6 +624,9 @@ class _$OrganizerEarningsSummaryImpl implements _OrganizerEarningsSummary {
     pendingBalance,
     paidOutThisMonth,
     const DeepCollectionEquality().hash(_settlements),
+    pendingPlayerBalance,
+    pendingVenueBalance,
+    disputeHoldBalance,
   );
 
   /// Create a copy of OrganizerEarningsSummary
@@ -591,6 +652,9 @@ abstract class _OrganizerEarningsSummary implements OrganizerEarningsSummary {
     final int pendingBalance,
     final int paidOutThisMonth,
     final List<OrganizerSessionSettlement> settlements,
+    final int pendingPlayerBalance,
+    final int pendingVenueBalance,
+    final int disputeHoldBalance,
   }) = _$OrganizerEarningsSummaryImpl;
 
   factory _OrganizerEarningsSummary.fromJson(Map<String, dynamic> json) =
@@ -604,6 +668,12 @@ abstract class _OrganizerEarningsSummary implements OrganizerEarningsSummary {
   int get paidOutThisMonth;
   @override
   List<OrganizerSessionSettlement> get settlements;
+  @override
+  int get pendingPlayerBalance;
+  @override
+  int get pendingVenueBalance;
+  @override
+  int get disputeHoldBalance;
 
   /// Create a copy of OrganizerEarningsSummary
   /// with the given fields replaced by the non-null parameter values.

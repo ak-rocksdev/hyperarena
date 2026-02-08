@@ -20,6 +20,9 @@ class Coach with _$Coach {
     @Default(LevelTier.amateur) LevelTier level,
     @Default(0) int totalStudents,
     @Default([]) List<String> certifications,
+    @Default([]) List<String> availableDays,
+    String? availableStartTime,
+    String? availableEndTime,
   }) = _Coach;
 
   factory Coach.fromJson(Map<String, dynamic> json) => _$CoachFromJson(json);

@@ -30,6 +30,9 @@ mixin _$OrganizerDashboardStats {
   double get averageRating => throw _privateConstructorUsedError;
   int get monthlyEarnings => throw _privateConstructorUsedError;
   int get atRiskSessions => throw _privateConstructorUsedError;
+  int get totalUnpaidAmount => throw _privateConstructorUsedError;
+  int get revenueCollectedToday => throw _privateConstructorUsedError;
+  int get revenueExpectedToday => throw _privateConstructorUsedError;
 
   /// Serializes this OrganizerDashboardStats to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -56,6 +59,9 @@ abstract class $OrganizerDashboardStatsCopyWith<$Res> {
     double averageRating,
     int monthlyEarnings,
     int atRiskSessions,
+    int totalUnpaidAmount,
+    int revenueCollectedToday,
+    int revenueExpectedToday,
   });
 }
 
@@ -84,6 +90,9 @@ class _$OrganizerDashboardStatsCopyWithImpl<
     Object? averageRating = null,
     Object? monthlyEarnings = null,
     Object? atRiskSessions = null,
+    Object? totalUnpaidAmount = null,
+    Object? revenueCollectedToday = null,
+    Object? revenueExpectedToday = null,
   }) {
     return _then(
       _value.copyWith(
@@ -115,6 +124,18 @@ class _$OrganizerDashboardStatsCopyWithImpl<
                 ? _value.atRiskSessions
                 : atRiskSessions // ignore: cast_nullable_to_non_nullable
                       as int,
+            totalUnpaidAmount: null == totalUnpaidAmount
+                ? _value.totalUnpaidAmount
+                : totalUnpaidAmount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            revenueCollectedToday: null == revenueCollectedToday
+                ? _value.revenueCollectedToday
+                : revenueCollectedToday // ignore: cast_nullable_to_non_nullable
+                      as int,
+            revenueExpectedToday: null == revenueExpectedToday
+                ? _value.revenueExpectedToday
+                : revenueExpectedToday // ignore: cast_nullable_to_non_nullable
+                      as int,
           )
           as $Val,
     );
@@ -138,6 +159,9 @@ abstract class _$$OrganizerDashboardStatsImplCopyWith<$Res>
     double averageRating,
     int monthlyEarnings,
     int atRiskSessions,
+    int totalUnpaidAmount,
+    int revenueCollectedToday,
+    int revenueExpectedToday,
   });
 }
 
@@ -166,6 +190,9 @@ class __$$OrganizerDashboardStatsImplCopyWithImpl<$Res>
     Object? averageRating = null,
     Object? monthlyEarnings = null,
     Object? atRiskSessions = null,
+    Object? totalUnpaidAmount = null,
+    Object? revenueCollectedToday = null,
+    Object? revenueExpectedToday = null,
   }) {
     return _then(
       _$OrganizerDashboardStatsImpl(
@@ -197,6 +224,18 @@ class __$$OrganizerDashboardStatsImplCopyWithImpl<$Res>
             ? _value.atRiskSessions
             : atRiskSessions // ignore: cast_nullable_to_non_nullable
                   as int,
+        totalUnpaidAmount: null == totalUnpaidAmount
+            ? _value.totalUnpaidAmount
+            : totalUnpaidAmount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        revenueCollectedToday: null == revenueCollectedToday
+            ? _value.revenueCollectedToday
+            : revenueCollectedToday // ignore: cast_nullable_to_non_nullable
+                  as int,
+        revenueExpectedToday: null == revenueExpectedToday
+            ? _value.revenueExpectedToday
+            : revenueExpectedToday // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -213,6 +252,9 @@ class _$OrganizerDashboardStatsImpl implements _OrganizerDashboardStats {
     this.averageRating = 0.0,
     this.monthlyEarnings = 0,
     this.atRiskSessions = 0,
+    this.totalUnpaidAmount = 0,
+    this.revenueCollectedToday = 0,
+    this.revenueExpectedToday = 0,
   });
 
   factory _$OrganizerDashboardStatsImpl.fromJson(Map<String, dynamic> json) =>
@@ -239,10 +281,19 @@ class _$OrganizerDashboardStatsImpl implements _OrganizerDashboardStats {
   @override
   @JsonKey()
   final int atRiskSessions;
+  @override
+  @JsonKey()
+  final int totalUnpaidAmount;
+  @override
+  @JsonKey()
+  final int revenueCollectedToday;
+  @override
+  @JsonKey()
+  final int revenueExpectedToday;
 
   @override
   String toString() {
-    return 'OrganizerDashboardStats(sessionsToday: $sessionsToday, sessionsNext7Days: $sessionsNext7Days, pendingPayments: $pendingPayments, averageParticipants: $averageParticipants, averageRating: $averageRating, monthlyEarnings: $monthlyEarnings, atRiskSessions: $atRiskSessions)';
+    return 'OrganizerDashboardStats(sessionsToday: $sessionsToday, sessionsNext7Days: $sessionsNext7Days, pendingPayments: $pendingPayments, averageParticipants: $averageParticipants, averageRating: $averageRating, monthlyEarnings: $monthlyEarnings, atRiskSessions: $atRiskSessions, totalUnpaidAmount: $totalUnpaidAmount, revenueCollectedToday: $revenueCollectedToday, revenueExpectedToday: $revenueExpectedToday)';
   }
 
   @override
@@ -263,7 +314,13 @@ class _$OrganizerDashboardStatsImpl implements _OrganizerDashboardStats {
             (identical(other.monthlyEarnings, monthlyEarnings) ||
                 other.monthlyEarnings == monthlyEarnings) &&
             (identical(other.atRiskSessions, atRiskSessions) ||
-                other.atRiskSessions == atRiskSessions));
+                other.atRiskSessions == atRiskSessions) &&
+            (identical(other.totalUnpaidAmount, totalUnpaidAmount) ||
+                other.totalUnpaidAmount == totalUnpaidAmount) &&
+            (identical(other.revenueCollectedToday, revenueCollectedToday) ||
+                other.revenueCollectedToday == revenueCollectedToday) &&
+            (identical(other.revenueExpectedToday, revenueExpectedToday) ||
+                other.revenueExpectedToday == revenueExpectedToday));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -277,6 +334,9 @@ class _$OrganizerDashboardStatsImpl implements _OrganizerDashboardStats {
     averageRating,
     monthlyEarnings,
     atRiskSessions,
+    totalUnpaidAmount,
+    revenueCollectedToday,
+    revenueExpectedToday,
   );
 
   /// Create a copy of OrganizerDashboardStats
@@ -305,6 +365,9 @@ abstract class _OrganizerDashboardStats implements OrganizerDashboardStats {
     final double averageRating,
     final int monthlyEarnings,
     final int atRiskSessions,
+    final int totalUnpaidAmount,
+    final int revenueCollectedToday,
+    final int revenueExpectedToday,
   }) = _$OrganizerDashboardStatsImpl;
 
   factory _OrganizerDashboardStats.fromJson(Map<String, dynamic> json) =
@@ -324,6 +387,12 @@ abstract class _OrganizerDashboardStats implements OrganizerDashboardStats {
   int get monthlyEarnings;
   @override
   int get atRiskSessions;
+  @override
+  int get totalUnpaidAmount;
+  @override
+  int get revenueCollectedToday;
+  @override
+  int get revenueExpectedToday;
 
   /// Create a copy of OrganizerDashboardStats
   /// with the given fields replaced by the non-null parameter values.

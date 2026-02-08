@@ -30,6 +30,13 @@ _$CoachImpl _$$CoachImplFromJson(Map<String, dynamic> json) => _$CoachImpl(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  availableDays:
+      (json['available_days'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  availableStartTime: json['available_start_time'] as String?,
+  availableEndTime: json['available_end_time'] as String?,
 );
 
 Map<String, dynamic> _$$CoachImplToJson(_$CoachImpl instance) =>
@@ -47,6 +54,9 @@ Map<String, dynamic> _$$CoachImplToJson(_$CoachImpl instance) =>
       'level': _$LevelTierEnumMap[instance.level]!,
       'total_students': instance.totalStudents,
       'certifications': instance.certifications,
+      'available_days': instance.availableDays,
+      'available_start_time': instance.availableStartTime,
+      'available_end_time': instance.availableEndTime,
     };
 
 const _$SportEnumMap = {

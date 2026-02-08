@@ -683,7 +683,7 @@ class _ParticipantRow extends ConsumerWidget {
                 Navigator.pop(parentContext);
                 _showReasonDialog(
                   parentContext,
-                  title: 'Selesaikan Sengketa',
+                  title: 'Selesaikan Komplain',
                   label: 'Resolusi',
                   onSubmit: (resolution) => actions.resolveDispute(
                     participantId: participant.id,
@@ -692,7 +692,7 @@ class _ParticipantRow extends ConsumerWidget {
                   ),
                 );
               },
-              child: const Text('Selesaikan Sengketa'),
+              child: const Text('Selesaikan Komplain'),
             ),
           ),
         ];
@@ -923,7 +923,7 @@ String _participantStatusLabel(SessionParticipantStatus status) {
     SessionParticipantStatus.cancelledByPlayer => 'Dibatalkan',
     SessionParticipantStatus.refunded => 'Refund',
     SessionParticipantStatus.noShow => 'No Show',
-    SessionParticipantStatus.disputed => 'Sengketa',
+    SessionParticipantStatus.disputed => 'Komplain',
   };
 }
 

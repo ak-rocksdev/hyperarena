@@ -11,7 +11,8 @@ import 'package:hyperarena/features/venue/presentation/widgets/venue_card.dart';
 import 'package:hyperarena/features/venue/providers/venue_providers.dart';
 
 class VenueListScreen extends ConsumerWidget {
-  const VenueListScreen({super.key});
+  final String searchQuery;
+  const VenueListScreen({super.key, this.searchQuery = ''});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,7 +65,16 @@ class VenueListScreen extends ConsumerWidget {
                 onRetry: () => ref.invalidate(venueListProvider),
               ),
               data: (venues) {
-                if (venues.isEmpty) {
+                var filtered = venues;
+                if (searchQuery.isNotEmpty) {
+                  filtered = venues
+                      .where((v) =>
+                          v.name.toLowerCase().contains(searchQuery) ||
+                          v.city.toLowerCase().contains(searchQuery) ||
+                          v.address.toLowerCase().contains(searchQuery))
+                      .toList();
+                }
+                if (filtered.isEmpty) {
                   return const EmptyState(
                     message: 'Tidak ada lapangan ditemukan',
                     icon: Icons.search_off,
@@ -74,10 +84,10 @@ class VenueListScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.screenHorizontal,
                   ),
-                  itemCount: venues.length,
+                  itemCount: filtered.length,
                   itemBuilder: (_, i) => Padding(
                     padding: const EdgeInsets.only(bottom: AppDimensions.md),
-                    child: VenueCard(venue: venues[i]),
+                    child: VenueCard(venue: filtered[i]),
                   ),
                 );
               },

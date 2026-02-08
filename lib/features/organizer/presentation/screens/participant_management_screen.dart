@@ -424,7 +424,7 @@ class _StatusChip extends StatelessWidget {
         null,
       ),
       SessionParticipantStatus.disputed => (
-        'Sengketa',
+        'Komplain',
         AppColors.error,
         AppColors.textOnPrimary,
         null,
@@ -532,7 +532,7 @@ class _InlineActions extends ConsumerWidget {
         FilledButton(
           onPressed: () => _showReasonDialog(
             context,
-            title: 'Selesaikan Sengketa',
+            title: 'Selesaikan Komplain',
             onSubmit: (resolution) => actions.resolveDispute(
               participantId: pid,
               sessionId: sessionId,

@@ -8,6 +8,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
+import 'package:hyperarena/core/utils/launcher_helpers.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/coach/data/models/coach.dart';
@@ -498,12 +499,10 @@ class _CoachDetailBody extends ConsumerWidget {
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Fitur hubungi coach segera hadir',
-                      ),
-                    ),
+                  LauncherHelpers.openWhatsApp(
+                    '+6281234567890',
+                    message:
+                        'Halo Coach ${coach.name}, saya tertarik dengan jasa coaching Anda di HyperArena',
                   );
                 },
                 icon: const Icon(Icons.chat_outlined),

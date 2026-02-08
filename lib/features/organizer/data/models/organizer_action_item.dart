@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'organizer_action_item.freezed.dart';
@@ -14,6 +15,10 @@ enum OrganizerActionType {
 
 enum OrganizerActionSeverity { low, medium, high }
 
+Duration? _durationFromJson(int? microseconds) =>
+    microseconds == null ? null : Duration(microseconds: microseconds);
+int? _durationToJson(Duration? duration) => duration?.inMicroseconds;
+
 @freezed
 class OrganizerActionItem with _$OrganizerActionItem {
   const factory OrganizerActionItem({
@@ -26,6 +31,9 @@ class OrganizerActionItem with _$OrganizerActionItem {
     String? participantId,
     DateTime? dueAt,
     String? actionableRoute,
+    int? amountImpact,
+    @JsonKey(fromJson: _durationFromJson, toJson: _durationToJson)
+    Duration? timeToStart,
   }) = _OrganizerActionItem;
 
   factory OrganizerActionItem.fromJson(Map<String, dynamic> json) =>

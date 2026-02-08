@@ -3,15 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
-import 'package:hyperarena/core/theme/app_shadows.dart';
-import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
-import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
-import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/action_queue_widget.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/earnings_snapshot_card.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/kpi_strip_widget.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/organizer_session_card.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/session_filter_bar.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
+import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 class OrganizerDashboardScreen extends ConsumerWidget {
@@ -31,6 +32,8 @@ class OrganizerDashboardScreen extends ConsumerWidget {
     final inboxAsync = ref.watch(organizerActionInboxProvider);
     final agendaAsync = ref.watch(organizerAgendaProvider);
     final earningsAsync = ref.watch(organizerEarningsProvider);
+    final dateRange = ref.watch(dashboardDateRangeProvider);
+    final filter = ref.watch(dashboardFilterProvider);
 
     Future<void> refreshAll() async {
       ref.invalidate(organizerDashboardProvider);
@@ -46,6 +49,14 @@ class OrganizerDashboardScreen extends ConsumerWidget {
     }
 
     return Scaffold(
+      // ── 7. FAB — "Buat Sesi" ───────────────────────────────
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(AppRoutes.organizerCreateSession),
+        icon: const Icon(Icons.add),
+        label: const Text('Buat Sesi'),
+        backgroundColor: AppColors.accent,
+        foregroundColor: Colors.white,
+      ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: refreshAll,
@@ -55,54 +66,32 @@ class OrganizerDashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 1. Greeting Header ───────────────────────────────
+                // ── 1. Greeting ──────────────────────────────────
                 Text(
                   '${_greeting()}, Sari!',
                   style: AppTypography.headingLarge,
                 ),
+                const SizedBox(height: AppDimensions.base),
+
+                // ── 2. KPI Strip ─────────────────────────────────
                 AsyncValueWidget(
                   value: statsAsync,
-                  data: (stats) => Text(
-                    '${stats.sessionsNext7Days} sesi minggu ini',
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  data: (stats) => KpiStripWidget(stats: stats),
                 ),
                 const SizedBox(height: AppDimensions.xl),
 
-                // ── 2. Attention Items (conditional) ─────────────────
+                // ── 3. Action Queue ──────────────────────────────
                 AsyncValueWidget(
                   value: inboxAsync,
-                  data: (items) {
-                    if (items.isEmpty) return const SizedBox.shrink();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Perlu Perhatian',
-                          style: AppTypography.titleMedium,
-                        ),
-                        const SizedBox(height: AppDimensions.sm),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: AppSurfaces.surface,
-                            borderRadius: BorderRadius.circular(
-                              AppDimensions.radiusLg,
-                            ),
-                            boxShadow: AppShadows.sm,
-                          ),
-                          child: Column(
-                            children: _buildActionItems(items, context),
-                          ),
-                        ),
-                        const SizedBox(height: AppDimensions.xl),
-                      ],
-                    );
-                  },
+                  data: (items) => ActionQueueWidget(items: items),
                 ),
+                const SizedBox(height: AppDimensions.xl),
 
-                // ── 3. Next Sessions Timeline ────────────────────────
+                // ── 4. Date toggle + filter chips ────────────────
+                const SessionFilterBar(),
+                const SizedBox(height: AppDimensions.base),
+
+                // ── 5. Session list (filtered) ───────────────────
                 Row(
                   children: [
                     Text(
@@ -121,18 +110,22 @@ class OrganizerDashboardScreen extends ConsumerWidget {
                 AsyncValueWidget(
                   value: agendaAsync,
                   data: (sessions) {
-                    if (sessions.isEmpty) {
+                    final filtered = _applyFilters(
+                      sessions,
+                      dateRange,
+                      filter,
+                    );
+                    if (filtered.isEmpty) {
                       return const EmptyState(
-                        message: 'Belum ada sesi minggu ini',
+                        message: 'Tidak ada sesi yang cocok',
                         icon: Icons.event_available_outlined,
                       );
                     }
-                    final limited = sessions.take(5).toList();
                     return Column(
                       children: [
-                        for (var i = 0; i < limited.length; i++) ...[
-                          OrganizerSessionCard(session: limited[i]),
-                          if (i < limited.length - 1)
+                        for (var i = 0; i < filtered.length; i++) ...[
+                          OrganizerSessionCard(session: filtered[i]),
+                          if (i < filtered.length - 1)
                             const SizedBox(height: AppDimensions.sm),
                         ],
                       ],
@@ -141,108 +134,14 @@ class OrganizerDashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppDimensions.xl),
 
-                // ── 4. Create Session CTA ────────────────────────────
-                GestureDetector(
-                  onTap: () =>
-                      context.push(AppRoutes.organizerCreateSession),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(AppDimensions.lg),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.accent, Color(0xFFEA580C)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusLg,
-                      ),
-                      boxShadow: AppShadows.md,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Buat Sesi Baru',
-                          style: AppTypography.titleMedium.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: AppDimensions.xs),
-                        Text(
-                          'Atur jadwal dan undang pemain',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: Colors.white.withValues(alpha: 0.85),
-                          ),
-                        ),
-                        const SizedBox(height: AppDimensions.sm),
-                        const Align(
-                          alignment: Alignment.centerRight,
-                          child: Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppDimensions.xl),
-
-                // ── 5. Earnings Snapshot ─────────────────────────────
+                // ── 6. Earnings card ─────────────────────────────
                 AsyncValueWidget(
                   value: earningsAsync,
-                  data: (earnings) => Container(
-                    padding: const EdgeInsets.all(AppDimensions.base),
-                    decoration: BoxDecoration(
-                      color: AppSurfaces.surface,
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusLg,
-                      ),
-                      boxShadow: AppShadows.sm,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Tersedia', style: AppTypography.caption),
-                            Text(
-                              Formatters.formatRupiah(
-                                earnings.availableBalance,
-                              ),
-                              style: AppTypography.titleMedium.copyWith(
-                                color: AppColors.success,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Tertunda', style: AppTypography.caption),
-                            Text(
-                              Formatters.formatRupiah(
-                                earnings.pendingBalance,
-                              ),
-                              style: AppTypography.titleMedium.copyWith(
-                                color: AppColors.warning,
-                              ),
-                            ),
-                          ],
-                        ),
-                        TextButton(
-                          onPressed: () =>
-                              context.push(AppRoutes.organizerEarnings),
-                          child: const Text('Detail'),
-                        ),
-                      ],
-                    ),
-                  ),
+                  data: (earnings) =>
+                      EarningsSnapshotCard(earnings: earnings),
                 ),
-                const SizedBox(height: AppDimensions.huge),
+                // Extra bottom padding for FAB clearance
+                const SizedBox(height: AppDimensions.massive + AppDimensions.xl),
               ],
             ),
           ),
@@ -251,81 +150,42 @@ class OrganizerDashboardScreen extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildActionItems(
-    List<OrganizerActionItem> items,
-    BuildContext context,
+  /// Client-side filtering based on date range and status filter.
+  List<OpenSession> _applyFilters(
+    List<OpenSession> sessions,
+    DashboardDateRange dateRange,
+    DashboardFilter filter,
   ) {
-    final limited = items.take(5).toList();
-    final widgets = <Widget>[];
-    for (var i = 0; i < limited.length; i++) {
-      widgets.add(_ActionItemRow(item: limited[i]));
-      if (i < limited.length - 1) {
-        widgets.add(
-          const Divider(color: AppColors.neutral100, height: 1),
-        );
-      }
-    }
-    return widgets;
-  }
-}
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
-class _ActionItemRow extends StatelessWidget {
-  const _ActionItemRow({required this.item});
-
-  final OrganizerActionItem item;
-
-  Color get _severityColor => switch (item.severity) {
-        OrganizerActionSeverity.high => AppColors.error,
-        OrganizerActionSeverity.medium => AppColors.warning,
-        OrganizerActionSeverity.low => AppColors.info,
+    // Date filter
+    var filtered = sessions.where((s) {
+      final sessionDay = DateTime(s.date.year, s.date.month, s.date.day);
+      return switch (dateRange) {
+        DashboardDateRange.today => sessionDay == today,
+        DashboardDateRange.tomorrow =>
+          sessionDay == today.add(const Duration(days: 1)),
+        DashboardDateRange.thisWeek =>
+          !sessionDay.isBefore(today) &&
+              sessionDay.isBefore(today.add(const Duration(days: 7))),
       };
+    }).toList();
 
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: item.sessionId == null
-          ? null
-          : () => context.push(
-                AppRoutes.organizerSessionDetail(item.sessionId!),
-              ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.base,
-          vertical: AppDimensions.sm,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: _severityColor,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: AppDimensions.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(item.title, style: AppTypography.titleSmall),
-                  Text(
-                    item.subtitle,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.neutral400,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
+    // Status filter
+    if (filter != DashboardFilter.none) {
+      filtered = filtered.where((s) {
+        return switch (filter) {
+          DashboardFilter.none => true,
+          DashboardFilter.pendingPayment => s.health.pendingPayments > 0,
+          DashboardFilter.lowQuota => s.health.isLowSignupRisk,
+          DashboardFilter.dispute => false, // would need dispute field on session
+          DashboardFilter.confirmed =>
+            s.status == OpenSessionStatus.confirmed,
+        };
+      }).toList();
+    }
+
+    return filtered;
   }
 }

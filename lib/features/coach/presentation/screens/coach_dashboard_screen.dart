@@ -79,6 +79,15 @@ class CoachDashboardScreen extends ConsumerWidget {
               const _QuickStatsRow(),
               const SizedBox(height: AppDimensions.xl),
 
+              // ── 2b. Kelola Ketersediaan ────────────────────────────
+              _ActionTile(
+                icon: Icons.event_available,
+                title: 'Ketersediaan',
+                subtitle: 'Atur hari & jam operasional',
+                onTap: () => context.push(AppRoutes.coachAvailability),
+              ),
+              const SizedBox(height: AppDimensions.xl),
+
               // ── 3. Jadwal Hari Ini ───────────────────────────────
               Text('Jadwal Hari Ini', style: AppTypography.titleMedium),
               const SizedBox(height: AppDimensions.md),
@@ -130,7 +139,8 @@ class CoachDashboardScreen extends ConsumerWidget {
                   Text('Penilaian Terbaru', style: AppTypography.titleMedium),
                   TextButton(
                     onPressed: () {
-                      // TODO: navigate to full assessment list
+                      // Navigate to students tab where per-student assessments live
+                      context.go('/coach/students');
                     },
                     child: Text(
                       'Lihat Semua',
@@ -560,6 +570,74 @@ class _ReviewCard extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ── Action Tile (quick-link card) ─────────────────────────────────────
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppSurfaces.surface,
+      borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        child: Container(
+          padding: const EdgeInsets.all(AppDimensions.base),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            boxShadow: AppShadows.xs,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primary50,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Icon(icon, color: AppColors.primary, size: AppDimensions.iconMd),
+              ),
+              const SizedBox(width: AppDimensions.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppTypography.titleSmall),
+                    const SizedBox(height: AppDimensions.xxs),
+                    Text(
+                      subtitle,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: AppColors.textTertiary,
+                size: AppDimensions.iconMd,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

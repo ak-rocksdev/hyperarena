@@ -12,6 +12,12 @@ _$SessionHealthImpl _$$SessionHealthImplFromJson(Map<String, dynamic> json) =>
       isLowSignupRisk: json['is_low_signup_risk'] as bool? ?? false,
       isJoinDeadlineAtRisk: json['is_join_deadline_at_risk'] as bool? ?? false,
       trendScore: (json['trend_score'] as num?)?.toInt() ?? 0,
+      pendingPaymentAmount:
+          (json['pending_payment_amount'] as num?)?.toInt() ?? 0,
+      slotsRemaining: (json['slots_remaining'] as num?)?.toInt() ?? 0,
+      timeToStart: _healthDurationFromJson(
+        (json['time_to_start'] as num?)?.toInt(),
+      ),
     );
 
 Map<String, dynamic> _$$SessionHealthImplToJson(_$SessionHealthImpl instance) =>
@@ -20,6 +26,9 @@ Map<String, dynamic> _$$SessionHealthImplToJson(_$SessionHealthImpl instance) =>
       'is_low_signup_risk': instance.isLowSignupRisk,
       'is_join_deadline_at_risk': instance.isJoinDeadlineAtRisk,
       'trend_score': instance.trendScore,
+      'pending_payment_amount': instance.pendingPaymentAmount,
+      'slots_remaining': instance.slotsRemaining,
+      'time_to_start': _healthDurationToJson(instance.timeToStart),
     };
 
 _$OpenSessionImpl _$$OpenSessionImplFromJson(Map<String, dynamic> json) =>

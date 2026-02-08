@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 
@@ -12,6 +13,10 @@ enum SessionVisibility { free, invitationOnly, membersOnly }
 
 enum SessionSettlementStatus { pending, cleared, paidOut }
 
+Duration? _healthDurationFromJson(int? microseconds) =>
+    microseconds == null ? null : Duration(microseconds: microseconds);
+int? _healthDurationToJson(Duration? duration) => duration?.inMicroseconds;
+
 @freezed
 class SessionHealth with _$SessionHealth {
   const factory SessionHealth({
@@ -19,6 +24,10 @@ class SessionHealth with _$SessionHealth {
     @Default(false) bool isLowSignupRisk,
     @Default(false) bool isJoinDeadlineAtRisk,
     @Default(0) int trendScore,
+    @Default(0) int pendingPaymentAmount,
+    @Default(0) int slotsRemaining,
+    @JsonKey(fromJson: _healthDurationFromJson, toJson: _healthDurationToJson)
+    Duration? timeToStart,
   }) = _SessionHealth;
 
   factory SessionHealth.fromJson(Map<String, dynamic> json) =>

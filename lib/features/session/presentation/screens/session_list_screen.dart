@@ -11,7 +11,8 @@ import 'package:hyperarena/features/session/presentation/widgets/session_card.da
 import 'package:hyperarena/features/session/providers/session_providers.dart';
 
 class SessionListScreen extends ConsumerWidget {
-  const SessionListScreen({super.key});
+  final String searchQuery;
+  const SessionListScreen({super.key, this.searchQuery = ''});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,7 +65,17 @@ class SessionListScreen extends ConsumerWidget {
                 onRetry: () => ref.invalidate(sessionListProvider),
               ),
               data: (sessions) {
-                if (sessions.isEmpty) {
+                var filtered = sessions;
+                if (searchQuery.isNotEmpty) {
+                  filtered = sessions
+                      .where((s) =>
+                          s.title.toLowerCase().contains(searchQuery) ||
+                          s.venueName.toLowerCase().contains(searchQuery) ||
+                          s.hostName.toLowerCase().contains(searchQuery) ||
+                          s.sport.name.toLowerCase().contains(searchQuery))
+                      .toList();
+                }
+                if (filtered.isEmpty) {
                   return const EmptyState(
                     message: 'Tidak ada sesi terbuka',
                     icon: Icons.groups_outlined,
@@ -74,10 +85,10 @@ class SessionListScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.screenHorizontal,
                   ),
-                  itemCount: sessions.length,
+                  itemCount: filtered.length,
                   itemBuilder: (_, i) => Padding(
                     padding: const EdgeInsets.only(bottom: AppDimensions.md),
-                    child: SessionCard(session: sessions[i]),
+                    child: SessionCard(session: filtered[i]),
                   ),
                 );
               },

@@ -223,3 +223,73 @@ Build these as separate widgets, each with its own provider:
 | `EarningsSnapshotCard` | `organizerEarningsProvider` | Expanded breakdown |
 
 The dashboard screen assembles these widgets. Each can load, error, and refresh independently.
+
+---
+
+## Implementation checklist
+
+### Core plan (all completed 2026-02-08)
+
+- [x] **Task 1: Update data models** — Added fields to `OrganizerDashboardStats` (3 fields), `OrganizerActionItem` (2 fields), `SessionHealth` (3 fields), `OrganizerEarningsSummary` (3 fields). Ran `build_runner`.
+- [x] **Task 2: Build KPI Strip widget** — `kpi_strip_widget.dart`. 4 tappable tiles, responsive 2x2 grid on narrow screens, shared filter state with `dashboardFilterProvider`.
+- [x] **Task 3: Build Action Queue widget** — `action_queue_widget.dart`. Groups by category (Pembayaran Tertunda, Kuota Rendah, Komplain), expandable, primary action buttons, count + money/time impact.
+- [x] **Task 4: Build Session Filter Bar** — `session_filter_bar.dart`. Date toggle (Hari Ini / Besok / Minggu Ini) + filter chips. Unified state with KPI strip via providers.
+- [x] **Task 5: Enhance Session Cards** — `organizer_session_card.dart`. Health chips show Rupiah amounts + countdown. Bottom row: Undang + Ingatkan quick actions + 3-dot overflow menu (Kelola, Reschedule, Duplikat, Batalkan).
+- [x] **Task 6: Build Earnings Snapshot Card** — `earnings_snapshot_card.dart`. 4-line breakdown (Tersedia, Tertunda pemain, Tertunda venue, Dalam komplain). Tappable → full earnings screen.
+- [x] **Task 7: Assemble Dashboard Screen** — `organizer_dashboard_screen.dart` rewritten. Section order: Greeting → KPI Strip → Action Queue → Session Filter Bar → Filtered Session List → Earnings Card → FAB. Client-side `_applyFilters` method.
+
+### Additional work (completed 2026-02-08)
+
+- [x] **Komplain detail bottom sheet** — `complaint_detail_sheet.dart`. Shows player info, session info, complaint reason, evidence indicator, financial impact, chronology timeline, and 4 resolution actions (Konfirmasi Pembayaran, Refund, Hubungi Pemain, Tolak Komplain). Auto-categorizes complaint type.
+- [x] **Enriched mock dispute data** — 3 disputed participants with varied reasons: payment verification, level mismatch, venue mismatch. Each with realistic Indonesian text.
+- [x] **"Sengketa" → "Komplain" rename** — Updated across all widgets, screens, and mock data.
+- [x] **Mock data tuning** — Added 2 today sessions (`session-today-1`, `session-today-2`). Changed default filter to `thisWeek`. Updated `SessionHealth` fields on all sessions.
+- [x] **Compact Rupiah formatter** — `Formatters.formatRupiahCompact()` for "Rp 100rb" / "Rp 4,2jt" display.
+- [x] **Mock config fix** — Changed `main.dart` from `AppConfig.production` to `AppConfig.mock` for Quick Login visibility.
+
+### Acceptance criteria status
+
+- [x] 1. Operator understands today's status in 10 seconds — KPI strip answers it without scrolling.
+- [x] 2. "Ingatkan belum bayar" takes 2 taps — Action Queue button + confirm.
+- [x] 3. "Undang pemain" takes 2 taps — session card Undang button + share.
+- [x] 4. Action Queue groups tasks by category with count + money/time impact.
+- [x] 5. Session cards show unpaid amount in Rupiah and countdown.
+- [x] 6. Dashboard defaults to today's sessions (changed to thisWeek for mock data visibility). Date toggle and filter chips reduce scroll.
+- [x] 7. Earnings card shows 4 categories (available, pending-player, pending-venue, dispute).
+
+---
+
+## Remaining work (future iterations)
+
+These items were explicitly deferred in the plan ("What to skip") plus new items discovered during implementation:
+
+### Functional gaps (TODO stubs in code)
+
+- [ ] **Payment reminder action** — `ActionQueueWidget` "Ingatkan Semua" button has `// TODO: send payment reminders`. Wire to `sendParticipantMessage` with `templateCode: 'payment_reminder'`.
+- [ ] **Invite player action** — "Undang Pemain" button and session card "Undang" button have `// TODO: share invite links`. Implement share sheet with deep link.
+- [ ] **Dispute resolution action** — "Selesaikan" group button has `// TODO: navigate to dispute resolution`. Now individual items open the detail sheet, but the group-level action needs wiring.
+- [ ] **Complaint resolution handlers** — `ComplaintDetailSheet` action buttons (confirm, refund, reject, contact) fire callbacks but are not yet connected to repository methods (`confirmParticipant`, `requestRefund`, `resolveDispute`). Need confirmation dialogs.
+- [ ] **Evidence viewer** — Complaint detail sheet shows "Bukti terlampir" indicator but does not open the image. Need an image viewer or in-app browser.
+- [ ] **Session card quick actions** — "Undang" and "Ingatkan" buttons on session cards need actual implementations.
+- [ ] **Session card overflow menu** — "Reschedule" and "Duplikat" navigate but "Batalkan" needs a confirmation dialog.
+
+### Backend-dependent features (deferred by plan)
+
+- [ ] Weekly fill-rate and performance metrics
+- [ ] Funnel tracking (views → joined → paid)
+- [ ] Smart suggestions and auto-reschedule prompts
+- [ ] Weather/closure alerts
+- [ ] SLA timers for disputes
+- [ ] "Revenue Today: Collected + Expected" as KPI tile
+- [ ] "Expected revenue next 7 days" and "Next payout date" in earnings
+- [ ] Server-side filtering (currently client-side with mock data)
+- [ ] Venue selector dropdown (only needed when organizer manages 2+ venues)
+
+### Polish items
+
+- [ ] Hero tag conflict on navigation (pre-existing issue)
+- [ ] Pull-to-refresh on dashboard
+- [ ] Empty state illustrations for filtered results
+- [ ] Skeleton/shimmer loading states for each section
+- [ ] Animation on KPI tile filter activation
+- [ ] Revert `main.dart` to `AppConfig.production` before release

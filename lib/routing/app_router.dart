@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/login_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/register_screen.dart';
@@ -20,6 +21,7 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_booking_con
 import 'package:hyperarena/features/coach/presentation/screens/coaching_booking_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_payment_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_availability_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_dashboard_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_schedule_screen.dart';
@@ -43,6 +45,8 @@ import 'package:hyperarena/features/profile/presentation/screens/profile_screen.
 import 'package:hyperarena/features/profile/presentation/screens/settings_screen.dart';
 import 'package:hyperarena/features/review/presentation/screens/coach_review_list_screen.dart';
 import 'package:hyperarena/features/review/presentation/screens/submit_review_screen.dart';
+import 'package:hyperarena/features/review/presentation/screens/submit_venue_review_screen.dart';
+import 'package:hyperarena/features/review/presentation/screens/venue_review_list_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_confirmation_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_detail_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_payment_screen.dart';
@@ -169,6 +173,7 @@ const _publicPaths = {
   AppRoutes.login,
   AppRoutes.register,
   AppRoutes.sportSelection,
+  AppRoutes.forgotPassword,
 };
 
 /// Phase 1 router — Auth guards, Player shell, booking flow.
@@ -206,6 +211,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.sportSelection,
         builder: (_, _) => const SportSelectionScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        builder: (_, _) => const ForgotPasswordScreen(),
       ),
 
       // ── Player shell (4 tabs) ────────────────────────
@@ -249,6 +258,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // ── Full-screen routes (outside shell) ────────────
+      GoRoute(
+        path: '/venue/:id/reviews',
+        builder: (_, state) => VenueReviewListScreen(
+          venueId: state.pathParameters['id']!,
+        ),
+      ),
       GoRoute(
         path: '/venue/:id',
         builder: (_, state) =>
@@ -388,6 +403,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // ── Coach availability (coach role) ────────────────────
+      GoRoute(
+        path: '/coach/availability',
+        builder: (_, _) => const CoachAvailabilityScreen(),
+      ),
+
       // ── Coach detail (parameterized — must come after specific /coach/* routes)
       GoRoute(
         path: '/coach/:id',
@@ -516,6 +537,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/coach/:id/reviews',
         builder: (_, state) => CoachReviewListScreen(
           coachId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/review/venue/:bookingId',
+        builder: (_, state) => SubmitVenueReviewScreen(
+          bookingId: state.pathParameters['bookingId']!,
         ),
       ),
 

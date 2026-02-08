@@ -11,7 +11,8 @@ import 'package:hyperarena/features/coach/presentation/widgets/coach_card.dart';
 import 'package:hyperarena/features/coach/providers/coach_providers.dart';
 
 class CoachListScreen extends ConsumerWidget {
-  const CoachListScreen({super.key});
+  final String searchQuery;
+  const CoachListScreen({super.key, this.searchQuery = ''});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,7 +65,17 @@ class CoachListScreen extends ConsumerWidget {
                 onRetry: () => ref.invalidate(coachListProvider),
               ),
               data: (coaches) {
-                if (coaches.isEmpty) {
+                var filtered = coaches;
+                if (searchQuery.isNotEmpty) {
+                  filtered = coaches
+                      .where((c) =>
+                          c.name.toLowerCase().contains(searchQuery) ||
+                          c.city.toLowerCase().contains(searchQuery) ||
+                          c.sports.any((s) =>
+                              s.name.toLowerCase().contains(searchQuery)))
+                      .toList();
+                }
+                if (filtered.isEmpty) {
                   return const EmptyState(
                     message: 'Tidak ada coach ditemukan',
                     icon: Icons.school_outlined,
@@ -74,10 +85,10 @@ class CoachListScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.screenHorizontal,
                   ),
-                  itemCount: coaches.length,
+                  itemCount: filtered.length,
                   itemBuilder: (_, i) => Padding(
                     padding: const EdgeInsets.only(bottom: AppDimensions.md),
-                    child: CoachCard(coach: coaches[i]),
+                    child: CoachCard(coach: filtered[i]),
                   ),
                 );
               },

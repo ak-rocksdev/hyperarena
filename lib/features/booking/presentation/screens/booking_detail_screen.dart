@@ -13,6 +13,7 @@ import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_stepper.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
+import 'package:hyperarena/features/review/presentation/widgets/post_booking_review_banner.dart';
 
 class BookingDetailScreen extends ConsumerWidget {
   final String bookingId;
@@ -45,6 +46,19 @@ class BookingDetailScreen extends ConsumerWidget {
                 // Status stepper
                 StatusStepper(status: booking.status),
                 const Divider(),
+
+                // Post-booking review banner (only for completed court bookings)
+                if (booking.status == BookingStatus.completed &&
+                    booking.bookingType == BookingType.court)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.screenHorizontal,
+                    ).copyWith(top: AppDimensions.md),
+                    child: PostBookingReviewBanner(
+                      bookingId: booking.id,
+                      venueName: booking.venueName ?? 'Venue',
+                    ),
+                  ),
 
                 Padding(
                   padding: const EdgeInsets.all(

@@ -178,7 +178,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             onPressed: _submit,
                           ),
                         ),
-                        const SizedBox(height: AppDimensions.base),
+                        const SizedBox(height: AppDimensions.xs),
+
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () =>
+                                context.push(AppRoutes.forgotPassword),
+                            child: Text(
+                              'Lupa Password?',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppDimensions.xs),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,

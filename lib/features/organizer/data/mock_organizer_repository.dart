@@ -87,23 +87,46 @@ class MockOrganizerRepository implements OrganizerRepository {
                   .reduce((a, b) => a + b) /
               sessions.length;
 
-    final pendingPayments = allParticipants
+    final pendingParticipants = allParticipants
         .where((p) => p.status == SessionParticipantStatus.pendingPayment)
-        .length;
+        .toList();
+    final pendingPayments = pendingParticipants.length;
     final atRisk = sessions
         .where((s) => s.health.isLowSignupRisk || s.health.isJoinDeadlineAtRisk)
         .length;
 
     final earnings = await getEarningsSummary();
 
+    // Compute total unpaid amount across all pending payments
+    final totalUnpaidAmount = pendingParticipants.fold<int>(0, (sum, p) {
+      final session = sessions.where((s) => s.id == p.sessionId);
+      if (session.isEmpty) return sum;
+      return sum + session.first.pricePerPerson;
+    });
+
+    // Today's revenue calculations
+    final todaySessions = sessions.where((s) => _isSameDate(s.date, now));
+    final revenueExpectedToday = todaySessions.fold<int>(
+      0,
+      (sum, s) => sum + (s.currentPlayers * s.pricePerPerson),
+    );
+    final revenueCollectedToday = revenueExpectedToday -
+        todaySessions.fold<int>(
+          0,
+          (sum, s) => sum + (s.health.pendingPayments * s.pricePerPerson),
+        );
+
     return OrganizerDashboardStats(
-      sessionsToday: sessions.where((s) => _isSameDate(s.date, now)).length,
+      sessionsToday: todaySessions.length,
       sessionsNext7Days: next7Sessions.length,
       pendingPayments: pendingPayments,
       averageParticipants: avgParticipants,
       averageRating: 4.7,
       monthlyEarnings: earnings.availableBalance + earnings.pendingBalance,
       atRiskSessions: atRisk,
+      totalUnpaidAmount: totalUnpaidAmount,
+      revenueCollectedToday: revenueCollectedToday,
+      revenueExpectedToday: revenueExpectedToday,
     );
   }
 
@@ -393,6 +416,11 @@ class MockOrganizerRepository implements OrganizerRepository {
       final pending = participants
           .where((p) => p.status == SessionParticipantStatus.pendingPayment)
           .length;
+      final pendingAmount = pending * session.pricePerPerson;
+      final sessionTimeToStart = session.date.isAfter(now)
+          ? session.date.difference(now)
+          : null;
+
       if (pending > 0) {
         items.add(
           OrganizerActionItem(
@@ -403,22 +431,26 @@ class MockOrganizerRepository implements OrganizerRepository {
             subtitle: '${session.title} membutuhkan verifikasi pembayaran.',
             sessionId: session.id,
             dueAt: session.joinDeadline,
+            amountImpact: pendingAmount,
+            timeToStart: sessionTimeToStart,
           ),
         );
       }
 
-      final disputed = participants
+      final disputedParticipants = participants
           .where((p) => p.status == SessionParticipantStatus.disputed)
-          .length;
-      if (disputed > 0) {
+          .toList();
+      for (final dp in disputedParticipants) {
         items.add(
           OrganizerActionItem(
-            id: 'ai-dispute-${session.id}',
+            id: 'ai-dispute-${session.id}-${dp.id}',
             type: OrganizerActionType.dispute,
             severity: OrganizerActionSeverity.high,
-            title: '$disputed sengketa pembayaran',
-            subtitle: 'Butuh penyelesaian cepat untuk ${session.title}.',
+            title: 'Komplain: ${dp.playerName}',
+            subtitle: dp.disputeReason ?? '${session.title} — komplain pemain.',
             sessionId: session.id,
+            participantId: dp.id,
+            amountImpact: session.pricePerPerson,
           ),
         );
       }
@@ -427,15 +459,17 @@ class MockOrganizerRepository implements OrganizerRepository {
           (session.joinDeadline != null &&
               session.joinDeadline!.isAfter(now) &&
               session.joinDeadline!.difference(now).inHours <= 6)) {
+        final slotsLeft = session.maxPlayers - session.currentPlayers;
         items.add(
           OrganizerActionItem(
             id: 'ai-risk-${session.id}',
             type: OrganizerActionType.sessionRisk,
             severity: OrganizerActionSeverity.medium,
-            title: 'Risiko kuota pada ${session.title}',
-            subtitle: 'Pertimbangkan reminder atau reschedule.',
+            title: 'Kuota rendah: $slotsLeft slot lagi',
+            subtitle: session.title,
             sessionId: session.id,
             dueAt: session.joinDeadline,
+            timeToStart: sessionTimeToStart,
           ),
         );
       }
@@ -499,11 +533,29 @@ class MockOrganizerRepository implements OrganizerRepository {
         .where((s) => s.settlementStatus == SessionSettlementStatus.paidOut)
         .fold<int>(0, (sum, s) => sum + s.netRevenue);
 
+    // Simulate breakdown: split pending into player vs venue portions
+    final pendingPlayerBalance = (pending * 0.7).round();
+    final pendingVenueBalance = pending - pendingPlayerBalance;
+    // Simulate dispute hold from disputed participants
+    final disputeHoldBalance = _mySessions.fold<int>(0, (sum, session) {
+      final disputed = MockData.sessionParticipants
+          .where(
+            (p) =>
+                p.sessionId == session.id &&
+                p.status == SessionParticipantStatus.disputed,
+          )
+          .length;
+      return sum + (disputed * session.pricePerPerson);
+    });
+
     return OrganizerEarningsSummary(
       availableBalance: available,
       pendingBalance: pending,
       paidOutThisMonth: paidOut,
       settlements: settlements,
+      pendingPlayerBalance: pendingPlayerBalance,
+      pendingVenueBalance: pendingVenueBalance,
+      disputeHoldBalance: disputeHoldBalance,
     );
   }
 

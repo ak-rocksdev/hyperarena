@@ -51,6 +51,7 @@ class OrganizerDashboardScreen extends ConsumerWidget {
     return Scaffold(
       // ── 7. FAB — "Buat Sesi" ───────────────────────────────
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'dashboardCreateSession',
         onPressed: () => context.push(AppRoutes.organizerCreateSession),
         icon: const Icon(Icons.add),
         label: const Text('Buat Sesi'),

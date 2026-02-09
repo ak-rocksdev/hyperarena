@@ -18,6 +18,8 @@ import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:intl/intl.dart';
 
+const double _gapCompact = 6; // No exact token for 6px — named constant
+
 class OrganizerCommunityScreen extends ConsumerWidget {
   const OrganizerCommunityScreen({super.key});
 
@@ -66,28 +68,38 @@ class OrganizerCommunityScreen extends ConsumerWidget {
               return b.sessionsPlayed.compareTo(a.sessionsPlayed);
             });
 
-            if (members.isEmpty) {
-              return Column(
-                children: [
-                  _ClubHeroHeader(profile: profile),
-                  const Expanded(
-                    child: EmptyState(
-                      message: 'Belum ada anggota',
-                      icon: Icons.group_off_outlined,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.screenHorizontal,
-                    ),
-                    child: _InviteButton(),
-                  ),
-                  const SizedBox(height: AppDimensions.screenBottom),
-                ],
-              );
-            }
+            // Precompute top-2 most active member IDs (O(n log n) once)
+            final top2Ids = ([...members]
+                  ..sort((a, b) =>
+                      b.sessionsPlayed.compareTo(a.sessionsPlayed)))
+                .take(2)
+                .map((m) => m.id)
+                .toSet();
 
-            return RefreshIndicator(
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: members.isEmpty
+                  ? Column(
+                      key: const ValueKey('empty'),
+                      children: [
+                        _ClubHeroHeader(profile: profile),
+                        const Expanded(
+                          child: EmptyState(
+                            message: 'Belum ada anggota',
+                            icon: Icons.group_off_outlined,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppDimensions.screenHorizontal,
+                          ),
+                          child: const _InviteButton(),
+                        ),
+                        const SizedBox(height: AppDimensions.screenBottom),
+                      ],
+                    )
+                  : RefreshIndicator(
+                      key: const ValueKey('populated'),
               onRefresh: () async {
                 ref.invalidate(clubProfileProvider);
                 ref.invalidate(clubMembersProvider);
@@ -119,7 +131,7 @@ class OrganizerCommunityScreen extends ConsumerWidget {
                         const SizedBox(height: AppDimensions.lg),
 
                         // ── Invite CTA (above member list) ───
-                        _InviteButton(),
+                        const _InviteButton(),
                         const SizedBox(height: AppDimensions.lg),
 
                         // ── Section Header ───────────────────
@@ -133,7 +145,7 @@ class OrganizerCommunityScreen extends ConsumerWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: AppDimensions.sm,
-                                vertical: 2,
+                                vertical: AppDimensions.xxs,
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary50,
@@ -169,13 +181,13 @@ class OrganizerCommunityScreen extends ConsumerWidget {
                                   i++) ...[
                                 _MemberRow(
                                   member: sortedMembers[i],
-                                  allMembers: sortedMembers,
+                                  top2Ids: top2Ids,
                                 ),
                                 if (i < sortedMembers.length - 1)
                                   Divider(
                                     height: 1,
                                     indent: AppDimensions.base +
-                                        44 +
+                                        AppDimensions.avatarMd +
                                         AppDimensions.md,
                                     endIndent: AppDimensions.base,
                                     color: AppColors.border,
@@ -190,6 +202,7 @@ class OrganizerCommunityScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
             );
           },
         ),
@@ -229,16 +242,16 @@ class _ClubHeroHeader extends StatelessWidget {
                 _coverPlaceholder(),
 
               // Gradient overlay for readability
-              const DecoratedBox(
+              DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Color(0xCC1D4ED8),
+                      AppColors.primary700.withValues(alpha: 0.80),
                     ],
-                    stops: [0.2, 1.0],
+                    stops: const [0.2, 1.0],
                   ),
                 ),
               ),
@@ -268,6 +281,10 @@ class _ClubHeroHeader extends StatelessWidget {
         ),
 
         // ── Glass identity card (overlapping the cover) ──
+        // Geometry: card is positioned bottom: -60 so it extends 60px
+        // below the 200px cover. The spacer (200+80=280) ensures the
+        // Stack allocates enough height: 200px cover + 80px for the
+        // card's visible portion below the cover edge.
         Positioned(
           left: AppDimensions.screenHorizontal,
           right: AppDimensions.screenHorizontal,
@@ -279,7 +296,6 @@ class _ClubHeroHeader extends StatelessWidget {
         ),
 
         // Invisible spacer so Stack sizes correctly
-        // (cover 200 + overlap 60 + card extends ~80 below)
         const SizedBox(height: 200 + 80),
       ],
     );
@@ -329,7 +345,7 @@ class _GlassIdentityCard extends StatelessWidget {
               BoxShadow(
                 offset: const Offset(0, 8),
                 blurRadius: 24,
-                color: const Color(0xFF1D4ED8).withValues(alpha: 0.15),
+                color: AppColors.primary700.withValues(alpha: 0.15),
               ),
             ],
           ),
@@ -372,7 +388,7 @@ class _GlassIdentityCard extends StatelessWidget {
                     ),
                     if (profile.tagline != null &&
                         profile.tagline!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppDimensions.xxs),
                       Text(
                         profile.tagline!,
                         style: AppTypography.caption.copyWith(
@@ -420,7 +436,7 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.sm,
-        vertical: 2,
+        vertical: AppDimensions.xxs,
       ),
       decoration: BoxDecoration(
         color: AppColors.primary50,
@@ -433,10 +449,8 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(width: AppDimensions.xs),
           Text(
             label,
-            style: AppTypography.caption.copyWith(
+            style: AppTypography.labelSmall.copyWith(
               color: AppColors.primary700,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -501,7 +515,7 @@ class _StatsStrip extends StatelessWidget {
         _StatCard(
           icon: Icons.event_outlined,
           value: '$sessionsThisMonth',
-          label: 'Sesi Bulan Ini',
+          label: 'Sesi/Bulan',
           color: AppColors.secondary,
         ),
         const SizedBox(width: AppDimensions.sm),
@@ -582,6 +596,14 @@ Color _activityColor(DateTime? lastActive) {
   return AppColors.neutral400;
 }
 
+String _activityLabel(DateTime? lastActive) {
+  if (lastActive == null) return 'tidak aktif';
+  final diff = DateTime.now().difference(lastActive);
+  if (diff.inHours < 24) return 'aktif hari ini';
+  if (diff.inDays < 7) return 'aktif minggu ini';
+  return 'tidak aktif baru-baru ini';
+}
+
 ({String label, Color bg, Color text})? _roleBadgeConfig(ClubMemberRole role) {
   return switch (role) {
     ClubMemberRole.admin => (
@@ -591,7 +613,7 @@ Color _activityColor(DateTime? lastActive) {
     ),
     ClubMemberRole.captain => (
       label: 'Kapten',
-      bg: AppColors.secondary,
+      bg: AppColors.secondary800,
       text: Colors.white,
     ),
     ClubMemberRole.member => null,
@@ -600,7 +622,7 @@ Color _activityColor(DateTime? lastActive) {
 
 List<(String, Color)> _autoTags(
   ClubMember member,
-  List<ClubMember> allMembers,
+  Set<String> top2Ids,
 ) {
   final tags = <(String, Color)>[];
 
@@ -610,11 +632,7 @@ List<(String, Color)> _autoTags(
     tags.add(('Anggota Baru', AppColors.secondary));
   }
 
-  // "Paling Aktif" if top 2 by sessionsPlayed
-  final sorted = [...allMembers]..sort(
-      (a, b) => b.sessionsPlayed.compareTo(a.sessionsPlayed),
-    );
-  final top2Ids = sorted.take(2).map((m) => m.id).toSet();
+  // "Paling Aktif" if top 2 by sessionsPlayed (precomputed)
   if (top2Ids.contains(member.id)) {
     tags.add(('Si Paling Aktif', AppColors.accent));
   }
@@ -624,10 +642,10 @@ List<(String, Color)> _autoTags(
 
 // ── Member Row ──────────────────────────────────────────────────────────
 class _MemberRow extends StatelessWidget {
-  const _MemberRow({required this.member, required this.allMembers});
+  const _MemberRow({required this.member, required this.top2Ids});
 
   final ClubMember member;
-  final List<ClubMember> allMembers;
+  final Set<String> top2Ids;
 
   @override
   Widget build(BuildContext context) {
@@ -635,7 +653,7 @@ class _MemberRow extends StatelessWidget {
     final gamifTheme =
         Theme.of(context).extension<GamificationThemeExtension>()!;
     final roleBadge = _roleBadgeConfig(member.role);
-    final tags = _autoTags(member, allMembers);
+    final tags = _autoTags(member, top2Ids);
     final activityDotColor = _activityColor(member.lastActiveAt);
 
     return Material(
@@ -649,46 +667,53 @@ class _MemberRow extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimensions.base,
-            vertical: AppDimensions.md,
+            vertical: AppDimensions.base,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Avatar + Activity Dot ───────────────
-              SizedBox(
-                width: 44,
-                height: 44,
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: AppColors.primary50,
-                      backgroundImage: member.avatarUrl != null
-                          ? NetworkImage(member.avatarUrl!)
-                          : null,
-                      child: member.avatarUrl == null
-                          ? Text(
-                              member.name.substring(0, 1).toUpperCase(),
-                              style: AppTypography.titleSmall.copyWith(
-                                color: AppColors.primary,
-                              ),
-                            )
-                          : null,
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: activityDotColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+              Semantics(
+                label: '${member.name}, ${_activityLabel(member.lastActiveAt)}',
+                child: SizedBox(
+                  width: AppDimensions.avatarMd,
+                  height: AppDimensions.avatarMd,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: AppDimensions.avatarMd / 2,
+                        backgroundColor: AppColors.primary50,
+                        backgroundImage: member.avatarUrl != null
+                            ? NetworkImage(member.avatarUrl!)
+                            : null,
+                        onBackgroundImageError: member.avatarUrl != null
+                            ? (_, _) {}
+                            : null,
+                        child: Text(
+                          member.name.substring(0, 1).toUpperCase(),
+                          style: AppTypography.titleSmall.copyWith(
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: ExcludeSemantics(
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: activityDotColor,
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: Colors.white, width: 2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: AppDimensions.md),
@@ -702,18 +727,22 @@ class _MemberRow extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            member.name,
-                            style: AppTypography.titleSmall,
-                            overflow: TextOverflow.ellipsis,
+                          child: Tooltip(
+                            message:
+                                'Bergabung ${DateFormat('d MMM yyyy', 'id').format(member.joinedAt)}',
+                            child: Text(
+                              member.name,
+                              style: AppTypography.titleSmall,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                         if (roleBadge != null) ...[
                           const SizedBox(width: AppDimensions.sm),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: AppDimensions.sm,
+                              vertical: AppDimensions.xxs,
                             ),
                             decoration: BoxDecoration(
                               color: roleBadge.bg,
@@ -723,28 +752,26 @@ class _MemberRow extends StatelessWidget {
                             ),
                             child: Text(
                               roleBadge.label,
-                              style: AppTypography.caption.copyWith(
+                              style: AppTypography.badge.copyWith(
                                 color: roleBadge.text,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ],
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppDimensions.xs),
 
                     // Row 2: Tier chip + Auto-tags
                     Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
+                      spacing: AppDimensions.xs,
+                      runSpacing: AppDimensions.xs,
                       children: [
                         // Level tier chip
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                            horizontal: AppDimensions.sm,
+                            vertical: AppDimensions.xxs,
                           ),
                           decoration: BoxDecoration(
                             color: gamifTheme.levelBackgroundColor(
@@ -756,12 +783,10 @@ class _MemberRow extends StatelessWidget {
                           ),
                           child: Text(
                             GamificationHelpers.tierLabel(member.levelTier),
-                            style: AppTypography.caption.copyWith(
+                            style: AppTypography.badge.copyWith(
                               color: gamifTheme.levelTextColor(
                                 member.levelTier,
                               ),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -769,8 +794,8 @@ class _MemberRow extends StatelessWidget {
                         for (final (label, color) in tags)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: AppDimensions.sm,
+                              vertical: AppDimensions.xxs,
                             ),
                             decoration: BoxDecoration(
                               color: color.withValues(alpha: 0.15),
@@ -780,36 +805,35 @@ class _MemberRow extends StatelessWidget {
                             ),
                             child: Text(
                               label,
-                              style: AppTypography.caption.copyWith(
+                              style: AppTypography.badge.copyWith(
                                 color: color,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: _gapCompact),
 
                     // Row 3: Mini stat row (sessions + streak)
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.sports_score,
                           size: 14,
                           color: AppColors.textSecondary,
                         ),
-                        const SizedBox(width: 2),
+                        const SizedBox(width: AppDimensions.xxs),
                         Text(
                           '${member.sessionsPlayed} sesi',
-                          style: AppTypography.caption.copyWith(
+                          style: AppTypography.labelSmall.copyWith(
                             color: AppColors.textSecondary,
-                            fontSize: 11,
                           ),
                         ),
                         if (member.attendanceStreak > 0) ...[
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: _gapCompact,
+                            ),
                             child: Text(
                               '\u00B7',
                               style: AppTypography.caption.copyWith(
@@ -817,16 +841,16 @@ class _MemberRow extends StatelessWidget {
                               ),
                             ),
                           ),
-                          Text(
-                            '\u{1F525}',
-                            style: const TextStyle(fontSize: 12),
+                          const Icon(
+                            Icons.local_fire_department,
+                            size: 14,
+                            color: AppColors.accent,
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: AppDimensions.xxs),
                           Text(
                             '${member.attendanceStreak} streak',
-                            style: AppTypography.caption.copyWith(
+                            style: AppTypography.labelSmall.copyWith(
                               color: AppColors.textSecondary,
-                              fontSize: 11,
                             ),
                           ),
                         ],
@@ -835,15 +859,15 @@ class _MemberRow extends StatelessWidget {
 
                     // Row 4: Sport chips
                     if (member.sportPreferences.isNotEmpty) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: _gapCompact),
                       Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
+                        spacing: AppDimensions.xs,
+                        runSpacing: AppDimensions.xs,
                         children: member.sportPreferences.map((sport) {
                           return Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: AppDimensions.sm,
+                              vertical: AppDimensions.xxs,
                             ),
                             decoration: BoxDecoration(
                               color: sportTheme.backgroundColor(sport),
@@ -853,10 +877,8 @@ class _MemberRow extends StatelessWidget {
                             ),
                             child: Text(
                               SportChipSelector.sportLabel(sport),
-                              style: AppTypography.caption.copyWith(
+                              style: AppTypography.labelSmall.copyWith(
                                 color: sportTheme.textColor(sport),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           );
@@ -876,6 +898,8 @@ class _MemberRow extends StatelessWidget {
 
 // ── Invite Button ───────────────────────────────────────────────────────
 class _InviteButton extends StatelessWidget {
+  const _InviteButton();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -898,7 +922,7 @@ class _InviteButton extends StatelessWidget {
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              vertical: AppDimensions.md,
+              vertical: AppDimensions.base,
               horizontal: AppDimensions.lg,
             ),
             child: Row(

@@ -43,6 +43,7 @@ class _OrganizerSessionListScreenState
     return Scaffold(
       appBar: AppBar(title: const Text('Sesi Saya')),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'sessionListCreateSession',
         onPressed: () => context.push(AppRoutes.organizerCreateSession),
         icon: const Icon(Icons.add),
         label: const Text('Buat Sesi'),

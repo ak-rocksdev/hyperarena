@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/services/push_notification_service.dart';
 import 'package:hyperarena/features/notification/providers/notification_providers.dart';
-import 'package:hyperarena/features/notification/utils/notification_route_resolver.dart';
 import 'package:hyperarena/routing/app_router.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 

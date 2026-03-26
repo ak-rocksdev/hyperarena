@@ -15,7 +15,7 @@ class ApiDeviceTokenRepository implements DeviceTokenRepository {
     await _apiClient.post('/v1/auth/device-token', data: {
       'token': fcmToken,
       'platform': platform,
-      if (deviceName != null) 'device_name': deviceName,
+      'device_name': ?deviceName,
     });
   }
 

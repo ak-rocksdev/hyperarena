@@ -34,7 +34,7 @@ class ApiAuthRepository implements AuthRepository {
   @override
   Future<void> logout({String? deviceToken}) async {
     await _apiClient.post('/v1/auth/logout', data: {
-      if (deviceToken != null) 'device_token': deviceToken,
+      'device_token': ?deviceToken,
     });
   }
 

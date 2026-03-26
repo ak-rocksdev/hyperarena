@@ -32,6 +32,16 @@ dependencies:
   # Local Storage
   shared_preferences: ^2.5.3
 
+  # Firebase
+  firebase_core: ^3.13.0
+  firebase_messaging: ^15.2.5
+
+  # Push Notifications
+  flutter_local_notifications: ^18.0.1
+
+  # Secure Storage
+  flutter_secure_storage: ^9.2.4
+
   # UI
   google_fonts: ^6.2.1
   cached_network_image: ^3.4.1

@@ -35,7 +35,11 @@ class AuthNotifier extends Notifier<User?> {
         final user = User.fromJson(
           jsonDecode(userJson) as Map<String, dynamic>,
         );
-        // Fire-and-forget: migrate legacy token + init FCM
+        // Restore tenant slug from secure storage cache
+        final slug = _secureStorage.getTenantSlug();
+        if (slug != null) {
+          ref.read(tenantSlugProvider.notifier).state = slug;
+        }
         _initializeAsyncServices();
         return user;
       } catch (_) {
@@ -54,9 +58,13 @@ class AuthNotifier extends Notifier<User?> {
   Future<void> login(String email, String password) async {
     final (user, token) = await _repo.login(email, password);
     await _secureStorage.saveToken(token.token);
+    // Persist tenant slug for X-Tenant header
+    if (user.tenantSlug != null) {
+      await _secureStorage.saveTenantSlug(user.tenantSlug!);
+      ref.read(tenantSlugProvider.notifier).state = user.tenantSlug;
+    }
     _prefs.setString(_userKey, jsonEncode(user.toJson()));
     state = user;
-    // Fire-and-forget: init FCM after login
     _initializePushNotifications();
   }
 
@@ -88,6 +96,8 @@ class AuthNotifier extends Notifier<User?> {
     }
     await _secureStorage.deleteToken();
     await _secureStorage.deleteFcmToken();
+    await _secureStorage.deleteTenantSlug();
+    ref.read(tenantSlugProvider.notifier).state = null;
     _prefs.remove(_userKey);
     _prefs.remove(_legacyTokenKey);
     state = null;

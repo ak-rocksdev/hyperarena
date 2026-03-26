@@ -10,6 +10,7 @@ import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/core/widgets/app_text_field.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/providers/app_config_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -64,6 +65,44 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final config = ref.watch(appConfigProvider);
+    if (!config.useMockData) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Daftar'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.construction, size: 64, color: AppColors.textTertiary),
+                const SizedBox(height: AppDimensions.base),
+                Text(
+                  'Pendaftaran akan tersedia segera',
+                  style: AppTypography.headingSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppDimensions.sm),
+                Text(
+                  'Fitur pendaftaran sedang dalam pengembangan.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppDimensions.xl),
+                TextButton(
+                  onPressed: () => context.go(AppRoutes.login),
+                  child: const Text('Kembali ke Login'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daftar'),

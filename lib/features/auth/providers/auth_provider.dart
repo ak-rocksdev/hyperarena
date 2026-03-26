@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
 import 'package:hyperarena/features/auth/data/api_auth_repository.dart';
+import 'package:hyperarena/features/auth/data/api_tenant_repository.dart';
 import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/mock_auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
+import 'package:hyperarena/features/auth/data/tenant_repository.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +22,11 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   }
   final apiClient = ref.watch(apiClientProvider);
   return ApiAuthRepository(apiClient);
+});
+
+final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  return ApiTenantRepository(apiClient);
 });
 
 final authNotifierProvider =

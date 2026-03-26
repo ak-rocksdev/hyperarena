@@ -287,6 +287,6 @@ LoginScreen._submit()
 | Modify | `lib/features/auth/presentation/screens/login_screen.dart` (hide mock, errors) |
 | Modify | `lib/features/auth/presentation/screens/register_screen.dart` (disable in real mode) |
 | Modify | `lib/routing/app_router.dart` (super-admin redirect guard) |
-| Modify | `lib/app_bootstrap.dart` (restore tenant slug on startup) |
+| Modify | `lib/core/network/api_client.dart` (add X-Device-Name header) |
 | Regenerate | `lib/features/auth/data/models/user.freezed.dart` |
 | Regenerate | `lib/features/auth/data/models/user.g.dart` |

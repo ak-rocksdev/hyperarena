@@ -13,8 +13,6 @@ class MockAuthRepository implements AuthRepository {
 
   AuthToken _fakeToken() => AuthToken(
         token: 'mock-jwt-token-${DateTime.now().millisecondsSinceEpoch}',
-        refreshToken: 'mock-refresh-token',
-        expiresAt: DateTime.now().add(const Duration(days: 7)),
       );
 
   @override

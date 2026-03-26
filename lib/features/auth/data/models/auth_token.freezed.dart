@@ -22,8 +22,6 @@ AuthToken _$AuthTokenFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$AuthToken {
   String get token => throw _privateConstructorUsedError;
-  String get refreshToken => throw _privateConstructorUsedError;
-  DateTime get expiresAt => throw _privateConstructorUsedError;
 
   /// Serializes this AuthToken to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -40,7 +38,7 @@ abstract class $AuthTokenCopyWith<$Res> {
   factory $AuthTokenCopyWith(AuthToken value, $Res Function(AuthToken) then) =
       _$AuthTokenCopyWithImpl<$Res, AuthToken>;
   @useResult
-  $Res call({String token, String refreshToken, DateTime expiresAt});
+  $Res call({String token});
 }
 
 /// @nodoc
@@ -57,25 +55,13 @@ class _$AuthTokenCopyWithImpl<$Res, $Val extends AuthToken>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? token = null,
-    Object? refreshToken = null,
-    Object? expiresAt = null,
-  }) {
+  $Res call({Object? token = null}) {
     return _then(
       _value.copyWith(
             token: null == token
                 ? _value.token
                 : token // ignore: cast_nullable_to_non_nullable
                       as String,
-            refreshToken: null == refreshToken
-                ? _value.refreshToken
-                : refreshToken // ignore: cast_nullable_to_non_nullable
-                      as String,
-            expiresAt: null == expiresAt
-                ? _value.expiresAt
-                : expiresAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime,
           )
           as $Val,
     );
@@ -91,7 +77,7 @@ abstract class _$$AuthTokenImplCopyWith<$Res>
   ) = __$$AuthTokenImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String token, String refreshToken, DateTime expiresAt});
+  $Res call({String token});
 }
 
 /// @nodoc
@@ -107,25 +93,13 @@ class __$$AuthTokenImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? token = null,
-    Object? refreshToken = null,
-    Object? expiresAt = null,
-  }) {
+  $Res call({Object? token = null}) {
     return _then(
       _$AuthTokenImpl(
         token: null == token
             ? _value.token
             : token // ignore: cast_nullable_to_non_nullable
                   as String,
-        refreshToken: null == refreshToken
-            ? _value.refreshToken
-            : refreshToken // ignore: cast_nullable_to_non_nullable
-                  as String,
-        expiresAt: null == expiresAt
-            ? _value.expiresAt
-            : expiresAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime,
       ),
     );
   }
@@ -134,25 +108,17 @@ class __$$AuthTokenImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$AuthTokenImpl implements _AuthToken {
-  const _$AuthTokenImpl({
-    required this.token,
-    required this.refreshToken,
-    required this.expiresAt,
-  });
+  const _$AuthTokenImpl({required this.token});
 
   factory _$AuthTokenImpl.fromJson(Map<String, dynamic> json) =>
       _$$AuthTokenImplFromJson(json);
 
   @override
   final String token;
-  @override
-  final String refreshToken;
-  @override
-  final DateTime expiresAt;
 
   @override
   String toString() {
-    return 'AuthToken(token: $token, refreshToken: $refreshToken, expiresAt: $expiresAt)';
+    return 'AuthToken(token: $token)';
   }
 
   @override
@@ -160,16 +126,12 @@ class _$AuthTokenImpl implements _AuthToken {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$AuthTokenImpl &&
-            (identical(other.token, token) || other.token == token) &&
-            (identical(other.refreshToken, refreshToken) ||
-                other.refreshToken == refreshToken) &&
-            (identical(other.expiresAt, expiresAt) ||
-                other.expiresAt == expiresAt));
+            (identical(other.token, token) || other.token == token));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, token, refreshToken, expiresAt);
+  int get hashCode => Object.hash(runtimeType, token);
 
   /// Create a copy of AuthToken
   /// with the given fields replaced by the non-null parameter values.
@@ -186,21 +148,13 @@ class _$AuthTokenImpl implements _AuthToken {
 }
 
 abstract class _AuthToken implements AuthToken {
-  const factory _AuthToken({
-    required final String token,
-    required final String refreshToken,
-    required final DateTime expiresAt,
-  }) = _$AuthTokenImpl;
+  const factory _AuthToken({required final String token}) = _$AuthTokenImpl;
 
   factory _AuthToken.fromJson(Map<String, dynamic> json) =
       _$AuthTokenImpl.fromJson;
 
   @override
   String get token;
-  @override
-  String get refreshToken;
-  @override
-  DateTime get expiresAt;
 
   /// Create a copy of AuthToken
   /// with the given fields replaced by the non-null parameter values.

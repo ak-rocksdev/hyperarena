@@ -7,8 +7,6 @@ part 'auth_token.g.dart';
 class AuthToken with _$AuthToken {
   const factory AuthToken({
     required String token,
-    required String refreshToken,
-    required DateTime expiresAt,
   }) = _AuthToken;
 
   factory AuthToken.fromJson(Map<String, dynamic> json) =>

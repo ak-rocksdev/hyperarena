@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/network/api_client.dart';
+import 'package:hyperarena/core/services/push_notification_service.dart';
+import 'package:hyperarena/features/notification/providers/notification_providers.dart';
+import 'package:hyperarena/features/notification/utils/notification_route_resolver.dart';
 import 'package:hyperarena/routing/app_router.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 
@@ -20,4 +23,22 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     tenantSlug: tenantSlug,
     locale: locale,
   );
+});
+
+final pushNotificationServiceProvider =
+    Provider<PushNotificationService>((ref) {
+  final deviceTokenRepo = ref.watch(deviceTokenRepositoryProvider);
+  final secureStorage = ref.watch(secureStorageProvider);
+  final routeResolver = ref.watch(notificationRouteResolverProvider);
+  final router = ref.watch(appRouterProvider);
+  final service = PushNotificationService(
+    deviceTokenRepository: deviceTokenRepo,
+    secureStorage: secureStorage,
+    routeResolver: routeResolver,
+    router: router,
+    onUnreadCountIncrement: () =>
+        ref.read(unreadCountProvider.notifier).increment(),
+  );
+  ref.onDispose(() => service.dispose());
+  return service;
 });

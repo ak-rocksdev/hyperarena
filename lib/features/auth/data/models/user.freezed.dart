@@ -28,6 +28,11 @@ mixin _$User {
   String? get avatarUrl => throw _privateConstructorUsedError;
   UserRole get role => throw _privateConstructorUsedError;
   bool get isVerified => throw _privateConstructorUsedError;
+  int? get tenantId => throw _privateConstructorUsedError;
+  String? get tenantSlug => throw _privateConstructorUsedError;
+  String? get tenantName => throw _privateConstructorUsedError;
+  String? get activeRole => throw _privateConstructorUsedError;
+  String? get locale => throw _privateConstructorUsedError;
 
   /// Serializes this User to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,6 +56,11 @@ abstract class $UserCopyWith<$Res> {
     String? avatarUrl,
     UserRole role,
     bool isVerified,
+    int? tenantId,
+    String? tenantSlug,
+    String? tenantName,
+    String? activeRole,
+    String? locale,
   });
 }
 
@@ -76,6 +86,11 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? avatarUrl = freezed,
     Object? role = null,
     Object? isVerified = null,
+    Object? tenantId = freezed,
+    Object? tenantSlug = freezed,
+    Object? tenantName = freezed,
+    Object? activeRole = freezed,
+    Object? locale = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -107,6 +122,26 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
                 ? _value.isVerified
                 : isVerified // ignore: cast_nullable_to_non_nullable
                       as bool,
+            tenantId: freezed == tenantId
+                ? _value.tenantId
+                : tenantId // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            tenantSlug: freezed == tenantSlug
+                ? _value.tenantSlug
+                : tenantSlug // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            tenantName: freezed == tenantName
+                ? _value.tenantName
+                : tenantName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            activeRole: freezed == activeRole
+                ? _value.activeRole
+                : activeRole // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            locale: freezed == locale
+                ? _value.locale
+                : locale // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -129,6 +164,11 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     String? avatarUrl,
     UserRole role,
     bool isVerified,
+    int? tenantId,
+    String? tenantSlug,
+    String? tenantName,
+    String? activeRole,
+    String? locale,
   });
 }
 
@@ -151,6 +191,11 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? avatarUrl = freezed,
     Object? role = null,
     Object? isVerified = null,
+    Object? tenantId = freezed,
+    Object? tenantSlug = freezed,
+    Object? tenantName = freezed,
+    Object? activeRole = freezed,
+    Object? locale = freezed,
   }) {
     return _then(
       _$UserImpl(
@@ -182,6 +227,26 @@ class __$$UserImplCopyWithImpl<$Res>
             ? _value.isVerified
             : isVerified // ignore: cast_nullable_to_non_nullable
                   as bool,
+        tenantId: freezed == tenantId
+            ? _value.tenantId
+            : tenantId // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        tenantSlug: freezed == tenantSlug
+            ? _value.tenantSlug
+            : tenantSlug // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        tenantName: freezed == tenantName
+            ? _value.tenantName
+            : tenantName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        activeRole: freezed == activeRole
+            ? _value.activeRole
+            : activeRole // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        locale: freezed == locale
+            ? _value.locale
+            : locale // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -198,6 +263,11 @@ class _$UserImpl implements _User {
     this.avatarUrl,
     required this.role,
     this.isVerified = false,
+    this.tenantId,
+    this.tenantSlug,
+    this.tenantName,
+    this.activeRole,
+    this.locale,
   });
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
@@ -218,10 +288,20 @@ class _$UserImpl implements _User {
   @override
   @JsonKey()
   final bool isVerified;
+  @override
+  final int? tenantId;
+  @override
+  final String? tenantSlug;
+  @override
+  final String? tenantName;
+  @override
+  final String? activeRole;
+  @override
+  final String? locale;
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, email: $email, phone: $phone, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified)';
+    return 'User(id: $id, name: $name, email: $email, phone: $phone, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, activeRole: $activeRole, locale: $locale)';
   }
 
   @override
@@ -237,7 +317,16 @@ class _$UserImpl implements _User {
                 other.avatarUrl == avatarUrl) &&
             (identical(other.role, role) || other.role == role) &&
             (identical(other.isVerified, isVerified) ||
-                other.isVerified == isVerified));
+                other.isVerified == isVerified) &&
+            (identical(other.tenantId, tenantId) ||
+                other.tenantId == tenantId) &&
+            (identical(other.tenantSlug, tenantSlug) ||
+                other.tenantSlug == tenantSlug) &&
+            (identical(other.tenantName, tenantName) ||
+                other.tenantName == tenantName) &&
+            (identical(other.activeRole, activeRole) ||
+                other.activeRole == activeRole) &&
+            (identical(other.locale, locale) || other.locale == locale));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -251,6 +340,11 @@ class _$UserImpl implements _User {
     avatarUrl,
     role,
     isVerified,
+    tenantId,
+    tenantSlug,
+    tenantName,
+    activeRole,
+    locale,
   );
 
   /// Create a copy of User
@@ -276,6 +370,11 @@ abstract class _User implements User {
     final String? avatarUrl,
     required final UserRole role,
     final bool isVerified,
+    final int? tenantId,
+    final String? tenantSlug,
+    final String? tenantName,
+    final String? activeRole,
+    final String? locale,
   }) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
@@ -294,6 +393,16 @@ abstract class _User implements User {
   UserRole get role;
   @override
   bool get isVerified;
+  @override
+  int? get tenantId;
+  @override
+  String? get tenantSlug;
+  @override
+  String? get tenantName;
+  @override
+  String? get activeRole;
+  @override
+  String? get locale;
 
   /// Create a copy of User
   /// with the given fields replaced by the non-null parameter values.

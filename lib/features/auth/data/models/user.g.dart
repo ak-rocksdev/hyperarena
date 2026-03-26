@@ -14,6 +14,11 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
   avatarUrl: json['avatar_url'] as String?,
   role: $enumDecode(_$UserRoleEnumMap, json['role']),
   isVerified: json['is_verified'] as bool? ?? false,
+  tenantId: (json['tenant_id'] as num?)?.toInt(),
+  tenantSlug: json['tenant_slug'] as String?,
+  tenantName: json['tenant_name'] as String?,
+  activeRole: json['active_role'] as String?,
+  locale: json['locale'] as String?,
 );
 
 Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
@@ -25,6 +30,11 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'avatar_url': instance.avatarUrl,
       'role': _$UserRoleEnumMap[instance.role]!,
       'is_verified': instance.isVerified,
+      'tenant_id': instance.tenantId,
+      'tenant_slug': instance.tenantSlug,
+      'tenant_name': instance.tenantName,
+      'active_role': instance.activeRole,
+      'locale': instance.locale,
     };
 
 const _$UserRoleEnumMap = {

@@ -14,6 +14,11 @@ class User with _$User {
     String? avatarUrl,
     required UserRole role,
     @Default(false) bool isVerified,
+    int? tenantId,
+    String? tenantSlug,
+    String? tenantName,
+    String? activeRole,
+    String? locale,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

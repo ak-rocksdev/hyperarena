@@ -9,6 +9,9 @@ import 'package:hyperarena/core/storage/secure_storage_service.dart';
 import 'package:hyperarena/features/notification/data/device_token_repository.dart';
 import 'package:hyperarena/features/notification/utils/notification_route_resolver.dart';
 
+const _channelId = 'hyperarena_notifications';
+const _channelName = 'HyperArena Notifications';
+
 class PushNotificationService {
   final DeviceTokenRepository _deviceTokenRepository;
   final SecureStorageService _secureStorage;
@@ -137,8 +140,8 @@ class PushNotificationService {
 
   Future<void> _setupLocalNotifications() async {
     const androidChannel = AndroidNotificationChannel(
-      'hyperarena_notifications',
-      'HyperArena Notifications',
+      _channelId,
+      _channelName,
       description: 'Push notifications from HyperArena',
       importance: Importance.high,
     );
@@ -180,8 +183,8 @@ class PushNotificationService {
       notification.body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'hyperarena_notifications',
-          'HyperArena Notifications',
+          _channelId,
+          _channelName,
           importance: Importance.high,
           priority: Priority.high,
         ),

@@ -17,6 +17,11 @@ class ApiClient {
           baseUrl: config.apiBaseUrl,
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 15),
+          headers: {
+            'X-Client-Type': 'mobile',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
         )) {
     _dio.interceptors.add(
       ApiInterceptor(

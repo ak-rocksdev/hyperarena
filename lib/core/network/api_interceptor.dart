@@ -30,10 +30,7 @@ class ApiInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
 
-    // Standard headers
-    options.headers['X-Client-Type'] = 'mobile';
-    options.headers['Accept'] = 'application/json';
-    options.headers['Content-Type'] = 'application/json';
+    // Dynamic headers (static headers set on BaseOptions)
     options.headers['Accept-Language'] = _locale;
 
     // Tenant slug (optional — null means skip)
@@ -47,9 +44,10 @@ class ApiInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final statusCode = err.response?.statusCode;
-    final data = err.response?.data;
-    final message =
-        data is Map<String, dynamic> ? data['message'] as String? ?? '' : '';
+    final dataMap = err.response?.data is Map<String, dynamic>
+        ? err.response!.data as Map<String, dynamic>
+        : null;
+    final message = dataMap?['message'] as String? ?? '';
 
     switch (statusCode) {
       case 401:
@@ -78,11 +76,9 @@ class ApiInterceptor extends Interceptor {
           ),
         );
       case 422:
-        final errors = data is Map<String, dynamic>
-            ? (data['errors'] as Map<String, dynamic>?)
-                    ?.map((k, v) => MapEntry(k, v as List<dynamic>)) ??
-                {}
-            : <String, List<dynamic>>{};
+        final errors = (dataMap?['errors'] as Map<String, dynamic>?)
+                ?.map((k, v) => MapEntry(k, v as List<dynamic>)) ??
+            {};
         handler.reject(
           DioException(
             requestOptions: err.requestOptions,

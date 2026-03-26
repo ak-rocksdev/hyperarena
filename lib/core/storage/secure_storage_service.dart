@@ -17,8 +17,12 @@ class SecureStorageService {
   /// Call once during bootstrap() before runApp().
   Future<void> warmUp() async {
     if (_storage == null) return;
-    _cachedToken = await _storage.read(key: _bearerTokenKey);
-    _cachedFcmToken = await _storage.read(key: _fcmTokenKey);
+    final results = await Future.wait([
+      _storage.read(key: _bearerTokenKey),
+      _storage.read(key: _fcmTokenKey),
+    ]);
+    _cachedToken = results[0];
+    _cachedFcmToken = results[1];
   }
 
   // ── Bearer token ──────────────────────────────────────

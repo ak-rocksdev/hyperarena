@@ -6,6 +6,7 @@ import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/mock_auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
+import 'package:hyperarena/shared/providers/network_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _userKey = 'auth_user';
@@ -113,8 +114,16 @@ class AuthNotifier extends Notifier<User?> {
     _initializePushNotifications();
   }
 
-  void _initializePushNotifications() {
-    // Wired in Task 13 (Chunk 4) — placeholder for now.
-    // Will call: pushNotificationService.initialize() + registerWithBackend()
+  Future<void> _initializePushNotifications() async {
+    final config = ref.read(appConfigProvider);
+    if (config.useMockData) return; // No Firebase in mock mode
+
+    try {
+      final pushService = ref.read(pushNotificationServiceProvider);
+      await pushService.initialize();
+      pushService.registerWithBackend(); // fire-and-forget
+    } catch (_) {
+      // Firebase not available — graceful degradation
+    }
   }
 }

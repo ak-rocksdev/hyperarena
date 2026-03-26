@@ -2,11 +2,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const _bearerTokenKey = 'bearer_token';
 const _fcmTokenKey = 'fcm_token';
+const _tenantSlugKey = 'tenant_slug';
 
 class SecureStorageService {
   final FlutterSecureStorage? _storage;
   String? _cachedToken;
   String? _cachedFcmToken;
+  String? _cachedTenantSlug;
 
   SecureStorageService() : _storage = const FlutterSecureStorage();
 
@@ -20,9 +22,11 @@ class SecureStorageService {
     final results = await Future.wait([
       _storage.read(key: _bearerTokenKey),
       _storage.read(key: _fcmTokenKey),
+      _storage.read(key: _tenantSlugKey),
     ]);
     _cachedToken = results[0];
     _cachedFcmToken = results[1];
+    _cachedTenantSlug = results[2];
   }
 
   // ── Bearer token ──────────────────────────────────────
@@ -53,5 +57,20 @@ class SecureStorageService {
   Future<void> deleteFcmToken() async {
     _cachedFcmToken = null;
     await _storage?.delete(key: _fcmTokenKey);
+  }
+
+  // ── Tenant slug ─────────────────────────────────────
+
+  /// Synchronous read from in-memory cache.
+  String? getTenantSlug() => _cachedTenantSlug;
+
+  Future<void> saveTenantSlug(String slug) async {
+    _cachedTenantSlug = slug;
+    await _storage?.write(key: _tenantSlugKey, value: slug);
+  }
+
+  Future<void> deleteTenantSlug() async {
+    _cachedTenantSlug = null;
+    await _storage?.delete(key: _tenantSlugKey);
   }
 }

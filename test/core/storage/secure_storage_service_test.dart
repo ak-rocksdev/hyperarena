@@ -41,4 +41,21 @@ void main() {
       expect(service.getFcmToken(), isNull);
     });
   });
+
+  group('Tenant slug', () {
+    test('getTenantSlug returns null when empty', () {
+      expect(service.getTenantSlug(), isNull);
+    });
+
+    test('saveTenantSlug updates cache synchronously', () async {
+      await service.saveTenantSlug('skateschool');
+      expect(service.getTenantSlug(), equals('skateschool'));
+    });
+
+    test('deleteTenantSlug clears cache', () async {
+      await service.saveTenantSlug('skateschool');
+      await service.deleteTenantSlug();
+      expect(service.getTenantSlug(), isNull);
+    });
+  });
 }

@@ -19,6 +19,7 @@ class ApiClient {
           receiveTimeout: const Duration(seconds: 15),
           headers: {
             'X-Client-Type': 'mobile',
+            'X-Device-Name': 'HyperArena Mobile',
             'Accept': 'application/json',
             'Content-Type': 'application/json',
           },

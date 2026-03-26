@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/login_screen.dart';
+import 'package:hyperarena/features/auth/presentation/screens/tenant_picker_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/register_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/splash_screen.dart';
 import 'package:hyperarena/features/auth/presentation/screens/sport_selection_screen.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/shared/providers/network_providers.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_confirmation_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_date_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/booking_detail_screen.dart';
@@ -174,6 +176,7 @@ const _publicPaths = {
   AppRoutes.register,
   AppRoutes.sportSelection,
   AppRoutes.forgotPassword,
+  AppRoutes.tenantPicker,
 };
 
 /// Phase 1 router — Auth guards, Player shell, booking flow.
@@ -191,7 +194,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (isAuthenticated && isPublicRoute) {
+        // Super-admin without tenant slug → tenant picker
+        if (authState.activeRole == 'super-admin') {
+          final slug = ref.read(tenantSlugProvider);
+          if (slug == null && state.matchedLocation != AppRoutes.tenantPicker) {
+            return AppRoutes.tenantPicker;
+          }
+        }
+        if (state.matchedLocation == AppRoutes.tenantPicker) {
+          return null; // Allow super-admin to stay on picker
+        }
         return AppRoutes.home(authState.role);
+      }
+
+      // Authenticated, non-public route: check super-admin needs tenant
+      if (isAuthenticated && authState.activeRole == 'super-admin') {
+        final slug = ref.read(tenantSlugProvider);
+        if (slug == null && state.matchedLocation != AppRoutes.tenantPicker) {
+          return AppRoutes.tenantPicker;
+        }
       }
 
       return null;
@@ -215,6 +236,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (_, _) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.tenantPicker,
+        builder: (_, _) => const TenantPickerScreen(),
       ),
 
       // ── Player shell (4 tabs) ────────────────────────

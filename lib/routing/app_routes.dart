@@ -108,6 +108,7 @@ abstract final class AppRoutes {
 
   // ── Auth sub-routes ─────────────────────────────────────────
   static const forgotPassword = '/auth/forgot-password';
+  static const tenantPicker = '/auth/tenant-picker';
 
   // ── Notification routes ───────────────────────────────────────
   static const notifications = '/notifications';

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
+import 'package:hyperarena/features/auth/data/api_auth_repository.dart';
 import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/mock_auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
@@ -17,8 +18,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   if (config.useMockData) {
     return MockAuthRepository(config);
   }
-  // Phase 5+: return real API implementation (ApiAuthRepository)
-  return MockAuthRepository(config);
+  final apiClient = ref.watch(apiClientProvider);
+  return ApiAuthRepository(apiClient);
 });
 
 final authNotifierProvider =

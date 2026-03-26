@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hyperarena/core/storage/secure_storage_service.dart';
 import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/mock_auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
@@ -8,7 +9,7 @@ import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _userKey = 'auth_user';
-const _tokenKey = 'auth_token';
+const _legacyTokenKey = 'auth_token';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final config = ref.watch(appConfigProvider);
@@ -25,18 +26,19 @@ final authNotifierProvider =
 class AuthNotifier extends Notifier<User?> {
   @override
   User? build() {
-    // Restore session synchronously by returning the stored user directly.
-    // Do NOT call `state = ...` inside build() — that causes re-entrancy.
     final prefs = ref.read(sharedPreferencesProvider);
     final userJson = prefs.getString(_userKey);
     if (userJson != null) {
       try {
-        return User.fromJson(
+        final user = User.fromJson(
           jsonDecode(userJson) as Map<String, dynamic>,
         );
+        // Fire-and-forget: migrate legacy token + init FCM
+        _initializeAsyncServices();
+        return user;
       } catch (_) {
         prefs.remove(_userKey);
-        prefs.remove(_tokenKey);
+        prefs.remove(_legacyTokenKey);
       }
     }
     return null;
@@ -44,12 +46,16 @@ class AuthNotifier extends Notifier<User?> {
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
   AuthRepository get _repo => ref.read(authRepositoryProvider);
+  SecureStorageService get _secureStorage =>
+      ref.read(secureStorageProvider);
 
   Future<void> login(String email, String password) async {
     final (user, token) = await _repo.login(email, password);
+    await _secureStorage.saveToken(token.token);
     _prefs.setString(_userKey, jsonEncode(user.toJson()));
-    _prefs.setString(_tokenKey, jsonEncode(token.toJson()));
     state = user;
+    // Fire-and-forget: init FCM after login
+    _initializePushNotifications();
   }
 
   Future<void> register({
@@ -64,16 +70,51 @@ class AuthNotifier extends Notifier<User?> {
       phone: phone,
       password: password,
     );
+    await _secureStorage.saveToken(token.token);
     _prefs.setString(_userKey, jsonEncode(user.toJson()));
-    _prefs.setString(_tokenKey, jsonEncode(token.toJson()));
     state = user;
+    // Fire-and-forget: init FCM after register
+    _initializePushNotifications();
   }
 
   Future<void> logout() async {
-    await _repo.logout();
+    final fcmToken = _secureStorage.getFcmToken();
+    try {
+      await _repo.logout(deviceToken: fcmToken);
+    } catch (_) {
+      // Best-effort — proceed with local cleanup
+    }
+    await _secureStorage.deleteToken();
+    await _secureStorage.deleteFcmToken();
     _prefs.remove(_userKey);
-    _prefs.remove(_tokenKey);
+    _prefs.remove(_legacyTokenKey);
     state = null;
   }
 
+  /// Migrate legacy SharedPreferences token → SecureStorage (one-time).
+  Future<void> _migrateTokenIfNeeded() async {
+    final legacyJson = _prefs.getString(_legacyTokenKey);
+    if (legacyJson == null) return;
+
+    try {
+      final decoded = jsonDecode(legacyJson) as Map<String, dynamic>;
+      final token = decoded['token'] as String?;
+      if (token != null && _secureStorage.getToken() == null) {
+        await _secureStorage.saveToken(token);
+      }
+    } catch (_) {
+      // Corrupt data — treat as logged out
+    }
+    _prefs.remove(_legacyTokenKey);
+  }
+
+  Future<void> _initializeAsyncServices() async {
+    await _migrateTokenIfNeeded();
+    _initializePushNotifications();
+  }
+
+  void _initializePushNotifications() {
+    // Wired in Task 13 (Chunk 4) — placeholder for now.
+    // Will call: pushNotificationService.initialize() + registerWithBackend()
+  }
 }

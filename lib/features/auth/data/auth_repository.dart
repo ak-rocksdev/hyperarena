@@ -9,6 +9,6 @@ abstract class AuthRepository {
     required String phone,
     required String password,
   });
-  Future<void> logout();
+  Future<void> logout({String? deviceToken});
   Future<User?> getCurrentUser();
 }

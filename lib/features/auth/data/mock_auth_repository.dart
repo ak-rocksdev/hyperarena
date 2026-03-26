@@ -46,7 +46,7 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> logout() async {
+  Future<void> logout({String? deviceToken}) async {
     await Future.delayed(config.mockDelay);
   }
 

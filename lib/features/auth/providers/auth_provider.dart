@@ -101,10 +101,14 @@ class AuthNotifier extends Notifier<User?> {
     } catch (_) {
       // Best-effort — proceed with local cleanup
     }
-    await _secureStorage.deleteToken();
-    await _secureStorage.deleteFcmToken();
-    await _secureStorage.deleteTenantSlug();
-    ref.read(tenantSlugProvider.notifier).state = null;
+    await Future.wait([
+      _secureStorage.deleteToken(),
+      _secureStorage.deleteFcmToken(),
+      _secureStorage.deleteTenantSlug(),
+    ]);
+    if (ref.read(tenantSlugProvider) != null) {
+      ref.read(tenantSlugProvider.notifier).state = null;
+    }
     _prefs.remove(_userKey);
     _prefs.remove(_legacyTokenKey);
     state = null;

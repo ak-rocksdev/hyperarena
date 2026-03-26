@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
+import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/auth/data/models/tenant_summary.dart';
@@ -26,6 +27,7 @@ class _TenantPickerScreenState extends ConsumerState<TenantPickerScreen> {
   bool _isLoading = true;
   String? _error;
   Timer? _debounce;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _TenantPickerScreenState extends ConsumerState<TenantPickerScreen> {
   }
 
   Future<void> _loadTenants({String? search}) async {
+    final gen = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -48,14 +51,14 @@ class _TenantPickerScreenState extends ConsumerState<TenantPickerScreen> {
     try {
       final repo = ref.read(tenantRepositoryProvider);
       final tenants = await repo.getTenants(search: search);
-      if (mounted) {
+      if (mounted && gen == _loadGeneration) {
         setState(() {
           _tenants = tenants;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && gen == _loadGeneration) {
         setState(() {
           _error = 'Gagal memuat daftar tenant';
           _isLoading = false;
@@ -76,7 +79,8 @@ class _TenantPickerScreenState extends ConsumerState<TenantPickerScreen> {
     await secureStorage.saveTenantSlug(tenant.slug);
     ref.read(tenantSlugProvider.notifier).state = tenant.slug;
     if (mounted) {
-      context.go(AppRoutes.organizerDashboard);
+      final user = ref.read(authNotifierProvider);
+      context.go(AppRoutes.home(user?.role ?? UserRole.organizer));
     }
   }
 

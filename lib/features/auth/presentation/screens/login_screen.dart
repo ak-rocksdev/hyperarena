@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/mocks/mock_users.dart';
+import 'package:hyperarena/core/network/api_exceptions.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
@@ -57,6 +58,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _passwordController.text,
           );
       // Router redirect handles navigation by role automatically
+    } on ValidationException catch (e) {
+      if (mounted) {
+        // Backend returns 422 for invalid credentials with errors.email
+        final emailError = e.errors['email']?.firstOrNull as String?;
+        final message = emailError ?? e.message;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    } on UnauthorizedException catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sesi kadaluarsa, silakan login ulang')),
+        );
+      }
+    } on ServerException catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Server sedang bermasalah, coba lagi')),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message.isNotEmpty ? e.message : 'Login gagal')),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

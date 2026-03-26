@@ -424,6 +424,15 @@ Critical for production where data may be sparse. Each tab gets a specific empty
 - Sesi: "Belum ada sesi tersedia"
 - Coach: "Belum ada coach tersedia"
 
+### Session Detail — Venue Map
+
+The session detail screen shows an embedded OpenStreetMap preview (via `flutter_map`) when the venue has latitude/longitude coordinates. Below the map: venue name, full address, and a "Buka di Maps" button that opens the location in Google Maps (or other installed map app) via `url_launcher`.
+
+**Graceful degradation:**
+- Lat/lng available → map preview + marker + address + "Buka di Maps" button
+- Only address available (no coordinates) → address text only, no map, no button
+- No location data at all → section hidden entirely
+
 ---
 
 ## Files to Create/Modify
@@ -454,11 +463,14 @@ Critical for production where data may be sparse. Each tab gets a specific empty
 - `lib/shared/data/api_sport_repository.dart` — sport list API + cache
 - Skeleton shimmer widgets per card type
 - Empty state widget (shared)
+- `lib/shared/widgets/venue_location_section.dart` — embedded OSM map + address + "Buka di Maps" button
 
 **Modify:**
+- `pubspec.yaml` — add `flutter_map` + `latlong2` for embedded map
 - Venue/session/coach provider files — add marketplace providers (separate from mock providers)
 - Explore screen tabs — use marketplace providers in API mode, add empty states, skeleton loading, infinite scroll
 - Sports filter — load from API + cache instead of hardcoded enum in API mode
+- Session detail screen — add VenueLocationSection with map preview (when lat/lng available) and external map app launch
 
 ---
 

@@ -56,7 +56,9 @@ import 'package:hyperarena/features/organizer/presentation/screens/create_sessio
 import 'package:hyperarena/features/organizer/presentation/screens/participant_management_screen.dart';
 import 'package:hyperarena/features/coach/data/models/marketplace_coach.dart';
 import 'package:hyperarena/features/coach/presentation/screens/marketplace_coach_detail_screen.dart';
+import 'package:hyperarena/features/session/presentation/screens/marketplace_session_confirmation_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/marketplace_session_detail_screen.dart';
+import 'package:hyperarena/features/session/presentation/screens/marketplace_session_payment_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/marketplace_venue_detail_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
@@ -331,6 +333,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/marketplace/session/:id',
         builder: (_, state) => MarketplaceSessionDetailScreen(
           sessionId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/marketplace/session/:id/payment',
+        builder: (_, state) => MarketplaceSessionPaymentScreen(
+          sessionId: state.pathParameters['id']!,
+          extra: state.extra as Map<String, dynamic>?,
+        ),
+      ),
+      GoRoute(
+        path: '/marketplace/session/:id/confirmation',
+        builder: (_, state) => MarketplaceSessionConfirmationScreen(
+          sessionId: state.pathParameters['id']!,
+          extra: state.extra as Map<String, dynamic>?,
         ),
       ),
       GoRoute(

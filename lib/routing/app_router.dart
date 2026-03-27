@@ -54,7 +54,11 @@ import 'package:hyperarena/features/session/presentation/screens/session_detail_
 import 'package:hyperarena/features/session/presentation/screens/session_payment_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/create_session_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/participant_management_screen.dart';
+import 'package:hyperarena/features/coach/data/models/marketplace_coach.dart';
+import 'package:hyperarena/features/coach/presentation/screens/marketplace_coach_detail_screen.dart';
+import 'package:hyperarena/features/session/presentation/screens/marketplace_session_detail_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
+import 'package:hyperarena/features/venue/presentation/screens/marketplace_venue_detail_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -166,6 +170,19 @@ class RoleShell extends StatelessWidget {
       ),
     ],
   };
+}
+
+/// Extracts [GoRouterState.extra] as [T], showing a fallback scaffold if null.
+Widget _requireExtra<T>(
+  GoRouterState state,
+  Widget Function(T) builder,
+  String errorMessage,
+) {
+  final extra = state.extra as T?;
+  if (extra == null) {
+    return Scaffold(body: Center(child: Text(errorMessage)));
+  }
+  return builder(extra);
 }
 
 /// Auth routes that don't require authentication.
@@ -293,6 +310,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/venue/:id',
         builder: (_, state) =>
             VenueDetailScreen(venueId: state.pathParameters['id']!),
+      ),
+
+      // ── Marketplace detail routes ────────────────────────
+      GoRoute(
+        path: '/marketplace/venue/:id',
+        builder: (_, state) => MarketplaceVenueDetailScreen(
+          venueId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/marketplace/coach/:id',
+        builder: (_, state) => _requireExtra<MarketplaceCoach>(
+          state,
+          (coach) => MarketplaceCoachDetailScreen(coach: coach),
+          'Data coach tidak tersedia',
+        ),
+      ),
+      GoRoute(
+        path: '/marketplace/session/:id',
+        builder: (_, state) => MarketplaceSessionDetailScreen(
+          sessionId: state.pathParameters['id']!,
+        ),
       ),
       GoRoute(
         path: '/booking/:id',

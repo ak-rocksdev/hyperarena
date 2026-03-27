@@ -45,6 +45,18 @@ abstract final class AppRoutes {
   static String booking(String id) => '/booking/$id';
   static String coach(String id) => '/coach/$id';
   static String session(String id) => '/session/$id';
+
+  // ── Marketplace detail (API mode) ────────────────────────────────
+  static String marketplaceVenue(String id) => '/marketplace/venue/$id';
+  static String marketplaceCoach(String id) => '/marketplace/coach/$id';
+  static String marketplaceSession(String id) => '/marketplace/session/$id';
+
+  // ── Marketplace session flow ────────────────────────────────
+  static String marketplaceSessionPayment(String sessionId) =>
+      '/marketplace/session/$sessionId/payment';
+  static String marketplaceSessionConfirmation(String sessionId) =>
+      '/marketplace/session/$sessionId/confirmation';
+
   static String bookingFlowCourt(String courtId) =>
       '/booking/flow/court/$courtId';
 

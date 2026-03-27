@@ -223,7 +223,7 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
   const _$MarketplaceVenueImpl({
     @JsonKey(fromJson: _idFromJson) required this.id,
     required this.name,
-    required this.status,
+    this.status = 'active',
     this.sport,
     this.location,
     final List<VenuePhoto> photos = const [],
@@ -238,6 +238,7 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
   @override
   final String name;
   @override
+  @JsonKey()
   final String status;
   @override
   final SportInfo? sport;
@@ -304,7 +305,7 @@ abstract class _MarketplaceVenue implements MarketplaceVenue {
   const factory _MarketplaceVenue({
     @JsonKey(fromJson: _idFromJson) required final String id,
     required final String name,
-    required final String status,
+    final String status,
     final SportInfo? sport,
     final VenueLocation? location,
     final List<VenuePhoto> photos,
@@ -343,7 +344,9 @@ VenueLocation _$VenueLocationFromJson(Map<String, dynamic> json) {
 mixin _$VenueLocation {
   String get name => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _latLngFromJson)
   double? get lat => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _latLngFromJson)
   double? get lng => throw _privateConstructorUsedError;
 
   /// Serializes this VenueLocation to a JSON map.
@@ -363,7 +366,12 @@ abstract class $VenueLocationCopyWith<$Res> {
     $Res Function(VenueLocation) then,
   ) = _$VenueLocationCopyWithImpl<$Res, VenueLocation>;
   @useResult
-  $Res call({String name, String? address, double? lat, double? lng});
+  $Res call({
+    String name,
+    String? address,
+    @JsonKey(fromJson: _latLngFromJson) double? lat,
+    @JsonKey(fromJson: _latLngFromJson) double? lng,
+  });
 }
 
 /// @nodoc
@@ -419,7 +427,12 @@ abstract class _$$VenueLocationImplCopyWith<$Res>
   ) = __$$VenueLocationImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String name, String? address, double? lat, double? lng});
+  $Res call({
+    String name,
+    String? address,
+    @JsonKey(fromJson: _latLngFromJson) double? lat,
+    @JsonKey(fromJson: _latLngFromJson) double? lng,
+  });
 }
 
 /// @nodoc
@@ -470,8 +483,8 @@ class _$VenueLocationImpl implements _VenueLocation {
   const _$VenueLocationImpl({
     required this.name,
     this.address,
-    this.lat,
-    this.lng,
+    @JsonKey(fromJson: _latLngFromJson) this.lat,
+    @JsonKey(fromJson: _latLngFromJson) this.lng,
   });
 
   factory _$VenueLocationImpl.fromJson(Map<String, dynamic> json) =>
@@ -482,8 +495,10 @@ class _$VenueLocationImpl implements _VenueLocation {
   @override
   final String? address;
   @override
+  @JsonKey(fromJson: _latLngFromJson)
   final double? lat;
   @override
+  @JsonKey(fromJson: _latLngFromJson)
   final double? lng;
 
   @override
@@ -524,8 +539,8 @@ abstract class _VenueLocation implements VenueLocation {
   const factory _VenueLocation({
     required final String name,
     final String? address,
-    final double? lat,
-    final double? lng,
+    @JsonKey(fromJson: _latLngFromJson) final double? lat,
+    @JsonKey(fromJson: _latLngFromJson) final double? lng,
   }) = _$VenueLocationImpl;
 
   factory _VenueLocation.fromJson(Map<String, dynamic> json) =
@@ -536,8 +551,10 @@ abstract class _VenueLocation implements VenueLocation {
   @override
   String? get address;
   @override
+  @JsonKey(fromJson: _latLngFromJson)
   double? get lat;
   @override
+  @JsonKey(fromJson: _latLngFromJson)
   double? get lng;
 
   /// Create a copy of VenueLocation

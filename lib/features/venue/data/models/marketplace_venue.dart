@@ -6,13 +6,15 @@ part 'marketplace_venue.freezed.dart';
 part 'marketplace_venue.g.dart';
 
 String _idFromJson(dynamic v) => v.toString();
+double? _latLngFromJson(dynamic v) =>
+    v == null ? null : (v is num ? v.toDouble() : double.tryParse(v.toString()));
 
 @freezed
 class MarketplaceVenue with _$MarketplaceVenue {
   const factory MarketplaceVenue({
     @JsonKey(fromJson: _idFromJson) required String id,
     required String name,
-    required String status,
+    @Default('active') String status,
     SportInfo? sport,
     VenueLocation? location,
     @Default([]) List<VenuePhoto> photos,
@@ -27,8 +29,8 @@ class VenueLocation with _$VenueLocation {
   const factory VenueLocation({
     required String name,
     String? address,
-    double? lat,
-    double? lng,
+    @JsonKey(fromJson: _latLngFromJson) double? lat,
+    @JsonKey(fromJson: _latLngFromJson) double? lng,
   }) = _VenueLocation;
 
   factory VenueLocation.fromJson(Map<String, dynamic> json) =>

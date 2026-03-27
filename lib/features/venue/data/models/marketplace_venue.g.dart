@@ -11,7 +11,7 @@ _$MarketplaceVenueImpl _$$MarketplaceVenueImplFromJson(
 ) => _$MarketplaceVenueImpl(
   id: _idFromJson(json['id']),
   name: json['name'] as String,
-  status: json['status'] as String,
+  status: json['status'] as String? ?? 'active',
   sport: json['sport'] == null
       ? null
       : SportInfo.fromJson(json['sport'] as Map<String, dynamic>),
@@ -40,8 +40,8 @@ _$VenueLocationImpl _$$VenueLocationImplFromJson(Map<String, dynamic> json) =>
     _$VenueLocationImpl(
       name: json['name'] as String,
       address: json['address'] as String?,
-      lat: (json['lat'] as num?)?.toDouble(),
-      lng: (json['lng'] as num?)?.toDouble(),
+      lat: _latLngFromJson(json['lat']),
+      lng: _latLngFromJson(json['lng']),
     );
 
 Map<String, dynamic> _$$VenueLocationImplToJson(_$VenueLocationImpl instance) =>

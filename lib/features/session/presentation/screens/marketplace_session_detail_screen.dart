@@ -13,6 +13,7 @@ import 'package:hyperarena/features/session/providers/marketplace_session_join_p
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:intl/intl.dart';
 
 /// Marketplace session detail screen.
@@ -24,8 +25,6 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
 
   static final _dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id');
   static final _timeFormat = DateFormat('HH:mm', 'id');
-  static final _priceFormat =
-      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -447,8 +446,7 @@ class _BottomBar extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  MarketplaceSessionDetailScreen._priceFormat
-                      .format(pricing.price),
+                  Formatters.formatRupiah(pricing.price),
                   style: AppTypography.price,
                 ),
               ],
@@ -584,7 +582,10 @@ class _BottomBar extends ConsumerWidget {
     if (response.usedCredit) {
       context.go(
         AppRoutes.marketplaceSessionConfirmation(sessionId),
-        extra: response,
+        extra: {
+          'sessionName': session.name,
+          'price': pricing.price,
+        },
       );
     } else {
       context.go(
@@ -592,6 +593,8 @@ class _BottomBar extends ConsumerWidget {
         extra: {
           'joinResponse': response,
           'tenantPayment': tenantPayment,
+          'sessionName': session.name,
+          'price': pricing.price,
         },
       );
     }

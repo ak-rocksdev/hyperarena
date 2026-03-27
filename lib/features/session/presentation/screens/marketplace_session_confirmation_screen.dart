@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 
 import 'package:hyperarena/core/theme/app_animations.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
@@ -27,11 +27,6 @@ class MarketplaceSessionConfirmationScreen extends StatefulWidget {
 class _MarketplaceSessionConfirmationScreenState
     extends State<MarketplaceSessionConfirmationScreen>
     with SingleTickerProviderStateMixin {
-  static final _currencyFormat = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'Rp ',
-    decimalDigits: 0,
-  );
 
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
@@ -137,7 +132,7 @@ class _MarketplaceSessionConfirmationScreenState
               ),
               const SizedBox(height: AppDimensions.sm),
               Text(
-                _currencyFormat.format(price),
+                Formatters.formatRupiah(price),
                 style: AppTypography.priceLarge,
               ),
             ],

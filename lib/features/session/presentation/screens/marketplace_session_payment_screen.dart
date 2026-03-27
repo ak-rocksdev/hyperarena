@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -35,11 +35,6 @@ class MarketplaceSessionPaymentScreen extends ConsumerStatefulWidget {
 
 class _MarketplaceSessionPaymentScreenState
     extends ConsumerState<MarketplaceSessionPaymentScreen> {
-  static final _currencyFormat = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'Rp ',
-    decimalDigits: 0,
-  );
 
   Timer? _timer;
   Duration _remaining = Duration.zero;
@@ -190,7 +185,7 @@ class _MarketplaceSessionPaymentScreenState
                 Text(_sessionName, style: AppTypography.bodyMedium),
                 const SizedBox(height: AppDimensions.xs),
                 Text(
-                  _currencyFormat.format(_price),
+                  Formatters.formatRupiah(_price),
                   style: AppTypography.priceLarge,
                 ),
               ],
@@ -322,19 +317,39 @@ class _MarketplaceSessionPaymentScreenState
           // ── Upload button ────────────────────────────────────
           Padding(
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                boxShadow: AppShadows.colored,
-              ),
-              child: AppButton(
-                label: 'Upload Bukti Pembayaran',
-                icon: Icons.upload_file,
-                isLarge: true,
-                isLoading: _isUploading,
-                onPressed: _remaining == Duration.zero ? null : _pickAndUploadProof,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_remaining == Duration.zero)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+                    child: Text(
+                      'Waktu pembayaran habis. Silakan coba bergabung lagi.',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.error,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                    boxShadow: _remaining == Duration.zero ? null : AppShadows.colored,
+                  ),
+                  child: AppButton(
+                    label: _remaining == Duration.zero
+                        ? 'Kembali'
+                        : 'Upload Bukti Pembayaran',
+                    icon: _remaining == Duration.zero ? Icons.arrow_back : Icons.upload_file,
+                    isLarge: true,
+                    isLoading: _isUploading,
+                    onPressed: _remaining == Duration.zero
+                        ? () => context.go(AppRoutes.marketplaceSession(widget.sessionId))
+                        : _pickAndUploadProof,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

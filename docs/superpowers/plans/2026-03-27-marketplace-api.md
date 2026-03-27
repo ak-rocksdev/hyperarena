@@ -64,7 +64,7 @@ class MarketplaceService
                         ->orWhere('address', 'LIKE', $term));
             }))
             ->orderBy('name')
-            ->cursorPaginate($perPage);
+            ->cursorPaginate($perPage, ['*'], 'cursor', $filters['cursor'] ?? null);
     }
 
     /**
@@ -98,7 +98,7 @@ class MarketplaceService
             ->when(! empty($filters['date_from']), fn ($q) => $q->whereDate('start_at', '>=', $filters['date_from']))
             ->when(! empty($filters['date_to']), fn ($q) => $q->whereDate('start_at', '<=', $filters['date_to']))
             ->orderBy('start_at', 'asc')
-            ->cursorPaginate($perPage);
+            ->cursorPaginate($perPage, ['*'], 'cursor', $filters['cursor'] ?? null);
     }
 
     /**
@@ -113,7 +113,7 @@ class MarketplaceService
             ->where('status', 'active')
             ->when(! empty($filters['sport_id']), fn ($q) => $q->whereHas('tenant', fn ($tq) => $tq->where('sport_id', (int) $filters['sport_id'])))
             ->when(! empty($filters['search']), fn ($q) => $q->whereHas('user', fn ($uq) => $uq->where('name', 'LIKE', '%'.$filters['search'].'%')))
-            ->cursorPaginate($perPage);
+            ->cursorPaginate($perPage, ['*'], 'cursor', $filters['cursor'] ?? null);
     }
 }
 ```
@@ -214,9 +214,10 @@ class VenueController extends Controller
             'sport_id' => 'sometimes|integer|exists:sports,id',
             'search' => 'sometimes|string|max:100',
             'per_page' => 'sometimes|integer|min:1|max:50',
+            'cursor' => 'sometimes|string',
         ]);
 
-        $venues = $this->marketplace->getVenues($request->only(['sport_id', 'search', 'per_page']));
+        $venues = $this->marketplace->getVenues($request->only(['sport_id', 'search', 'per_page', 'cursor']));
 
         return response()->json($venues);
     }
@@ -260,10 +261,11 @@ class SessionController extends Controller
             'date_from' => 'sometimes|date_format:Y-m-d',
             'date_to' => 'sometimes|date_format:Y-m-d|after_or_equal:date_from',
             'per_page' => 'sometimes|integer|min:1|max:50',
+            'cursor' => 'sometimes|string',
         ]);
 
         $sessions = $this->marketplace->getSessions(
-            $request->only(['sport_id', 'search', 'date_from', 'date_to', 'per_page'])
+            $request->only(['sport_id', 'search', 'date_from', 'date_to', 'per_page', 'cursor'])
         );
 
         return response()->json($sessions);
@@ -299,9 +301,10 @@ class CoachController extends Controller
             'sport_id' => 'sometimes|integer|exists:sports,id',
             'search' => 'sometimes|string|max:100',
             'per_page' => 'sometimes|integer|min:1|max:50',
+            'cursor' => 'sometimes|string',
         ]);
 
-        $coaches = $this->marketplace->getCoaches($request->only(['sport_id', 'search', 'per_page']));
+        $coaches = $this->marketplace->getCoaches($request->only(['sport_id', 'search', 'per_page', 'cursor']));
 
         return response()->json($coaches);
     }
@@ -583,10 +586,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'marketplace_venue.freezed.dart';
 part 'marketplace_venue.g.dart';
 
+String _idFromJson(dynamic v) => v.toString();
+
 @freezed
 class MarketplaceVenue with _$MarketplaceVenue {
   const factory MarketplaceVenue({
-    required int id,
+    @JsonKey(fromJson: _idFromJson) required String id,
     required String name,
     required String status,
     SportInfo? sport,
@@ -602,7 +607,7 @@ class MarketplaceVenue with _$MarketplaceVenue {
 class VenueLocation with _$VenueLocation {
   const factory VenueLocation({
     required String name,
-    required String address,
+    String? address,
     double? lat,
     double? lng,
   }) = _VenueLocation;
@@ -668,10 +673,12 @@ import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 part 'marketplace_session.freezed.dart';
 part 'marketplace_session.g.dart';
 
+String _idFromJson(dynamic v) => v.toString();
+
 @freezed
 class MarketplaceSession with _$MarketplaceSession {
   const factory MarketplaceSession({
-    required int id,
+    @JsonKey(fromJson: _idFromJson) required String id,
     required String name,
     String? type,
     @JsonKey(name: 'start_at') required DateTime startAt,
@@ -691,7 +698,7 @@ class MarketplaceSession with _$MarketplaceSession {
 @freezed
 class SessionTenant with _$SessionTenant {
   const factory SessionTenant({
-    required int id,
+    @JsonKey(fromJson: _idFromJson) required String id,
     required String name,
   }) = _SessionTenant;
 
@@ -713,7 +720,7 @@ class MarketplaceSessionVenue with _$MarketplaceSessionVenue {
 @freezed
 class SessionCoach with _$SessionCoach {
   const factory SessionCoach({
-    required int id,
+    @JsonKey(fromJson: _idFromJson) required String id,
     required String name,
     @JsonKey(name: 'photo_path') String? photoPath,
   }) = _SessionCoach;
@@ -757,10 +764,12 @@ import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 part 'marketplace_coach.freezed.dart';
 part 'marketplace_coach.g.dart';
 
+String _idFromJson(dynamic v) => v.toString();
+
 @freezed
 class MarketplaceCoach with _$MarketplaceCoach {
   const factory MarketplaceCoach({
-    required int id,
+    @JsonKey(fromJson: _idFromJson) required String id,
     String? bio,
     CoachUser? user,
     SportInfo? sport,
@@ -803,28 +812,43 @@ Includes nested CoachUser. Reuses SportInfo from venue models."
 
 ---
 
-### Task 9: Create API Repositories
+### Task 9: Create Shared DioException Helper and API Repositories
+
+> **Design note (Issue 4 from review):** The spec mentions abstract repository interfaces. We intentionally skip them here for simplicity — the concrete implementations are the only ones used, and we can extract interfaces later if test doubles are needed.
+
+> **Design note (Issue 5 from review):** The `rethrowDio` helper is extracted into a shared utility to avoid duplication across 4 repository files.
 
 **Files:**
+- Create: `lib/core/network/dio_error_handler.dart` — shared DioException unwrapping utility
 - Create: `lib/features/venue/data/api_marketplace_venue_repository.dart`
 - Create: `lib/features/session/data/api_marketplace_session_repository.dart`
 - Create: `lib/features/coach/data/api_marketplace_coach_repository.dart`
 - Create: `lib/shared/data/api_sport_repository.dart`
 
-- [ ] **Step 1: Create ApiMarketplaceVenueRepository**
+- [ ] **Step 1: Create shared DioException unwrapping utility**
+
+```dart
+// lib/core/network/dio_error_handler.dart
+import 'package:dio/dio.dart';
+import 'package:hyperarena/core/network/api_exceptions.dart';
+
+/// Unwraps a DioException to rethrow the inner ApiException if present.
+/// Used by all marketplace API repositories.
+Never rethrowDio(DioException e) {
+  if (e.error is ApiException) throw e.error!;
+  throw e;
+}
+```
+
+- [ ] **Step 2: Create ApiMarketplaceVenueRepository**
 
 ```dart
 // lib/features/venue/data/api_marketplace_venue_repository.dart
 import 'package:dio/dio.dart';
 import 'package:hyperarena/core/network/api_client.dart';
-import 'package:hyperarena/core/network/api_exceptions.dart';
+import 'package:hyperarena/core/network/dio_error_handler.dart';
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 import 'package:hyperarena/shared/data/models/cursor_page.dart';
-
-Never _rethrow(DioException e) {
-  if (e.error is ApiException) throw e.error!;
-  throw e;
-}
 
 class ApiMarketplaceVenueRepository {
   final ApiClient _apiClient;
@@ -850,7 +874,7 @@ class ApiMarketplaceVenueRepository {
         (json) => MarketplaceVenue.fromJson(json),
       );
     } on DioException catch (e) {
-      _rethrow(e);
+      rethrowDio(e);
     }
   }
 
@@ -864,26 +888,21 @@ class ApiMarketplaceVenueRepository {
             : data,
       );
     } on DioException catch (e) {
-      _rethrow(e);
+      rethrowDio(e);
     }
   }
 }
 ```
 
-- [ ] **Step 2: Create ApiMarketplaceSessionRepository**
+- [ ] **Step 3: Create ApiMarketplaceSessionRepository**
 
 ```dart
 // lib/features/session/data/api_marketplace_session_repository.dart
 import 'package:dio/dio.dart';
 import 'package:hyperarena/core/network/api_client.dart';
-import 'package:hyperarena/core/network/api_exceptions.dart';
+import 'package:hyperarena/core/network/dio_error_handler.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/shared/data/models/cursor_page.dart';
-
-Never _rethrow(DioException e) {
-  if (e.error is ApiException) throw e.error!;
-  throw e;
-}
 
 class ApiMarketplaceSessionRepository {
   final ApiClient _apiClient;
@@ -913,26 +932,21 @@ class ApiMarketplaceSessionRepository {
         (json) => MarketplaceSession.fromJson(json),
       );
     } on DioException catch (e) {
-      _rethrow(e);
+      rethrowDio(e);
     }
   }
 }
 ```
 
-- [ ] **Step 3: Create ApiMarketplaceCoachRepository**
+- [ ] **Step 4: Create ApiMarketplaceCoachRepository**
 
 ```dart
 // lib/features/coach/data/api_marketplace_coach_repository.dart
 import 'package:dio/dio.dart';
 import 'package:hyperarena/core/network/api_client.dart';
-import 'package:hyperarena/core/network/api_exceptions.dart';
+import 'package:hyperarena/core/network/dio_error_handler.dart';
 import 'package:hyperarena/features/coach/data/models/marketplace_coach.dart';
 import 'package:hyperarena/shared/data/models/cursor_page.dart';
-
-Never _rethrow(DioException e) {
-  if (e.error is ApiException) throw e.error!;
-  throw e;
-}
 
 class ApiMarketplaceCoachRepository {
   final ApiClient _apiClient;
@@ -958,13 +972,13 @@ class ApiMarketplaceCoachRepository {
         (json) => MarketplaceCoach.fromJson(json),
       );
     } on DioException catch (e) {
-      _rethrow(e);
+      rethrowDio(e);
     }
   }
 }
 ```
 
-- [ ] **Step 4: Create ApiSportRepository with caching**
+- [ ] **Step 5: Create ApiSportRepository with caching**
 
 ```dart
 // lib/shared/data/api_sport_repository.dart
@@ -972,16 +986,11 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:hyperarena/core/network/api_client.dart';
-import 'package:hyperarena/core/network/api_exceptions.dart';
+import 'package:hyperarena/core/network/dio_error_handler.dart';
 import 'package:hyperarena/shared/data/models/sport_filter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _cacheKey = 'marketplace_sports';
-
-Never _rethrow(DioException e) {
-  if (e.error is ApiException) throw e.error!;
-  throw e;
-}
 
 class ApiSportRepository {
   final ApiClient _apiClient;
@@ -1012,29 +1021,30 @@ class ApiSportRepository {
       _prefs.setString(_cacheKey, jsonEncode(list));
       return sports;
     } on DioException catch (e) {
-      _rethrow(e);
+      rethrowDio(e);
     }
   }
 }
 ```
 
-- [ ] **Step 5: Run analyzer**
+- [ ] **Step 6: Run analyzer**
 
-Run: `dart analyze lib/features/venue/data/api_marketplace_venue_repository.dart lib/features/session/data/api_marketplace_session_repository.dart lib/features/coach/data/api_marketplace_coach_repository.dart lib/shared/data/api_sport_repository.dart`
+Run: `dart analyze lib/core/network/dio_error_handler.dart lib/features/venue/data/api_marketplace_venue_repository.dart lib/features/session/data/api_marketplace_session_repository.dart lib/features/coach/data/api_marketplace_coach_repository.dart lib/shared/data/api_sport_repository.dart`
 Expected: No issues found
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
+git add lib/core/network/dio_error_handler.dart
 git add lib/features/venue/data/api_marketplace_venue_repository.dart
 git add lib/features/session/data/api_marketplace_session_repository.dart
 git add lib/features/coach/data/api_marketplace_coach_repository.dart
 git add lib/shared/data/api_sport_repository.dart
-git commit -m "feat: add marketplace API repositories
+git commit -m "feat: add marketplace API repositories with shared DioException handler
 
+Shared rethrowDio() utility in dio_error_handler.dart.
 ApiMarketplaceVenueRepository, ApiMarketplaceSessionRepository,
-ApiMarketplaceCoachRepository, ApiSportRepository (with SharedPreferences cache).
-All unwrap DioException to rethrow inner ApiException."
+ApiMarketplaceCoachRepository, ApiSportRepository (with SharedPreferences cache)."
 ```
 
 ---
@@ -1450,22 +1460,18 @@ This is the final wiring task. The Explore screen and its 3 list sub-screens nee
 5. Support infinite scroll pagination
 6. Keep mock mode working exactly as-is
 
+> **Note (Issue 8):** The spec mentions "skeleton shimmer widgets per card type" as files to create. The existing `ShimmerLoading.card()` from `lib/core/widgets/shimmer_loading.dart` already provides card-shaped shimmer placeholders, so no new skeleton files are needed.
+
 **Files:**
 - Modify: `lib/features/venue/presentation/screens/explore_screen.dart` — add sport chips from API
 - Modify: `lib/features/venue/presentation/screens/venue_list_screen.dart` — use marketplace provider in API mode
 - Modify: `lib/features/session/presentation/screens/session_list_screen.dart` — use marketplace provider in API mode
 - Modify: `lib/features/coach/presentation/screens/coach_list_screen.dart` — use marketplace provider in API mode
 
-> **Note to implementer:** This task requires reading each of the 4 existing screen files first to understand their current structure before modifying. The screens vary in complexity. The key change in each list screen is:
-> - Check `appConfigProvider.useMockData`
-> - If mock: keep existing `FutureProvider<List<T>>` logic untouched
-> - If API: use the corresponding `marketplaceXxxListProvider` (NotifierProvider) and render based on `MarketplaceListState` (isLoading → shimmer, error → error+retry, isEmpty → EmptyState, else → ListView with loadMore at bottom)
+> **Note to implementer:** This task requires reading each of the 4 existing screen files first to understand their current structure before modifying. The key pattern for each list screen is the same — a `useMockData` branch:
 >
-> The sport filter chips in ExploreScreen should:
-> - If mock: keep existing hardcoded Sport enum chips
-> - If API: use `sportFiltersProvider` and `selectedSportIdProvider`
->
-> Each list screen adds a `ScrollController` with a listener that calls `notifier.loadMore()` when near the bottom.
+> **Mock path:** Keep existing logic untouched.
+> **API path:** Wrap in the reusable `_MarketplaceListView` pattern shown below.
 
 - [ ] **Step 1: Read all 4 existing screen files to understand their structure**
 
@@ -1478,33 +1484,132 @@ Read:
 - [ ] **Step 2: Update ExploreScreen to use dynamic sport chips in API mode**
 
 Add imports for `appConfigProvider`, `marketplaceProviders`, `SportFilter`.
-In the sport filter row:
-- If `useMockData`: keep existing `Sport.values` chips
-- If API mode: use `ref.watch(sportFiltersProvider)` to render chips from `List<SportFilter>`, and update `selectedSportIdProvider` on tap
+In the sport filter row, branch on `useMockData`:
+
+```dart
+// API mode sport chips — replace existing Sport enum chips when not mock
+final useMock = ref.watch(appConfigProvider).useMockData;
+
+if (useMock) {
+  // ... existing Sport.values chip code unchanged ...
+} else {
+  final sportsAsync = ref.watch(sportFiltersProvider);
+  final selectedId = ref.watch(selectedSportIdProvider);
+
+  // "All" chip
+  Widget allChip = FilterChip(
+    label: const Text('Semua'),
+    selected: selectedId == null,
+    onSelected: (_) => ref.read(selectedSportIdProvider.notifier).state = null,
+  );
+
+  // Dynamic sport chips
+  Widget sportChips = sportsAsync.when(
+    loading: () => const SizedBox.shrink(),
+    error: (_, __) => const SizedBox.shrink(),
+    data: (sports) => Wrap(
+      spacing: AppDimensions.sm,
+      children: [
+        allChip,
+        ...sports.map((s) => FilterChip(
+          label: Text(s.name),
+          selected: selectedId == s.id,
+          onSelected: (_) =>
+            ref.read(selectedSportIdProvider.notifier).state =
+              selectedId == s.id ? null : s.id,
+        )),
+      ],
+    ),
+  );
+}
+```
 
 - [ ] **Step 3: Update VenueListScreen for marketplace mode**
 
-- If `useMockData`: existing mock path unchanged
-- If API mode:
-  - Watch `marketplaceVenueListProvider`
-  - `isLoading` → show 3x `ShimmerLoading.card()` in a Column
-  - `error != null` → `EmptyState(icon: Icons.error_outline, message: 'Gagal memuat', onRetry: ...)`
-  - `isEmpty` → `EmptyState(icon: Icons.store_outlined, message: 'Belum ada lapangan tersedia')`
-  - Otherwise → `ListView.builder` with venue cards, `ScrollController` calling `loadMore()` near bottom
-  - `isLoadingMore` → append `ListLoadingIndicator` at bottom
-  - Handle search: call `notifier.loadInitial(search: query)` when search changes
+Each list screen follows this exact pattern. Add a `ScrollController` for infinite scroll pagination:
+
+```dart
+// Inside the ConsumerStatefulWidget State class:
+
+final _scrollController = ScrollController();
+
+@override
+void initState() {
+  super.initState();
+  _scrollController.addListener(_onScroll);
+}
+
+@override
+void dispose() {
+  _scrollController.dispose();
+  super.dispose();
+}
+
+void _onScroll() {
+  if (_scrollController.position.pixels >=
+      _scrollController.position.maxScrollExtent - 200) {
+    ref.read(marketplaceVenueListProvider.notifier).loadMore();
+  }
+}
+
+// In build():
+final useMock = ref.watch(appConfigProvider).useMockData;
+
+if (useMock) {
+  // ... existing mock FutureProvider path unchanged ...
+} else {
+  final state = ref.watch(marketplaceVenueListProvider);
+
+  if (state.isLoading) {
+    return Column(
+      children: List.generate(3, (_) => ShimmerLoading.card()),
+    );
+  }
+  if (state.error != null) {
+    return EmptyState(
+      icon: Icons.error_outline,
+      message: 'Gagal memuat lapangan',
+      onRetry: () => ref.read(marketplaceVenueListProvider.notifier).loadInitial(),
+    );
+  }
+  if (state.isEmpty) {
+    return EmptyState(
+      icon: Icons.store_outlined,
+      message: 'Belum ada lapangan tersedia',
+    );
+  }
+  return ListView.builder(
+    controller: _scrollController,
+    itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+    itemBuilder: (context, index) {
+      if (index == state.items.length) {
+        return const ListLoadingIndicator();
+      }
+      final venue = state.items[index];
+      // Build venue card using MarketplaceVenue fields:
+      // venue.name, venue.sport?.name, venue.location?.address,
+      // venue.photos.firstOrNull?.url
+      return _buildVenueCard(context, venue);
+    },
+  );
+}
+```
+
+Handle search by calling `notifier.loadInitial(search: query)` when search text changes.
 
 - [ ] **Step 4: Update SessionListScreen for marketplace mode**
 
-Same pattern as venues:
-- `isEmpty` → `EmptyState(icon: Icons.event_outlined, message: 'Belum ada sesi tersedia')`
-- Session cards display: name, tenant name ("oleh ..."), venue, date/time, capacity bar, coaches
+Same pattern as venues. Key differences:
+- Provider: `marketplaceSessionListProvider`
+- Empty: `EmptyState(icon: Icons.event_outlined, message: 'Belum ada sesi tersedia')`
+- Card fields: `session.name`, `session.tenant?.name` ("oleh ..."), `session.venue?.name`, `session.startAt`, `session.durationMinutes`, capacity bar (`session.bookedCount / session.capacity`), `session.coaches`
 
 - [ ] **Step 5: Update CoachListScreen for marketplace mode**
 
 Same pattern:
-- `isEmpty` → `EmptyState(icon: Icons.person_outlined, message: 'Belum ada coach tersedia')`
-- Coach cards display: name, photo, sport badge, bio, rate
+- Provider: `marketplaceCoachListProvider`
+- Empty: `EmptyState(icon: Icons.person_outlined, message: 'Belum ada coach tersedia')`
+- Card fields: `coach.user?.name`, `coach.user?.photoPath`, `coach.sport?.name`, `coach.bio`, `coach.ratePerSession`
 
 - [ ] **Step 6: Run full analyzer**
 

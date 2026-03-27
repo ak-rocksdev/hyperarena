@@ -132,6 +132,12 @@ class NotificationTile extends StatelessWidget {
         return Icons.check_circle;
       case NotificationType.sessionFull:
         return Icons.group;
+      case NotificationType.sessionCancelled:
+        return Icons.cancel;
+      case NotificationType.paymentConfirmed:
+        return Icons.check_circle;
+      case NotificationType.paymentRejected:
+        return Icons.cancel;
       case NotificationType.badge:
         return Icons.emoji_events;
       case NotificationType.general:
@@ -150,9 +156,13 @@ class NotificationTile extends StatelessWidget {
       case NotificationType.assessmentReceived:
         return AppColors.secondary;
       case NotificationType.bookingConfirmed:
+      case NotificationType.paymentConfirmed:
         return AppColors.success;
       case NotificationType.sessionFull:
         return AppColors.primary;
+      case NotificationType.sessionCancelled:
+      case NotificationType.paymentRejected:
+        return AppColors.error;
       case NotificationType.badge:
         return AppColors.accent;
       case NotificationType.general:

@@ -3,6 +3,7 @@ import 'package:hyperarena/features/coach/data/api_marketplace_coach_repository.
 import 'package:hyperarena/features/coach/data/models/marketplace_coach.dart';
 import 'package:hyperarena/features/session/data/api_marketplace_session_repository.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
+import 'package:hyperarena/features/session/data/models/marketplace_session_detail.dart';
 import 'package:hyperarena/features/venue/data/api_marketplace_venue_repository.dart';
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 import 'package:hyperarena/shared/data/api_sport_repository.dart';
@@ -99,6 +100,22 @@ class MarketplaceListState<T> {
   }
 }
 
+// ── Session detail ────────────────────────────────────────
+
+final marketplaceSessionDetailProvider =
+    FutureProvider.family<MarketplaceSessionDetail, String>((ref, id) async {
+  final repo = ref.watch(marketplaceSessionRepoProvider);
+  return repo.getSessionDetail(int.parse(id));
+});
+
+// ── Venue detail ─────────────────────────────────────────
+
+final marketplaceVenueDetailProvider =
+    FutureProvider.family<MarketplaceVenue, String>((ref, id) async {
+  final repo = ref.watch(marketplaceVenueRepoProvider);
+  return repo.getVenueDetail(int.parse(id));
+});
+
 // ── Venue list notifier ───────────────────────────────────
 
 final marketplaceVenueListProvider = NotifierProvider<
@@ -107,6 +124,8 @@ final marketplaceVenueListProvider = NotifierProvider<
 
 class MarketplaceVenueListNotifier
     extends Notifier<MarketplaceListState<MarketplaceVenue>> {
+  String? _searchQuery;
+
   @override
   MarketplaceListState<MarketplaceVenue> build() {
     // Auto-refresh when sport filter changes
@@ -115,10 +134,8 @@ class MarketplaceVenueListNotifier
     return const MarketplaceListState(isLoading: true);
   }
 
-  String? _searchQuery;
-
   Future<void> loadInitial({String? search}) async {
-    _searchQuery = search;
+    if (search != null) _searchQuery = search;
     state = const MarketplaceListState(isLoading: true);
     try {
       final sportId = ref.read(selectedSportIdProvider);
@@ -167,6 +184,8 @@ final marketplaceSessionListProvider = NotifierProvider<
 
 class MarketplaceSessionListNotifier
     extends Notifier<MarketplaceListState<MarketplaceSession>> {
+  String? _searchQuery;
+
   @override
   MarketplaceListState<MarketplaceSession> build() {
     ref.watch(selectedSportIdProvider);
@@ -174,10 +193,8 @@ class MarketplaceSessionListNotifier
     return const MarketplaceListState(isLoading: true);
   }
 
-  String? _searchQuery;
-
   Future<void> loadInitial({String? search}) async {
-    _searchQuery = search;
+    if (search != null) _searchQuery = search;
     state = const MarketplaceListState(isLoading: true);
     try {
       final sportId = ref.read(selectedSportIdProvider);
@@ -225,6 +242,8 @@ final marketplaceCoachListProvider = NotifierProvider<
 
 class MarketplaceCoachListNotifier
     extends Notifier<MarketplaceListState<MarketplaceCoach>> {
+  String? _searchQuery;
+
   @override
   MarketplaceListState<MarketplaceCoach> build() {
     ref.watch(selectedSportIdProvider);
@@ -232,10 +251,8 @@ class MarketplaceCoachListNotifier
     return const MarketplaceListState(isLoading: true);
   }
 
-  String? _searchQuery;
-
   Future<void> loadInitial({String? search}) async {
-    _searchQuery = search;
+    if (search != null) _searchQuery = search;
     state = const MarketplaceListState(isLoading: true);
     try {
       final sportId = ref.read(selectedSportIdProvider);

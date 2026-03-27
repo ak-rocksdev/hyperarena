@@ -10,6 +10,9 @@ enum NotificationType {
   assessmentReceived,
   bookingConfirmed,
   sessionFull,
+  sessionCancelled,
+  paymentConfirmed,
+  paymentRejected,
   badge,
   general,
 }

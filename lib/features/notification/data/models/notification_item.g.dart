@@ -39,6 +39,9 @@ const _$NotificationTypeEnumMap = {
   NotificationType.assessmentReceived: 'assessmentReceived',
   NotificationType.bookingConfirmed: 'bookingConfirmed',
   NotificationType.sessionFull: 'sessionFull',
+  NotificationType.sessionCancelled: 'sessionCancelled',
+  NotificationType.paymentConfirmed: 'paymentConfirmed',
+  NotificationType.paymentRejected: 'paymentRejected',
   NotificationType.badge: 'badge',
   NotificationType.general: 'general',
 };

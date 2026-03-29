@@ -30,8 +30,11 @@ User _parseUser(Map<String, dynamic> json) {
   final tenant = json['tenant'] as Map<String, dynamic>?;
   final activeRole = json['active_role'] as String?;
 
-  // Extract role names once, reuse for both fallback and availableRoles
-  final availableRoles = _extractRoleNames(json['roles']);
+  // Read from can_switch_to (flat string array) with fallback to roles
+  final canSwitchTo = json['can_switch_to'];
+  final availableRoles = canSwitchTo is List
+      ? canSwitchTo.cast<String>().toList()
+      : _extractRoleNames(json['roles']); // fallback for old API
   final effectiveRole = activeRole ?? _highestRole(availableRoles);
 
   return User(
@@ -75,7 +78,7 @@ List<String> _extractRoleNames(dynamic roles) {
 /// Priority: super-admin > admin > coach > member
 String? _highestRole(List<String> names) {
   if (names.isEmpty) return null;
-  const priority = ['super-admin', 'admin', 'organizer', 'coach', 'member'];
+  const priority = ['super-admin', 'admin', 'coach', 'member'];
   for (final p in priority) {
     if (names.contains(p)) return p;
   }

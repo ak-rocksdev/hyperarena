@@ -51,6 +51,7 @@ _$UserSessionStatusImpl _$$UserSessionStatusImplFromJson(
   creditBalance: (json['credit_balance'] as num?)?.toInt() ?? 0,
   isBooked: json['is_booked'] as bool? ?? false,
   bookingId: nullableIdFromJson(json['booking_id']),
+  paymentStatus: json['payment_status'] as String?,
 );
 
 Map<String, dynamic> _$$UserSessionStatusImplToJson(
@@ -59,4 +60,5 @@ Map<String, dynamic> _$$UserSessionStatusImplToJson(
   'credit_balance': instance.creditBalance,
   'is_booked': instance.isBooked,
   'booking_id': instance.bookingId,
+  'payment_status': instance.paymentStatus,
 };

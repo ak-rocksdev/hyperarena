@@ -48,7 +48,7 @@ class OpenSession with _$OpenSession {
     required String startTime,
     required String endTime,
     @Default(0) int currentPlayers,
-    required int maxPlayers,
+    @Default(1) int maxPlayers,
     LevelTier? minLevel,
     LevelTier? maxLevel,
     required int pricePerPerson,

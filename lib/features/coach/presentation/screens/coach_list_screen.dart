@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
@@ -10,10 +11,11 @@ import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selecto
 import 'package:hyperarena/features/coach/data/models/marketplace_coach.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/coach_card.dart';
 import 'package:hyperarena/features/coach/providers/coach_providers.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
-import 'package:intl/intl.dart';
 
 class CoachListScreen extends ConsumerStatefulWidget {
   final String searchQuery;
@@ -30,6 +32,17 @@ class _CoachListScreenState extends ConsumerState<CoachListScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant CoachListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!ref.read(appConfigProvider).useMockData &&
+        widget.searchQuery != oldWidget.searchQuery) {
+      ref
+          .read(marketplaceCoachListProvider.notifier)
+          .loadInitial(search: widget.searchQuery);
+    }
   }
 
   @override
@@ -208,28 +221,27 @@ class _MarketplaceCoachCard extends StatelessWidget {
   final MarketplaceCoach coach;
   const _MarketplaceCoachCard({required this.coach});
 
-  static final _currencyFormat = NumberFormat.currency(
-    locale: 'id',
-    symbol: 'Rp',
-    decimalDigits: 0,
-  );
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        child: Row(
-          children: [
-            // Avatar
-            CircleAvatar(
+      child: InkWell(
+        onTap: () => context.push(
+          AppRoutes.marketplaceCoach(coach.id),
+          extra: coach,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          child: Row(
+            children: [
+              // Avatar
+              CircleAvatar(
               radius: 28,
-              backgroundImage: coach.user?.photoPath != null
-                  ? NetworkImage(coach.user!.photoPath!)
+              backgroundImage: coach.user?.photoUrls?['md'] != null
+                  ? NetworkImage(coach.user!.photoUrls!['md']!)
                   : null,
-              child: coach.user?.photoPath == null
+              child: coach.user?.photoUrls == null
                   ? const Icon(Icons.person, size: 28)
                   : null,
             ),
@@ -264,7 +276,7 @@ class _MarketplaceCoachCard extends StatelessWidget {
                   if (coach.ratePerSession != null) ...[
                     const SizedBox(height: AppDimensions.xs),
                     Text(
-                      '${_currencyFormat.format(coach.ratePerSession)}/sesi',
+                      '${Formatters.formatRupiah(coach.ratePerSession!)}/sesi',
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -275,6 +287,7 @@ class _MarketplaceCoachCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

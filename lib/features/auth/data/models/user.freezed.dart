@@ -33,6 +33,7 @@ mixin _$User {
   String? get tenantName => throw _privateConstructorUsedError;
   String? get activeRole => throw _privateConstructorUsedError;
   String? get locale => throw _privateConstructorUsedError;
+  List<String> get availableRoles => throw _privateConstructorUsedError;
 
   /// Serializes this User to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -61,6 +62,7 @@ abstract class $UserCopyWith<$Res> {
     String? tenantName,
     String? activeRole,
     String? locale,
+    List<String> availableRoles,
   });
 }
 
@@ -91,6 +93,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? tenantName = freezed,
     Object? activeRole = freezed,
     Object? locale = freezed,
+    Object? availableRoles = null,
   }) {
     return _then(
       _value.copyWith(
@@ -142,6 +145,10 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
                 ? _value.locale
                 : locale // ignore: cast_nullable_to_non_nullable
                       as String?,
+            availableRoles: null == availableRoles
+                ? _value.availableRoles
+                : availableRoles // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -169,6 +176,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     String? tenantName,
     String? activeRole,
     String? locale,
+    List<String> availableRoles,
   });
 }
 
@@ -196,6 +204,7 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? tenantName = freezed,
     Object? activeRole = freezed,
     Object? locale = freezed,
+    Object? availableRoles = null,
   }) {
     return _then(
       _$UserImpl(
@@ -247,6 +256,10 @@ class __$$UserImplCopyWithImpl<$Res>
             ? _value.locale
             : locale // ignore: cast_nullable_to_non_nullable
                   as String?,
+        availableRoles: null == availableRoles
+            ? _value._availableRoles
+            : availableRoles // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -268,7 +281,8 @@ class _$UserImpl implements _User {
     this.tenantName,
     this.activeRole,
     this.locale,
-  });
+    final List<String> availableRoles = const [],
+  }) : _availableRoles = availableRoles;
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserImplFromJson(json);
@@ -298,10 +312,18 @@ class _$UserImpl implements _User {
   final String? activeRole;
   @override
   final String? locale;
+  final List<String> _availableRoles;
+  @override
+  @JsonKey()
+  List<String> get availableRoles {
+    if (_availableRoles is EqualUnmodifiableListView) return _availableRoles;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_availableRoles);
+  }
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, email: $email, phone: $phone, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, activeRole: $activeRole, locale: $locale)';
+    return 'User(id: $id, name: $name, email: $email, phone: $phone, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
   }
 
   @override
@@ -326,7 +348,11 @@ class _$UserImpl implements _User {
                 other.tenantName == tenantName) &&
             (identical(other.activeRole, activeRole) ||
                 other.activeRole == activeRole) &&
-            (identical(other.locale, locale) || other.locale == locale));
+            (identical(other.locale, locale) || other.locale == locale) &&
+            const DeepCollectionEquality().equals(
+              other._availableRoles,
+              _availableRoles,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -345,6 +371,7 @@ class _$UserImpl implements _User {
     tenantName,
     activeRole,
     locale,
+    const DeepCollectionEquality().hash(_availableRoles),
   );
 
   /// Create a copy of User
@@ -375,6 +402,7 @@ abstract class _User implements User {
     final String? tenantName,
     final String? activeRole,
     final String? locale,
+    final List<String> availableRoles,
   }) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
@@ -403,6 +431,8 @@ abstract class _User implements User {
   String? get activeRole;
   @override
   String? get locale;
+  @override
+  List<String> get availableRoles;
 
   /// Create a copy of User
   /// with the given fields replaced by the non-null parameter values.

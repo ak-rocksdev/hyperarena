@@ -19,6 +19,7 @@ class User with _$User {
     String? tenantName,
     String? activeRole,
     String? locale,
+    @Default([]) List<String> availableRoles,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

@@ -1,18 +1,15 @@
 // lib/features/venue/data/models/marketplace_venue.dart
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hyperarena/shared/data/json_converters.dart';
 
 part 'marketplace_venue.freezed.dart';
 part 'marketplace_venue.g.dart';
 
-String _idFromJson(dynamic v) => v.toString();
-double? _latLngFromJson(dynamic v) =>
-    v == null ? null : (v is num ? v.toDouble() : double.tryParse(v.toString()));
-
 @freezed
 class MarketplaceVenue with _$MarketplaceVenue {
   const factory MarketplaceVenue({
-    @JsonKey(fromJson: _idFromJson) required String id,
+    @JsonKey(fromJson: idFromJson) required String id,
     required String name,
     @Default('active') String status,
     SportInfo? sport,
@@ -29,8 +26,8 @@ class VenueLocation with _$VenueLocation {
   const factory VenueLocation({
     required String name,
     String? address,
-    @JsonKey(fromJson: _latLngFromJson) double? lat,
-    @JsonKey(fromJson: _latLngFromJson) double? lng,
+    @JsonKey(fromJson: latLngFromJson) double? lat,
+    @JsonKey(fromJson: latLngFromJson) double? lng,
   }) = _VenueLocation;
 
   factory VenueLocation.fromJson(Map<String, dynamic> json) =>

@@ -289,14 +289,6 @@ class _ParticipantCard extends ConsumerWidget {
   final SessionParticipant participant;
   final String sessionId;
 
-  String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length >= 2) {
-      return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name.isNotEmpty ? name[0].toUpperCase() : '?';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
@@ -317,7 +309,7 @@ class _ParticipantCard extends ConsumerWidget {
                 radius: 20,
                 backgroundColor: AppColors.primary50,
                 child: Text(
-                  _initials(participant.playerName),
+                  Formatters.initials(participant.playerName),
                   style: AppTypography.labelMedium.copyWith(
                     color: AppColors.primary,
                   ),
@@ -343,6 +335,11 @@ class _ParticipantCard extends ConsumerWidget {
               _StatusChip(status: participant.status),
             ],
           ),
+
+          // Payment proof image (if available)
+          if (participant.evidenceUrl != null &&
+              participant.evidenceUrl!.isNotEmpty)
+            _PaymentProofSection(evidenceUrl: participant.evidenceUrl!),
 
           // Inline action buttons
           _InlineActions(
@@ -430,6 +427,77 @@ class _StatusChip extends StatelessWidget {
         null,
       ),
     };
+  }
+}
+
+// ── Payment Proof Section ────────────────────────────────────────────────
+
+class _PaymentProofSection extends StatelessWidget {
+  const _PaymentProofSection({required this.evidenceUrl});
+
+  final String evidenceUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppDimensions.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Bukti Pembayaran',
+            style: AppTypography.labelSmall.copyWith(
+              color: AppColors.neutral600,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.xs),
+          GestureDetector(
+            onTap: () => _showFullImage(context),
+            child: ClipRRect(
+              borderRadius:
+                  BorderRadius.circular(AppDimensions.radiusMd),
+              child: Image.network(
+                evidenceUrl,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                cacheHeight: 240, // 2x for high-DPI, avoids full-res decode
+                errorBuilder: (_, __, ___) => Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppColors.neutral100,
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusMd,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: AppColors.neutral400,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullImage(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(ctx),
+          child: InteractiveViewer(
+            child: Image.network(evidenceUrl, cacheWidth: 2048),
+          ),
+        ),
+      ),
+    );
   }
 }
 

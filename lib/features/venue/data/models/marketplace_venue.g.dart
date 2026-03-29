@@ -9,7 +9,7 @@ part of 'marketplace_venue.dart';
 _$MarketplaceVenueImpl _$$MarketplaceVenueImplFromJson(
   Map<String, dynamic> json,
 ) => _$MarketplaceVenueImpl(
-  id: _idFromJson(json['id']),
+  id: idFromJson(json['id']),
   name: json['name'] as String,
   status: json['status'] as String? ?? 'active',
   sport: json['sport'] == null
@@ -40,8 +40,8 @@ _$VenueLocationImpl _$$VenueLocationImplFromJson(Map<String, dynamic> json) =>
     _$VenueLocationImpl(
       name: json['name'] as String,
       address: json['address'] as String?,
-      lat: _latLngFromJson(json['lat']),
-      lng: _latLngFromJson(json['lng']),
+      lat: latLngFromJson(json['lat']),
+      lng: latLngFromJson(json['lng']),
     );
 
 Map<String, dynamic> _$$VenueLocationImplToJson(_$VenueLocationImpl instance) =>

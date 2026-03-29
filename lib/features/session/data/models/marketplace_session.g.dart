@@ -9,8 +9,8 @@ part of 'marketplace_session.dart';
 _$MarketplaceSessionImpl _$$MarketplaceSessionImplFromJson(
   Map<String, dynamic> json,
 ) => _$MarketplaceSessionImpl(
-  id: _idFromJson(json['id']),
-  name: json['name'] as String,
+  id: idFromJson(json['id']),
+  name: json['name'] as String? ?? 'Sesi Latihan',
   type: json['type'] as String?,
   startAt: DateTime.parse(json['start_at'] as String),
   durationMinutes: (json['duration_minutes'] as num).toInt(),
@@ -28,6 +28,12 @@ _$MarketplaceSessionImpl _$$MarketplaceSessionImplFromJson(
           ?.map((e) => SessionCoach.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  participants:
+      (json['participants'] as List<dynamic>?)
+          ?.map((e) => SessionParticipant.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  isEnrolled: json['is_enrolled'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$MarketplaceSessionImplToJson(
@@ -44,11 +50,13 @@ Map<String, dynamic> _$$MarketplaceSessionImplToJson(
   'tenant': instance.tenant,
   'venue': instance.venue,
   'coaches': instance.coaches,
+  'participants': instance.participants,
+  'is_enrolled': instance.isEnrolled,
 };
 
 _$SessionTenantImpl _$$SessionTenantImplFromJson(Map<String, dynamic> json) =>
     _$SessionTenantImpl(
-      id: _idFromJson(json['id']),
+      id: idFromJson(json['id']),
       name: json['name'] as String,
     );
 
@@ -68,16 +76,33 @@ Map<String, dynamic> _$$MarketplaceSessionVenueImplToJson(
   _$MarketplaceSessionVenueImpl instance,
 ) => <String, dynamic>{'name': instance.name, 'location': instance.location};
 
+_$SessionParticipantImpl _$$SessionParticipantImplFromJson(
+  Map<String, dynamic> json,
+) => _$SessionParticipantImpl(
+  id: idFromJson(json['id']),
+  name: json['name'] as String,
+  photoUrl: json['photo_url'] as String?,
+  bookedAt: json['booked_at'] == null
+      ? null
+      : DateTime.parse(json['booked_at'] as String),
+);
+
+Map<String, dynamic> _$$SessionParticipantImplToJson(
+  _$SessionParticipantImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'photo_url': instance.photoUrl,
+  'booked_at': instance.bookedAt?.toIso8601String(),
+};
+
 _$SessionCoachImpl _$$SessionCoachImplFromJson(Map<String, dynamic> json) =>
     _$SessionCoachImpl(
-      id: _idFromJson(json['id']),
-      name: json['name'] as String,
-      photoPath: json['photo_path'] as String?,
+      id: idFromJson(json['id']),
+      user: json['user'] == null
+          ? null
+          : CoachUser.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$SessionCoachImplToJson(_$SessionCoachImpl instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'photo_path': instance.photoPath,
-    };
+    <String, dynamic>{'id': instance.id, 'user': instance.user};

@@ -783,7 +783,7 @@ class _$OpenSessionImpl implements _OpenSession {
     required this.startTime,
     required this.endTime,
     this.currentPlayers = 0,
-    required this.maxPlayers,
+    this.maxPlayers = 1,
     this.minLevel,
     this.maxLevel,
     required this.pricePerPerson,
@@ -827,6 +827,7 @@ class _$OpenSessionImpl implements _OpenSession {
   @JsonKey()
   final int currentPlayers;
   @override
+  @JsonKey()
   final int maxPlayers;
   @override
   final LevelTier? minLevel;
@@ -986,7 +987,7 @@ abstract class _OpenSession implements OpenSession {
     required final String startTime,
     required final String endTime,
     final int currentPlayers,
-    required final int maxPlayers,
+    final int maxPlayers,
     final LevelTier? minLevel,
     final LevelTier? maxLevel,
     required final int pricePerPerson,

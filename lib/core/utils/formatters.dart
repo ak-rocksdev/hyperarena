@@ -9,6 +9,11 @@ abstract final class Formatters {
     decimalDigits: 0,
   );
 
+  static final _whitespace = RegExp(r'\s+');
+  static final _dateLong = DateFormat('EEEE, d MMMM yyyy', 'id');
+  static final _timeHm = DateFormat('HH:mm', 'id');
+  static final _dateTimeCompact = DateFormat('EEE, d MMM yyyy \u2022 HH:mm', 'id');
+
   /// Format integer to Rupiah: 150000 → "Rp 150.000"
   static String formatRupiah(int amount) => _rupiahFormat.format(amount);
 
@@ -41,6 +46,16 @@ abstract final class Formatters {
   static String formatDayShort(DateTime date) =>
       DateFormat('E', 'id').format(date);
 
+  /// Format DateTime to long date: "Senin, 15 Februari 2026"
+  static String formatDateLong(DateTime date) => _dateLong.format(date);
+
+  /// Format DateTime to HH:mm: "07:00"
+  static String formatTimeHm(DateTime date) => _timeHm.format(date);
+
+  /// Format DateTime compact: "Sen, 15 Feb 2026 • 07:00"
+  static String formatDateTimeCompact(DateTime date) =>
+      _dateTimeCompact.format(date);
+
   /// Pass-through time string: "07:00" → "07:00"
   static String formatTime(String time) => time;
 
@@ -56,4 +71,13 @@ abstract final class Formatters {
     SessionVisibility.invitationOnly => 'Undangan Publik',
     SessionVisibility.membersOnly => 'Khusus Member',
   };
+
+  /// Extract initials from a name: "John Doe" → "JD", "Alice" → "A"
+  static String initials(String name) {
+    final parts = name.trim().split(_whitespace);
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
 }

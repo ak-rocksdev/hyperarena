@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
@@ -18,9 +20,11 @@ class ExploreScreen extends ConsumerStatefulWidget {
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _debounce;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -49,8 +53,13 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
               child: TextField(
                 controller: _searchController,
-                onChanged: (v) =>
-                    setState(() => _searchQuery = v.trim().toLowerCase()),
+                onChanged: (v) {
+                  _debounce?.cancel();
+                  final query = v.trim().toLowerCase();
+                  _debounce = Timer(const Duration(milliseconds: 400), () {
+                    setState(() => _searchQuery = query);
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Cari venue, coach, atau sesi...',
                   prefixIcon: const Icon(Icons.search),

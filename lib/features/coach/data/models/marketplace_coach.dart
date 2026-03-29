@@ -2,16 +2,15 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
+import 'package:hyperarena/shared/data/json_converters.dart';
 
 part 'marketplace_coach.freezed.dart';
 part 'marketplace_coach.g.dart';
 
-String _idFromJson(dynamic v) => v.toString();
-
 @freezed
 class MarketplaceCoach with _$MarketplaceCoach {
   const factory MarketplaceCoach({
-    @JsonKey(fromJson: _idFromJson) required String id,
+    @JsonKey(fromJson: idFromJson) required String id,
     String? bio,
     CoachUser? user,
     SportInfo? sport,
@@ -27,7 +26,7 @@ class MarketplaceCoach with _$MarketplaceCoach {
 class CoachUser with _$CoachUser {
   const factory CoachUser({
     required String name,
-    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   }) = _CoachUser;
 
   factory CoachUser.fromJson(Map<String, dynamic> json) =>

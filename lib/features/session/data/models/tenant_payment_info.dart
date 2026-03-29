@@ -6,13 +6,18 @@ part 'tenant_payment_info.g.dart';
 
 @freezed
 class TenantPaymentInfo with _$TenantPaymentInfo {
+  const TenantPaymentInfo._();
+
   const factory TenantPaymentInfo({
-    @JsonKey(name: 'bank_name') required String bankName,
-    @JsonKey(name: 'account_number') required String accountNumber,
-    @JsonKey(name: 'account_holder') required String accountHolder,
+    @JsonKey(name: 'bank_name') @Default('') String bankName,
+    @JsonKey(name: 'account_number') @Default('') String accountNumber,
+    @JsonKey(name: 'account_holder') @Default('') String accountHolder,
     @JsonKey(name: 'payment_instructions') String? paymentInstructions,
   }) = _TenantPaymentInfo;
 
   factory TenantPaymentInfo.fromJson(Map<String, dynamic> json) =>
       _$TenantPaymentInfoFromJson(json);
+
+  bool get isComplete =>
+      bankName.isNotEmpty && accountNumber.isNotEmpty && accountHolder.isNotEmpty;
 }

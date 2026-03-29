@@ -560,6 +560,8 @@ mixin _$UserSessionStatus {
   bool get isBooked => throw _privateConstructorUsedError;
   @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
   String? get bookingId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'payment_status')
+  String? get paymentStatus => throw _privateConstructorUsedError;
 
   /// Serializes this UserSessionStatus to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -583,6 +585,7 @@ abstract class $UserSessionStatusCopyWith<$Res> {
     @JsonKey(name: 'is_booked') bool isBooked,
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
     String? bookingId,
+    @JsonKey(name: 'payment_status') String? paymentStatus,
   });
 }
 
@@ -604,6 +607,7 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
     Object? creditBalance = null,
     Object? isBooked = null,
     Object? bookingId = freezed,
+    Object? paymentStatus = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -618,6 +622,10 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
             bookingId: freezed == bookingId
                 ? _value.bookingId
                 : bookingId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            paymentStatus: freezed == paymentStatus
+                ? _value.paymentStatus
+                : paymentStatus // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -639,6 +647,7 @@ abstract class _$$UserSessionStatusImplCopyWith<$Res>
     @JsonKey(name: 'is_booked') bool isBooked,
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
     String? bookingId,
+    @JsonKey(name: 'payment_status') String? paymentStatus,
   });
 }
 
@@ -659,6 +668,7 @@ class __$$UserSessionStatusImplCopyWithImpl<$Res>
     Object? creditBalance = null,
     Object? isBooked = null,
     Object? bookingId = freezed,
+    Object? paymentStatus = freezed,
   }) {
     return _then(
       _$UserSessionStatusImpl(
@@ -674,6 +684,10 @@ class __$$UserSessionStatusImplCopyWithImpl<$Res>
             ? _value.bookingId
             : bookingId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        paymentStatus: freezed == paymentStatus
+            ? _value.paymentStatus
+            : paymentStatus // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -686,6 +700,7 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
     @JsonKey(name: 'credit_balance') this.creditBalance = 0,
     @JsonKey(name: 'is_booked') this.isBooked = false,
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson) this.bookingId,
+    @JsonKey(name: 'payment_status') this.paymentStatus,
   });
 
   factory _$UserSessionStatusImpl.fromJson(Map<String, dynamic> json) =>
@@ -700,10 +715,13 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
   @override
   @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
   final String? bookingId;
+  @override
+  @JsonKey(name: 'payment_status')
+  final String? paymentStatus;
 
   @override
   String toString() {
-    return 'UserSessionStatus(creditBalance: $creditBalance, isBooked: $isBooked, bookingId: $bookingId)';
+    return 'UserSessionStatus(creditBalance: $creditBalance, isBooked: $isBooked, bookingId: $bookingId, paymentStatus: $paymentStatus)';
   }
 
   @override
@@ -716,13 +734,20 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
             (identical(other.isBooked, isBooked) ||
                 other.isBooked == isBooked) &&
             (identical(other.bookingId, bookingId) ||
-                other.bookingId == bookingId));
+                other.bookingId == bookingId) &&
+            (identical(other.paymentStatus, paymentStatus) ||
+                other.paymentStatus == paymentStatus));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, creditBalance, isBooked, bookingId);
+  int get hashCode => Object.hash(
+    runtimeType,
+    creditBalance,
+    isBooked,
+    bookingId,
+    paymentStatus,
+  );
 
   /// Create a copy of UserSessionStatus
   /// with the given fields replaced by the non-null parameter values.
@@ -747,6 +772,7 @@ abstract class _UserSessionStatus implements UserSessionStatus {
     @JsonKey(name: 'is_booked') final bool isBooked,
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
     final String? bookingId,
+    @JsonKey(name: 'payment_status') final String? paymentStatus,
   }) = _$UserSessionStatusImpl;
 
   factory _UserSessionStatus.fromJson(Map<String, dynamic> json) =
@@ -761,6 +787,9 @@ abstract class _UserSessionStatus implements UserSessionStatus {
   @override
   @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
   String? get bookingId;
+  @override
+  @JsonKey(name: 'payment_status')
+  String? get paymentStatus;
 
   /// Create a copy of UserSessionStatus
   /// with the given fields replaced by the non-null parameter values.

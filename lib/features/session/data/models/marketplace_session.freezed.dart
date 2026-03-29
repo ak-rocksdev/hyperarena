@@ -21,7 +21,7 @@ MarketplaceSession _$MarketplaceSessionFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$MarketplaceSession {
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get type => throw _privateConstructorUsedError;
@@ -36,6 +36,9 @@ mixin _$MarketplaceSession {
   SessionTenant? get tenant => throw _privateConstructorUsedError;
   MarketplaceSessionVenue? get venue => throw _privateConstructorUsedError;
   List<SessionCoach> get coaches => throw _privateConstructorUsedError;
+  List<SessionParticipant> get participants =>
+      throw _privateConstructorUsedError;
+  bool get isEnrolled => throw _privateConstructorUsedError;
 
   /// Serializes this MarketplaceSession to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,7 +58,7 @@ abstract class $MarketplaceSessionCopyWith<$Res> {
   ) = _$MarketplaceSessionCopyWithImpl<$Res, MarketplaceSession>;
   @useResult
   $Res call({
-    @JsonKey(fromJson: _idFromJson) String id,
+    @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? type,
     @JsonKey(name: 'start_at') DateTime startAt,
@@ -66,6 +69,8 @@ abstract class $MarketplaceSessionCopyWith<$Res> {
     SessionTenant? tenant,
     MarketplaceSessionVenue? venue,
     List<SessionCoach> coaches,
+    List<SessionParticipant> participants,
+    bool isEnrolled,
   });
 
   $SessionTenantCopyWith<$Res>? get tenant;
@@ -98,6 +103,8 @@ class _$MarketplaceSessionCopyWithImpl<$Res, $Val extends MarketplaceSession>
     Object? tenant = freezed,
     Object? venue = freezed,
     Object? coaches = null,
+    Object? participants = null,
+    Object? isEnrolled = null,
   }) {
     return _then(
       _value.copyWith(
@@ -145,6 +152,14 @@ class _$MarketplaceSessionCopyWithImpl<$Res, $Val extends MarketplaceSession>
                 ? _value.coaches
                 : coaches // ignore: cast_nullable_to_non_nullable
                       as List<SessionCoach>,
+            participants: null == participants
+                ? _value.participants
+                : participants // ignore: cast_nullable_to_non_nullable
+                      as List<SessionParticipant>,
+            isEnrolled: null == isEnrolled
+                ? _value.isEnrolled
+                : isEnrolled // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -189,7 +204,7 @@ abstract class _$$MarketplaceSessionImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    @JsonKey(fromJson: _idFromJson) String id,
+    @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? type,
     @JsonKey(name: 'start_at') DateTime startAt,
@@ -200,6 +215,8 @@ abstract class _$$MarketplaceSessionImplCopyWith<$Res>
     SessionTenant? tenant,
     MarketplaceSessionVenue? venue,
     List<SessionCoach> coaches,
+    List<SessionParticipant> participants,
+    bool isEnrolled,
   });
 
   @override
@@ -233,6 +250,8 @@ class __$$MarketplaceSessionImplCopyWithImpl<$Res>
     Object? tenant = freezed,
     Object? venue = freezed,
     Object? coaches = null,
+    Object? participants = null,
+    Object? isEnrolled = null,
   }) {
     return _then(
       _$MarketplaceSessionImpl(
@@ -280,6 +299,14 @@ class __$$MarketplaceSessionImplCopyWithImpl<$Res>
             ? _value._coaches
             : coaches // ignore: cast_nullable_to_non_nullable
                   as List<SessionCoach>,
+        participants: null == participants
+            ? _value._participants
+            : participants // ignore: cast_nullable_to_non_nullable
+                  as List<SessionParticipant>,
+        isEnrolled: null == isEnrolled
+            ? _value.isEnrolled
+            : isEnrolled // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -289,8 +316,8 @@ class __$$MarketplaceSessionImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$MarketplaceSessionImpl implements _MarketplaceSession {
   const _$MarketplaceSessionImpl({
-    @JsonKey(fromJson: _idFromJson) required this.id,
-    required this.name,
+    @JsonKey(fromJson: idFromJson) required this.id,
+    this.name = 'Sesi Latihan',
     this.type,
     @JsonKey(name: 'start_at') required this.startAt,
     @JsonKey(name: 'duration_minutes') required this.durationMinutes,
@@ -300,15 +327,19 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     this.tenant,
     this.venue,
     final List<SessionCoach> coaches = const [],
-  }) : _coaches = coaches;
+    final List<SessionParticipant> participants = const [],
+    this.isEnrolled = false,
+  }) : _coaches = coaches,
+       _participants = participants;
 
   factory _$MarketplaceSessionImpl.fromJson(Map<String, dynamic> json) =>
       _$$MarketplaceSessionImplFromJson(json);
 
   @override
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   final String id;
   @override
+  @JsonKey()
   final String name;
   @override
   final String? type;
@@ -338,9 +369,22 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     return EqualUnmodifiableListView(_coaches);
   }
 
+  final List<SessionParticipant> _participants;
+  @override
+  @JsonKey()
+  List<SessionParticipant> get participants {
+    if (_participants is EqualUnmodifiableListView) return _participants;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_participants);
+  }
+
+  @override
+  @JsonKey()
+  final bool isEnrolled;
+
   @override
   String toString() {
-    return 'MarketplaceSession(id: $id, name: $name, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, bookedCount: $bookedCount, notes: $notes, tenant: $tenant, venue: $venue, coaches: $coaches)';
+    return 'MarketplaceSession(id: $id, name: $name, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, bookedCount: $bookedCount, notes: $notes, tenant: $tenant, venue: $venue, coaches: $coaches, participants: $participants, isEnrolled: $isEnrolled)';
   }
 
   @override
@@ -361,7 +405,13 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.tenant, tenant) || other.tenant == tenant) &&
             (identical(other.venue, venue) || other.venue == venue) &&
-            const DeepCollectionEquality().equals(other._coaches, _coaches));
+            const DeepCollectionEquality().equals(other._coaches, _coaches) &&
+            const DeepCollectionEquality().equals(
+              other._participants,
+              _participants,
+            ) &&
+            (identical(other.isEnrolled, isEnrolled) ||
+                other.isEnrolled == isEnrolled));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -379,6 +429,8 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     tenant,
     venue,
     const DeepCollectionEquality().hash(_coaches),
+    const DeepCollectionEquality().hash(_participants),
+    isEnrolled,
   );
 
   /// Create a copy of MarketplaceSession
@@ -400,8 +452,8 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
 
 abstract class _MarketplaceSession implements MarketplaceSession {
   const factory _MarketplaceSession({
-    @JsonKey(fromJson: _idFromJson) required final String id,
-    required final String name,
+    @JsonKey(fromJson: idFromJson) required final String id,
+    final String name,
     final String? type,
     @JsonKey(name: 'start_at') required final DateTime startAt,
     @JsonKey(name: 'duration_minutes') required final int durationMinutes,
@@ -411,13 +463,15 @@ abstract class _MarketplaceSession implements MarketplaceSession {
     final SessionTenant? tenant,
     final MarketplaceSessionVenue? venue,
     final List<SessionCoach> coaches,
+    final List<SessionParticipant> participants,
+    final bool isEnrolled,
   }) = _$MarketplaceSessionImpl;
 
   factory _MarketplaceSession.fromJson(Map<String, dynamic> json) =
       _$MarketplaceSessionImpl.fromJson;
 
   @override
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   String get id;
   @override
   String get name;
@@ -442,6 +496,10 @@ abstract class _MarketplaceSession implements MarketplaceSession {
   MarketplaceSessionVenue? get venue;
   @override
   List<SessionCoach> get coaches;
+  @override
+  List<SessionParticipant> get participants;
+  @override
+  bool get isEnrolled;
 
   /// Create a copy of MarketplaceSession
   /// with the given fields replaced by the non-null parameter values.
@@ -457,7 +515,7 @@ SessionTenant _$SessionTenantFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SessionTenant {
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
 
@@ -478,7 +536,7 @@ abstract class $SessionTenantCopyWith<$Res> {
     $Res Function(SessionTenant) then,
   ) = _$SessionTenantCopyWithImpl<$Res, SessionTenant>;
   @useResult
-  $Res call({@JsonKey(fromJson: _idFromJson) String id, String name});
+  $Res call({@JsonKey(fromJson: idFromJson) String id, String name});
 }
 
 /// @nodoc
@@ -521,7 +579,7 @@ abstract class _$$SessionTenantImplCopyWith<$Res>
   ) = __$$SessionTenantImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({@JsonKey(fromJson: _idFromJson) String id, String name});
+  $Res call({@JsonKey(fromJson: idFromJson) String id, String name});
 }
 
 /// @nodoc
@@ -557,7 +615,7 @@ class __$$SessionTenantImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SessionTenantImpl implements _SessionTenant {
   const _$SessionTenantImpl({
-    @JsonKey(fromJson: _idFromJson) required this.id,
+    @JsonKey(fromJson: idFromJson) required this.id,
     required this.name,
   });
 
@@ -565,7 +623,7 @@ class _$SessionTenantImpl implements _SessionTenant {
       _$$SessionTenantImplFromJson(json);
 
   @override
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   final String id;
   @override
   final String name;
@@ -604,7 +662,7 @@ class _$SessionTenantImpl implements _SessionTenant {
 
 abstract class _SessionTenant implements SessionTenant {
   const factory _SessionTenant({
-    @JsonKey(fromJson: _idFromJson) required final String id,
+    @JsonKey(fromJson: idFromJson) required final String id,
     required final String name,
   }) = _$SessionTenantImpl;
 
@@ -612,7 +670,7 @@ abstract class _SessionTenant implements SessionTenant {
       _$SessionTenantImpl.fromJson;
 
   @override
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   String get id;
   @override
   String get name;
@@ -825,17 +883,249 @@ abstract class _MarketplaceSessionVenue implements MarketplaceSessionVenue {
   get copyWith => throw _privateConstructorUsedError;
 }
 
+SessionParticipant _$SessionParticipantFromJson(Map<String, dynamic> json) {
+  return _SessionParticipant.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SessionParticipant {
+  @JsonKey(fromJson: idFromJson)
+  String get id => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String? get photoUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'booked_at')
+  DateTime? get bookedAt => throw _privateConstructorUsedError;
+
+  /// Serializes this SessionParticipant to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SessionParticipant
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SessionParticipantCopyWith<SessionParticipant> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SessionParticipantCopyWith<$Res> {
+  factory $SessionParticipantCopyWith(
+    SessionParticipant value,
+    $Res Function(SessionParticipant) then,
+  ) = _$SessionParticipantCopyWithImpl<$Res, SessionParticipant>;
+  @useResult
+  $Res call({
+    @JsonKey(fromJson: idFromJson) String id,
+    String name,
+    String? photoUrl,
+    @JsonKey(name: 'booked_at') DateTime? bookedAt,
+  });
+}
+
+/// @nodoc
+class _$SessionParticipantCopyWithImpl<$Res, $Val extends SessionParticipant>
+    implements $SessionParticipantCopyWith<$Res> {
+  _$SessionParticipantCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SessionParticipant
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? photoUrl = freezed,
+    Object? bookedAt = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            photoUrl: freezed == photoUrl
+                ? _value.photoUrl
+                : photoUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            bookedAt: freezed == bookedAt
+                ? _value.bookedAt
+                : bookedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$SessionParticipantImplCopyWith<$Res>
+    implements $SessionParticipantCopyWith<$Res> {
+  factory _$$SessionParticipantImplCopyWith(
+    _$SessionParticipantImpl value,
+    $Res Function(_$SessionParticipantImpl) then,
+  ) = __$$SessionParticipantImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(fromJson: idFromJson) String id,
+    String name,
+    String? photoUrl,
+    @JsonKey(name: 'booked_at') DateTime? bookedAt,
+  });
+}
+
+/// @nodoc
+class __$$SessionParticipantImplCopyWithImpl<$Res>
+    extends _$SessionParticipantCopyWithImpl<$Res, _$SessionParticipantImpl>
+    implements _$$SessionParticipantImplCopyWith<$Res> {
+  __$$SessionParticipantImplCopyWithImpl(
+    _$SessionParticipantImpl _value,
+    $Res Function(_$SessionParticipantImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of SessionParticipant
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? photoUrl = freezed,
+    Object? bookedAt = freezed,
+  }) {
+    return _then(
+      _$SessionParticipantImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        photoUrl: freezed == photoUrl
+            ? _value.photoUrl
+            : photoUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        bookedAt: freezed == bookedAt
+            ? _value.bookedAt
+            : bookedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SessionParticipantImpl implements _SessionParticipant {
+  const _$SessionParticipantImpl({
+    @JsonKey(fromJson: idFromJson) required this.id,
+    required this.name,
+    this.photoUrl,
+    @JsonKey(name: 'booked_at') this.bookedAt,
+  });
+
+  factory _$SessionParticipantImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SessionParticipantImplFromJson(json);
+
+  @override
+  @JsonKey(fromJson: idFromJson)
+  final String id;
+  @override
+  final String name;
+  @override
+  final String? photoUrl;
+  @override
+  @JsonKey(name: 'booked_at')
+  final DateTime? bookedAt;
+
+  @override
+  String toString() {
+    return 'SessionParticipant(id: $id, name: $name, photoUrl: $photoUrl, bookedAt: $bookedAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SessionParticipantImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.photoUrl, photoUrl) ||
+                other.photoUrl == photoUrl) &&
+            (identical(other.bookedAt, bookedAt) ||
+                other.bookedAt == bookedAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, photoUrl, bookedAt);
+
+  /// Create a copy of SessionParticipant
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SessionParticipantImplCopyWith<_$SessionParticipantImpl> get copyWith =>
+      __$$SessionParticipantImplCopyWithImpl<_$SessionParticipantImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SessionParticipantImplToJson(this);
+  }
+}
+
+abstract class _SessionParticipant implements SessionParticipant {
+  const factory _SessionParticipant({
+    @JsonKey(fromJson: idFromJson) required final String id,
+    required final String name,
+    final String? photoUrl,
+    @JsonKey(name: 'booked_at') final DateTime? bookedAt,
+  }) = _$SessionParticipantImpl;
+
+  factory _SessionParticipant.fromJson(Map<String, dynamic> json) =
+      _$SessionParticipantImpl.fromJson;
+
+  @override
+  @JsonKey(fromJson: idFromJson)
+  String get id;
+  @override
+  String get name;
+  @override
+  String? get photoUrl;
+  @override
+  @JsonKey(name: 'booked_at')
+  DateTime? get bookedAt;
+
+  /// Create a copy of SessionParticipant
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SessionParticipantImplCopyWith<_$SessionParticipantImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 SessionCoach _$SessionCoachFromJson(Map<String, dynamic> json) {
   return _SessionCoach.fromJson(json);
 }
 
 /// @nodoc
 mixin _$SessionCoach {
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   String get id => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
-  @JsonKey(name: 'photo_path')
-  String? get photoPath => throw _privateConstructorUsedError;
+  CoachUser? get user => throw _privateConstructorUsedError;
 
   /// Serializes this SessionCoach to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -854,11 +1144,9 @@ abstract class $SessionCoachCopyWith<$Res> {
     $Res Function(SessionCoach) then,
   ) = _$SessionCoachCopyWithImpl<$Res, SessionCoach>;
   @useResult
-  $Res call({
-    @JsonKey(fromJson: _idFromJson) String id,
-    String name,
-    @JsonKey(name: 'photo_path') String? photoPath,
-  });
+  $Res call({@JsonKey(fromJson: idFromJson) String id, CoachUser? user});
+
+  $CoachUserCopyWith<$Res>? get user;
 }
 
 /// @nodoc
@@ -875,28 +1163,34 @@ class _$SessionCoachCopyWithImpl<$Res, $Val extends SessionCoach>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? id = null,
-    Object? name = null,
-    Object? photoPath = freezed,
-  }) {
+  $Res call({Object? id = null, Object? user = freezed}) {
     return _then(
       _value.copyWith(
             id: null == id
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            photoPath: freezed == photoPath
-                ? _value.photoPath
-                : photoPath // ignore: cast_nullable_to_non_nullable
-                      as String?,
+            user: freezed == user
+                ? _value.user
+                : user // ignore: cast_nullable_to_non_nullable
+                      as CoachUser?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of SessionCoach
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $CoachUserCopyWith<$Res>? get user {
+    if (_value.user == null) {
+      return null;
+    }
+
+    return $CoachUserCopyWith<$Res>(_value.user!, (value) {
+      return _then(_value.copyWith(user: value) as $Val);
+    });
   }
 }
 
@@ -909,11 +1203,10 @@ abstract class _$$SessionCoachImplCopyWith<$Res>
   ) = __$$SessionCoachImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(fromJson: _idFromJson) String id,
-    String name,
-    @JsonKey(name: 'photo_path') String? photoPath,
-  });
+  $Res call({@JsonKey(fromJson: idFromJson) String id, CoachUser? user});
+
+  @override
+  $CoachUserCopyWith<$Res>? get user;
 }
 
 /// @nodoc
@@ -929,25 +1222,17 @@ class __$$SessionCoachImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? id = null,
-    Object? name = null,
-    Object? photoPath = freezed,
-  }) {
+  $Res call({Object? id = null, Object? user = freezed}) {
     return _then(
       _$SessionCoachImpl(
         id: null == id
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        photoPath: freezed == photoPath
-            ? _value.photoPath
-            : photoPath // ignore: cast_nullable_to_non_nullable
-                  as String?,
+        user: freezed == user
+            ? _value.user
+            : user // ignore: cast_nullable_to_non_nullable
+                  as CoachUser?,
       ),
     );
   }
@@ -957,26 +1242,22 @@ class __$$SessionCoachImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SessionCoachImpl implements _SessionCoach {
   const _$SessionCoachImpl({
-    @JsonKey(fromJson: _idFromJson) required this.id,
-    required this.name,
-    @JsonKey(name: 'photo_path') this.photoPath,
+    @JsonKey(fromJson: idFromJson) required this.id,
+    this.user,
   });
 
   factory _$SessionCoachImpl.fromJson(Map<String, dynamic> json) =>
       _$$SessionCoachImplFromJson(json);
 
   @override
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   final String id;
   @override
-  final String name;
-  @override
-  @JsonKey(name: 'photo_path')
-  final String? photoPath;
+  final CoachUser? user;
 
   @override
   String toString() {
-    return 'SessionCoach(id: $id, name: $name, photoPath: $photoPath)';
+    return 'SessionCoach(id: $id, user: $user)';
   }
 
   @override
@@ -985,14 +1266,12 @@ class _$SessionCoachImpl implements _SessionCoach {
         (other.runtimeType == runtimeType &&
             other is _$SessionCoachImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.photoPath, photoPath) ||
-                other.photoPath == photoPath));
+            (identical(other.user, user) || other.user == user));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, photoPath);
+  int get hashCode => Object.hash(runtimeType, id, user);
 
   /// Create a copy of SessionCoach
   /// with the given fields replaced by the non-null parameter values.
@@ -1010,22 +1289,18 @@ class _$SessionCoachImpl implements _SessionCoach {
 
 abstract class _SessionCoach implements SessionCoach {
   const factory _SessionCoach({
-    @JsonKey(fromJson: _idFromJson) required final String id,
-    required final String name,
-    @JsonKey(name: 'photo_path') final String? photoPath,
+    @JsonKey(fromJson: idFromJson) required final String id,
+    final CoachUser? user,
   }) = _$SessionCoachImpl;
 
   factory _SessionCoach.fromJson(Map<String, dynamic> json) =
       _$SessionCoachImpl.fromJson;
 
   @override
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   String get id;
   @override
-  String get name;
-  @override
-  @JsonKey(name: 'photo_path')
-  String? get photoPath;
+  CoachUser? get user;
 
   /// Create a copy of SessionCoach
   /// with the given fields replaced by the non-null parameter values.

@@ -14,6 +14,7 @@ import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/role_switch_section.dart';
 import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:hyperarena/features/gamification/data/models/badge.dart'
     as badge_model;
@@ -127,9 +128,19 @@ class ProfileScreen extends ConsumerWidget {
                                 child: CircleAvatar(
                                   radius: AppDimensions.avatarXl / 2,
                                   backgroundColor: AppColors.primary50,
-                                  backgroundImage: const NetworkImage(
-                                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-                                  ),
+                                  backgroundImage:
+                                      user?.avatarUrl != null
+                                          ? NetworkImage(user!.avatarUrl!)
+                                          : null,
+                                  child: user?.avatarUrl == null
+                                      ? Text(
+                                          Formatters.initials(userName),
+                                          style: AppTypography.headingMedium
+                                              .copyWith(
+                                            color: AppColors.primary,
+                                          ),
+                                        )
+                                      : null,
                                 ),
                               ),
                               const SizedBox(height: AppDimensions.md),
@@ -418,7 +429,10 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppDimensions.xl),
 
-                // ── 7. Menu Items ──
+                // ── 7. Role Switch Section ──
+                const RoleSwitchSection(),
+
+                // ── 8. Menu Items ──
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.screenHorizontal,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
@@ -12,8 +13,10 @@ import 'package:hyperarena/features/session/presentation/widgets/session_card.da
 import 'package:hyperarena/features/session/providers/session_providers.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
-import 'package:intl/intl.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:go_router/go_router.dart';
 
 class SessionListScreen extends ConsumerStatefulWidget {
   final String searchQuery;
@@ -30,6 +33,17 @@ class _SessionListScreenState extends ConsumerState<SessionListScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant SessionListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!ref.read(appConfigProvider).useMockData &&
+        widget.searchQuery != oldWidget.searchQuery) {
+      ref
+          .read(marketplaceSessionListProvider.notifier)
+          .loadInitial(search: widget.searchQuery);
+    }
   }
 
   @override
@@ -211,62 +225,102 @@ class _MarketplaceSessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('EEE, d MMM yyyy • HH:mm', 'id');
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(session.name, style: theme.textTheme.titleMedium),
-            if (session.tenant != null) ...[
-              const SizedBox(height: AppDimensions.xs),
-              Text(
-                'oleh ${session.tenant!.name}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
-              ),
-            ],
-            if (session.venue != null) ...[
-              const SizedBox(height: AppDimensions.xs),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push(
+          AppRoutes.marketplaceSession(session.id),
+          extra: session,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
-                  Icon(Icons.location_on_outlined,
+                  Expanded(
+                    child: Text(session.name,
+                        style: theme.textTheme.titleMedium),
+                  ),
+                  if (session.isEnrolled)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.sm,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.successLight,
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.radiusSm),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_circle,
+                              size: 12, color: AppColors.success),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Terdaftar',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppColors.success,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              if (session.tenant != null) ...[
+                const SizedBox(height: AppDimensions.xs),
+                Text(
+                  'oleh ${session.tenant!.name}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+              ],
+              if (session.venue != null) ...[
+                const SizedBox(height: AppDimensions.xs),
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined,
+                        size: 14, color: theme.colorScheme.outline),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        session.venue!.name,
+                        style: theme.textTheme.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: AppDimensions.sm),
+              Row(
+                children: [
+                  Icon(Icons.schedule,
                       size: 14, color: theme.colorScheme.outline),
                   const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      session.venue!.name,
-                      style: theme.textTheme.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  Text(
+                    Formatters.formatDateTimeCompact(session.startAt.toLocal()),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${session.bookedCount}/${session.capacity} peserta',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],
               ),
             ],
-            const SizedBox(height: AppDimensions.sm),
-            Row(
-              children: [
-                Icon(Icons.schedule,
-                    size: 14, color: theme.colorScheme.outline),
-                const SizedBox(width: 4),
-                Text(
-                  dateFormat.format(session.startAt.toLocal()),
-                  style: theme.textTheme.bodySmall,
-                ),
-                const Spacer(),
-                Text(
-                  '${session.bookedCount}/${session.capacity} peserta',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

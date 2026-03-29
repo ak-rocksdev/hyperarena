@@ -30,17 +30,54 @@ User _parseUser(Map<String, dynamic> json) {
   final tenant = json['tenant'] as Map<String, dynamic>?;
   final activeRole = json['active_role'] as String?;
 
+  // Extract role names once, reuse for both fallback and availableRoles
+  final availableRoles = _extractRoleNames(json['roles']);
+  final effectiveRole = activeRole ?? _highestRole(availableRoles);
+
   return User(
     id: json['id'].toString(),
     name: json['name'] as String,
     email: json['email'] as String,
     phone: json['phone'] as String?,
-    avatarUrl: json['photo_path'] as String?,
-    role: mapBackendRole(activeRole),
-    activeRole: activeRole,
+    avatarUrl: _extractAvatarUrl(json),
+    role: mapBackendRole(effectiveRole),
+    activeRole: effectiveRole,
     tenantId: json['tenant_id'] as int?,
     tenantSlug: tenant?['slug'] as String?,
     tenantName: tenant?['name'] as String?,
     locale: json['locale'] as String?,
+    availableRoles: availableRoles,
   );
+}
+
+/// Extracts the best available avatar URL from the user JSON.
+/// Prefers photo_urls (sized variants) > photo_path (raw path).
+String? _extractAvatarUrl(Map<String, dynamic> json) {
+  final photoUrls = json['photo_urls'];
+  if (photoUrls is Map) {
+    // Prefer medium size, fall back to smallest available
+    return (photoUrls['md'] ?? photoUrls['sm'] ?? photoUrls['lg'])
+        as String?;
+  }
+  return json['photo_path'] as String?;
+}
+
+/// Extracts role name strings from the `roles` JSON relation.
+List<String> _extractRoleNames(dynamic roles) {
+  if (roles is! List || roles.isEmpty) return [];
+  return roles
+      .map((r) => r is Map ? r['name'] as String? : null)
+      .whereType<String>()
+      .toList();
+}
+
+/// Picks the highest-priority role name from an already-extracted list.
+/// Priority: super-admin > admin > coach > member
+String? _highestRole(List<String> names) {
+  if (names.isEmpty) return null;
+  const priority = ['super-admin', 'admin', 'organizer', 'coach', 'member'];
+  for (final p in priority) {
+    if (names.contains(p)) return p;
+  }
+  return names.firstOrNull;
 }

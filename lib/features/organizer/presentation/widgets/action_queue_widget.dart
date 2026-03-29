@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hyperarena/core/mocks/mock_data.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
@@ -7,7 +7,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
-import 'package:hyperarena/features/organizer/presentation/widgets/complaint_detail_sheet.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 /// Groups action items by category and renders each group as a collapsible
 /// task card with a primary action button.
@@ -247,35 +247,14 @@ class _ActionItemDetail extends StatelessWidget {
   final OrganizerActionItem item;
   final Color color;
 
-  void _onTapDispute(BuildContext context) {
-    if (item.type != OrganizerActionType.dispute) return;
-    if (item.participantId == null || item.sessionId == null) return;
-
-    final participants = MockData.sessionParticipants
-        .where((p) => p.id == item.participantId)
-        .toList();
-    if (participants.isEmpty) return;
-
-    final sessions = MockData.sessions
-        .where((s) => s.id == item.sessionId)
-        .toList();
-    if (sessions.isEmpty) return;
-
-    ComplaintDetailSheet.show(
-      context,
-      participant: participants.first,
-      sessionTitle: sessions.first.title,
-      pricePerPerson: sessions.first.pricePerPerson,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isTappable = item.type == OrganizerActionType.dispute &&
-        item.participantId != null;
+    final sessionId = item.sessionId;
 
     return InkWell(
-      onTap: isTappable ? () => _onTapDispute(context) : null,
+      onTap: sessionId != null
+          ? () => context.push(AppRoutes.organizerParticipants(sessionId))
+          : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.base,
@@ -314,7 +293,7 @@ class _ActionItemDetail extends StatelessWidget {
                 ActionQueueWidget._formatDuration(item.timeToStart!),
                 style: AppTypography.caption,
               ),
-            if (isTappable)
+            if (sessionId != null)
               Padding(
                 padding: const EdgeInsets.only(left: AppDimensions.xs),
                 child: Icon(

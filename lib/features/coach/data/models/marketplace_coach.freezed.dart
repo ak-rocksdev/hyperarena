@@ -21,7 +21,7 @@ MarketplaceCoach _$MarketplaceCoachFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$MarketplaceCoach {
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   String get id => throw _privateConstructorUsedError;
   String? get bio => throw _privateConstructorUsedError;
   CoachUser? get user => throw _privateConstructorUsedError;
@@ -48,7 +48,7 @@ abstract class $MarketplaceCoachCopyWith<$Res> {
   ) = _$MarketplaceCoachCopyWithImpl<$Res, MarketplaceCoach>;
   @useResult
   $Res call({
-    @JsonKey(fromJson: _idFromJson) String id,
+    @JsonKey(fromJson: idFromJson) String id,
     String? bio,
     CoachUser? user,
     SportInfo? sport,
@@ -152,7 +152,7 @@ abstract class _$$MarketplaceCoachImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    @JsonKey(fromJson: _idFromJson) String id,
+    @JsonKey(fromJson: idFromJson) String id,
     String? bio,
     CoachUser? user,
     SportInfo? sport,
@@ -222,7 +222,7 @@ class __$$MarketplaceCoachImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$MarketplaceCoachImpl implements _MarketplaceCoach {
   const _$MarketplaceCoachImpl({
-    @JsonKey(fromJson: _idFromJson) required this.id,
+    @JsonKey(fromJson: idFromJson) required this.id,
     this.bio,
     this.user,
     this.sport,
@@ -234,7 +234,7 @@ class _$MarketplaceCoachImpl implements _MarketplaceCoach {
       _$$MarketplaceCoachImplFromJson(json);
 
   @override
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   final String id;
   @override
   final String? bio;
@@ -292,7 +292,7 @@ class _$MarketplaceCoachImpl implements _MarketplaceCoach {
 
 abstract class _MarketplaceCoach implements MarketplaceCoach {
   const factory _MarketplaceCoach({
-    @JsonKey(fromJson: _idFromJson) required final String id,
+    @JsonKey(fromJson: idFromJson) required final String id,
     final String? bio,
     final CoachUser? user,
     final SportInfo? sport,
@@ -304,7 +304,7 @@ abstract class _MarketplaceCoach implements MarketplaceCoach {
       _$MarketplaceCoachImpl.fromJson;
 
   @override
-  @JsonKey(fromJson: _idFromJson)
+  @JsonKey(fromJson: idFromJson)
   String get id;
   @override
   String? get bio;
@@ -333,8 +333,8 @@ CoachUser _$CoachUserFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$CoachUser {
   String get name => throw _privateConstructorUsedError;
-  @JsonKey(name: 'photo_path')
-  String? get photoPath => throw _privateConstructorUsedError;
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls => throw _privateConstructorUsedError;
 
   /// Serializes this CoachUser to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -351,7 +351,10 @@ abstract class $CoachUserCopyWith<$Res> {
   factory $CoachUserCopyWith(CoachUser value, $Res Function(CoachUser) then) =
       _$CoachUserCopyWithImpl<$Res, CoachUser>;
   @useResult
-  $Res call({String name, @JsonKey(name: 'photo_path') String? photoPath});
+  $Res call({
+    String name,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
+  });
 }
 
 /// @nodoc
@@ -368,17 +371,17 @@ class _$CoachUserCopyWithImpl<$Res, $Val extends CoachUser>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? name = null, Object? photoPath = freezed}) {
+  $Res call({Object? name = null, Object? photoUrls = freezed}) {
     return _then(
       _value.copyWith(
             name: null == name
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
                       as String,
-            photoPath: freezed == photoPath
-                ? _value.photoPath
-                : photoPath // ignore: cast_nullable_to_non_nullable
-                      as String?,
+            photoUrls: freezed == photoUrls
+                ? _value.photoUrls
+                : photoUrls // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
           )
           as $Val,
     );
@@ -394,7 +397,10 @@ abstract class _$$CoachUserImplCopyWith<$Res>
   ) = __$$CoachUserImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String name, @JsonKey(name: 'photo_path') String? photoPath});
+  $Res call({
+    String name,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
+  });
 }
 
 /// @nodoc
@@ -410,17 +416,17 @@ class __$$CoachUserImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? name = null, Object? photoPath = freezed}) {
+  $Res call({Object? name = null, Object? photoUrls = freezed}) {
     return _then(
       _$CoachUserImpl(
         name: null == name
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
                   as String,
-        photoPath: freezed == photoPath
-            ? _value.photoPath
-            : photoPath // ignore: cast_nullable_to_non_nullable
-                  as String?,
+        photoUrls: freezed == photoUrls
+            ? _value._photoUrls
+            : photoUrls // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
       ),
     );
   }
@@ -431,21 +437,28 @@ class __$$CoachUserImplCopyWithImpl<$Res>
 class _$CoachUserImpl implements _CoachUser {
   const _$CoachUserImpl({
     required this.name,
-    @JsonKey(name: 'photo_path') this.photoPath,
-  });
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
+  }) : _photoUrls = photoUrls;
 
   factory _$CoachUserImpl.fromJson(Map<String, dynamic> json) =>
       _$$CoachUserImplFromJson(json);
 
   @override
   final String name;
+  final Map<String, String>? _photoUrls;
   @override
-  @JsonKey(name: 'photo_path')
-  final String? photoPath;
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls {
+    final value = _photoUrls;
+    if (value == null) return null;
+    if (_photoUrls is EqualUnmodifiableMapView) return _photoUrls;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'CoachUser(name: $name, photoPath: $photoPath)';
+    return 'CoachUser(name: $name, photoUrls: $photoUrls)';
   }
 
   @override
@@ -454,13 +467,19 @@ class _$CoachUserImpl implements _CoachUser {
         (other.runtimeType == runtimeType &&
             other is _$CoachUserImpl &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.photoPath, photoPath) ||
-                other.photoPath == photoPath));
+            const DeepCollectionEquality().equals(
+              other._photoUrls,
+              _photoUrls,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, name, photoPath);
+  int get hashCode => Object.hash(
+    runtimeType,
+    name,
+    const DeepCollectionEquality().hash(_photoUrls),
+  );
 
   /// Create a copy of CoachUser
   /// with the given fields replaced by the non-null parameter values.
@@ -479,7 +498,7 @@ class _$CoachUserImpl implements _CoachUser {
 abstract class _CoachUser implements CoachUser {
   const factory _CoachUser({
     required final String name,
-    @JsonKey(name: 'photo_path') final String? photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
   }) = _$CoachUserImpl;
 
   factory _CoachUser.fromJson(Map<String, dynamic> json) =
@@ -488,8 +507,8 @@ abstract class _CoachUser implements CoachUser {
   @override
   String get name;
   @override
-  @JsonKey(name: 'photo_path')
-  String? get photoPath;
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls;
 
   /// Create a copy of CoachUser
   /// with the given fields replaced by the non-null parameter values.

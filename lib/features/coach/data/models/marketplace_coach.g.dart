@@ -9,7 +9,7 @@ part of 'marketplace_coach.dart';
 _$MarketplaceCoachImpl _$$MarketplaceCoachImplFromJson(
   Map<String, dynamic> json,
 ) => _$MarketplaceCoachImpl(
-  id: _idFromJson(json['id']),
+  id: idFromJson(json['id']),
   bio: json['bio'] as String?,
   user: json['user'] == null
       ? null
@@ -35,8 +35,10 @@ Map<String, dynamic> _$$MarketplaceCoachImplToJson(
 _$CoachUserImpl _$$CoachUserImplFromJson(Map<String, dynamic> json) =>
     _$CoachUserImpl(
       name: json['name'] as String,
-      photoPath: json['photo_path'] as String?,
+      photoUrls: (json['photo_urls'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
     );
 
 Map<String, dynamic> _$$CoachUserImplToJson(_$CoachUserImpl instance) =>
-    <String, dynamic>{'name': instance.name, 'photo_path': instance.photoPath};
+    <String, dynamic>{'name': instance.name, 'photo_urls': instance.photoUrls};

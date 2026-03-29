@@ -39,6 +39,7 @@ class UserSessionStatus with _$UserSessionStatus {
     @JsonKey(name: 'credit_balance') @Default(0) int creditBalance,
     @JsonKey(name: 'is_booked') @Default(false) bool isBooked,
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson) String? bookingId,
+    @JsonKey(name: 'payment_status') String? paymentStatus,
   }) = _UserSessionStatus;
 
   factory UserSessionStatus.fromJson(Map<String, dynamic> json) =>

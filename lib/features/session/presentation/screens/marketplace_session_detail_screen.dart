@@ -14,7 +14,6 @@ import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
-import 'package:intl/intl.dart';
 
 /// Marketplace session detail screen.
 /// Fetches enriched data via [marketplaceSessionDetailProvider].
@@ -22,9 +21,6 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
   final String sessionId;
 
   const MarketplaceSessionDetailScreen({super.key, required this.sessionId});
-
-  static final _dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id');
-  static final _timeFormat = DateFormat('HH:mm', 'id');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -152,10 +148,9 @@ class _DetailBody extends ConsumerWidget {
                   // Date & time card
                   _InfoCard(
                     icon: Icons.calendar_today,
-                    title: MarketplaceSessionDetailScreen._dateFormat
-                        .format(localStart),
+                    title: Formatters.formatDateLong(localStart),
                     subtitle:
-                        '${MarketplaceSessionDetailScreen._timeFormat.format(localStart)} – ${MarketplaceSessionDetailScreen._timeFormat.format(localEnd)} (${session.durationMinutes} menit)',
+                        '${Formatters.formatTimeHm(localStart)} – ${Formatters.formatTimeHm(localEnd)} (${session.durationMinutes} menit)',
                   ),
                   const SizedBox(height: AppDimensions.md),
 
@@ -340,7 +335,8 @@ class _ParticipantsGrid extends StatelessWidget {
           runSpacing: AppDimensions.sm,
           children: [
             // Enrolled participants
-            ...participants.map((p) => _ParticipantAvatar(name: p.name)),
+            ...participants.map(
+                (p) => _ParticipantAvatar(name: p.name, photoUrl: p.photoUrl)),
             // Empty slots
             for (int i = 0; i < emptySlots; i++) const _EmptySlotAvatar(),
           ],
@@ -353,21 +349,27 @@ class _ParticipantsGrid extends StatelessWidget {
 
 class _ParticipantAvatar extends StatelessWidget {
   final String name;
+  final String? photoUrl;
 
-  const _ParticipantAvatar({required this.name});
+  const _ParticipantAvatar({required this.name, this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
-    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final initial = Formatters.initials(name);
     return Tooltip(
       message: name,
       child: CircleAvatar(
         radius: 20,
         backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-        child: Text(
-          initial,
-          style: AppTypography.labelMedium.copyWith(color: AppColors.primary),
-        ),
+        backgroundImage:
+            photoUrl != null ? NetworkImage(photoUrl!) : null,
+        child: photoUrl == null
+            ? Text(
+                initial,
+                style: AppTypography.labelMedium
+                    .copyWith(color: AppColors.primary),
+              )
+            : null,
       ),
     );
   }
@@ -467,18 +469,30 @@ class _BottomBar extends ConsumerWidget {
     MarketplaceSessionJoinState joinState,
     bool isFull,
   ) {
-    // Already booked
+    // Already booked — show status based on payment
     if (userStatus.isBooked) {
-      return FilledButton(
+      final status = userStatus.paymentStatus;
+      final isPending = status == 'pending_payment' ||
+          status == 'pending_confirmation';
+
+      final label = switch (status) {
+        'pending_payment' => 'Menunggu Pembayaran',
+        'pending_confirmation' => 'Menunggu Konfirmasi',
+        _ => 'Sudah Terdaftar',
+      };
+
+      final bgColor = isPending ? AppColors.warning : AppColors.success;
+      final icon = isPending ? Icons.hourglass_top : Icons.check_circle;
+
+      return FilledButton.icon(
         onPressed: null,
+        icon: Icon(icon, size: 18),
+        label: Text(label),
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.success,
-          disabledBackgroundColor: AppColors.success.withValues(alpha: 0.6),
+          backgroundColor: bgColor,
+          disabledBackgroundColor: bgColor.withValues(alpha: 0.8),
+          disabledForegroundColor: Colors.white,
           minimumSize: const Size(160, AppDimensions.buttonHeightMd),
-        ),
-        child: Text(
-          'Sudah Terdaftar',
-          style: AppTypography.button.copyWith(color: Colors.white),
         ),
       );
     }
@@ -491,6 +505,33 @@ class _BottomBar extends ConsumerWidget {
           minimumSize: const Size(160, AppDimensions.buttonHeightMd),
         ),
         child: const Text('Sesi Penuh'),
+      );
+    }
+
+    // No credits and no bank info — can't transact
+    if (userStatus.creditBalance < 1 && !tenantPayment.isComplete) {
+      return Expanded(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Pembayaran belum tersedia untuk sesi ini',
+              style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDimensions.xs),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: null,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(160, AppDimensions.buttonHeightMd),
+                ),
+                child: const Text('Tidak Dapat Bergabung'),
+              ),
+            ),
+          ],
+        ),
       );
     }
 

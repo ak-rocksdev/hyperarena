@@ -3,32 +3,50 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
-import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
-import 'package:hyperarena/core/widgets/async_value_widget.dart';
-import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
-import 'package:hyperarena/features/coach/presentation/widgets/coaching_booking_card.dart';
-import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/coach/data/models/coach_session.dart';
+import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
 
 /// Coach's schedule tab screen with "Mendatang" (upcoming) and "Selesai" (done) tabs.
-class CoachScheduleScreen extends ConsumerWidget {
+class CoachScheduleScreen extends ConsumerStatefulWidget {
   const CoachScheduleScreen({super.key});
 
-  static const _upcomingStatuses = {
-    BookingStatus.confirmed,
-    BookingStatus.pendingPayment,
-    BookingStatus.waitingConfirmation,
-  };
+  @override
+  ConsumerState<CoachScheduleScreen> createState() =>
+      _CoachScheduleScreenState();
+}
 
-  static const _doneStatuses = {
-    BookingStatus.completed,
-    BookingStatus.cancelled,
-  };
+class _CoachScheduleScreenState extends ConsumerState<CoachScheduleScreen> {
+  final _scrollController = ScrollController();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scheduleAsync = ref.watch(coachScheduleProvider);
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      ref.read(coachSessionListProvider.notifier).loadMore();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(coachSessionListProvider);
 
     return DefaultTabController(
       length: 2,
@@ -47,84 +65,213 @@ class CoachScheduleScreen extends ConsumerWidget {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            // Tab 1: Mendatang (upcoming)
-            _BookingListTab(
-              scheduleAsync: scheduleAsync,
-              filterStatuses: _upcomingStatuses,
-              emptyText: 'Belum ada jadwal',
-              onRefresh: () => ref.refresh(coachScheduleProvider.future),
-            ),
-
-            // Tab 2: Selesai (done)
-            _BookingListTab(
-              scheduleAsync: scheduleAsync,
-              filterStatuses: _doneStatuses,
-              emptyText: 'Belum ada riwayat',
-              onRefresh: () => ref.refresh(coachScheduleProvider.future),
-            ),
-          ],
-        ),
+        body: state.isLoading
+            ? _buildShimmer()
+            : state.error != null
+                ? EmptyState(
+                    icon: Icons.error_outline,
+                    message: 'Gagal memuat jadwal',
+                    actionLabel: 'Coba lagi',
+                    onAction: () => ref
+                        .read(coachSessionListProvider.notifier)
+                        .loadInitial(),
+                  )
+                : TabBarView(
+                    children: [
+                      _SessionTab(
+                        sessions: _upcoming(state.items),
+                        isLoadingMore: state.isLoadingMore,
+                        scrollController: _scrollController,
+                        emptyText: 'Belum ada jadwal mendatang',
+                        onRefresh: () => ref
+                            .read(coachSessionListProvider.notifier)
+                            .loadInitial(),
+                      ),
+                      _SessionTab(
+                        sessions: _completed(state.items),
+                        isLoadingMore: false,
+                        scrollController: null,
+                        emptyText: 'Belum ada riwayat sesi',
+                        onRefresh: () => ref
+                            .read(coachSessionListProvider.notifier)
+                            .loadInitial(),
+                      ),
+                    ],
+                  ),
       ),
     );
   }
+
+  Widget _buildShimmer() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+      itemCount: 4,
+      itemBuilder: (_, _) => Padding(
+        padding: const EdgeInsets.only(bottom: AppDimensions.md),
+        child: ShimmerLoading.card(height: 100),
+      ),
+    );
+  }
+
+  /// Sessions that haven't completed or been cancelled.
+  List<CoachSession> _upcoming(List<CoachSession> all) =>
+      all.where((s) => s.status != 'completed' && s.status != 'cancelled')
+          .toList();
+
+  /// Completed or cancelled sessions.
+  List<CoachSession> _completed(List<CoachSession> all) =>
+      all.where((s) => s.status == 'completed' || s.status == 'cancelled')
+          .toList();
 }
 
-/// Reusable tab content that filters bookings by status set.
-class _BookingListTab extends StatelessWidget {
-  final AsyncValue<List<CoachingBooking>> scheduleAsync;
-  final Set<BookingStatus> filterStatuses;
+class _SessionTab extends StatelessWidget {
+  final List<CoachSession> sessions;
+  final bool isLoadingMore;
+  final ScrollController? scrollController;
   final String emptyText;
   final Future<void> Function() onRefresh;
 
-  const _BookingListTab({
-    required this.scheduleAsync,
-    required this.filterStatuses,
+  const _SessionTab({
+    required this.sessions,
+    required this.isLoadingMore,
+    this.scrollController,
     required this.emptyText,
     required this.onRefresh,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AsyncValueWidget<List<CoachingBooking>>(
-      value: scheduleAsync,
-      data: (bookings) {
-        final filtered = bookings
-            .where((b) => filterStatuses.contains(b.status))
-            .toList();
-
-        if (filtered.isEmpty) {
-          return Center(
-            child: Text(
-              emptyText,
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textTertiary,
-              ),
-            ),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: onRefresh,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
-            itemCount: filtered.length,
-            itemBuilder: (context, index) {
-              final booking = filtered[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppDimensions.md),
-                child: CoachingBookingCard(
-                  booking: booking,
-                  onTap: () => context.push(
-                    AppRoutes.coachingBookingDetail(booking.id),
-                  ),
-                ),
-              );
-            },
+    if (sessions.isEmpty) {
+      return Center(
+        child: Text(
+          emptyText,
+          style: AppTypography.bodyMedium.copyWith(
+            color: AppColors.textTertiary,
           ),
-        );
-      },
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView.builder(
+        controller: scrollController,
+        padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+        itemCount: sessions.length + (isLoadingMore ? 1 : 0),
+        itemBuilder: (context, i) {
+          if (i >= sessions.length) {
+            return const ListLoadingIndicator();
+          }
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppDimensions.md),
+            child: _CoachSessionCard(session: sessions[i]),
+          );
+        },
+      ),
     );
   }
+}
+
+class _CoachSessionCard extends StatelessWidget {
+  final CoachSession session;
+  const _CoachSessionCard({required this.session});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push(AppRoutes.coachSessionDetail(session.id)),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title + type chip
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(session.name,
+                        style: AppTypography.titleMedium),
+                  ),
+                  if (session.type != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.radiusSm),
+                      ),
+                      child: Text(
+                        _typeLabel(session.type!),
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+
+              // Venue
+              if (session.venue != null) ...[
+                const SizedBox(height: AppDimensions.xs),
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined,
+                        size: 14, color: AppColors.textTertiary),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        session.venue!.name,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
+              const SizedBox(height: AppDimensions.sm),
+
+              // Date/time + capacity
+              Row(
+                children: [
+                  Icon(Icons.schedule,
+                      size: 14, color: AppColors.textTertiary),
+                  const SizedBox(width: 4),
+                  Text(
+                    Formatters.formatDateTimeCompact(
+                        session.startAt.toLocal()),
+                    style: AppTypography.bodySmall,
+                  ),
+                  const Spacer(),
+                  Icon(Icons.people_outline,
+                      size: 14, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${session.bookedStudentsCount}/${session.capacity}',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _typeLabel(String type) => switch (type) {
+        'private' => 'Privat',
+        'group' => 'Grup',
+        'clinic' => 'Klinik',
+        _ => type,
+      };
 }

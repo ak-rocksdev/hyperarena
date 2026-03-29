@@ -85,10 +85,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           SnackBar(content: Text(e.message.isNotEmpty ? e.message : 'Login gagal')),
         );
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login gagal: $e')),
+          const SnackBar(content: Text('Login gagal, coba lagi')),
         );
       }
     } finally {

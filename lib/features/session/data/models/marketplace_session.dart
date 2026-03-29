@@ -1,18 +1,18 @@
 // lib/features/session/data/models/marketplace_session.dart
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hyperarena/features/coach/data/models/marketplace_coach.dart';
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
+import 'package:hyperarena/shared/data/json_converters.dart';
 
 part 'marketplace_session.freezed.dart';
 part 'marketplace_session.g.dart';
 
-String _idFromJson(dynamic v) => v.toString();
-
 @freezed
 class MarketplaceSession with _$MarketplaceSession {
   const factory MarketplaceSession({
-    @JsonKey(fromJson: _idFromJson) required String id,
-    required String name,
+    @JsonKey(fromJson: idFromJson) required String id,
+    @Default('Sesi Latihan') String name,
     String? type,
     @JsonKey(name: 'start_at') required DateTime startAt,
     @JsonKey(name: 'duration_minutes') required int durationMinutes,
@@ -22,6 +22,8 @@ class MarketplaceSession with _$MarketplaceSession {
     SessionTenant? tenant,
     MarketplaceSessionVenue? venue,
     @Default([]) List<SessionCoach> coaches,
+    @Default([]) List<SessionParticipant> participants,
+    @Default(false) bool isEnrolled,
   }) = _MarketplaceSession;
 
   factory MarketplaceSession.fromJson(Map<String, dynamic> json) =>
@@ -31,7 +33,7 @@ class MarketplaceSession with _$MarketplaceSession {
 @freezed
 class SessionTenant with _$SessionTenant {
   const factory SessionTenant({
-    @JsonKey(fromJson: _idFromJson) required String id,
+    @JsonKey(fromJson: idFromJson) required String id,
     required String name,
   }) = _SessionTenant;
 
@@ -51,11 +53,23 @@ class MarketplaceSessionVenue with _$MarketplaceSessionVenue {
 }
 
 @freezed
+class SessionParticipant with _$SessionParticipant {
+  const factory SessionParticipant({
+    @JsonKey(fromJson: idFromJson) required String id,
+    required String name,
+    String? photoUrl,
+    @JsonKey(name: 'booked_at') DateTime? bookedAt,
+  }) = _SessionParticipant;
+
+  factory SessionParticipant.fromJson(Map<String, dynamic> json) =>
+      _$SessionParticipantFromJson(json);
+}
+
+@freezed
 class SessionCoach with _$SessionCoach {
   const factory SessionCoach({
-    @JsonKey(fromJson: _idFromJson) required String id,
-    required String name,
-    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(fromJson: idFromJson) required String id,
+    CoachUser? user,
   }) = _SessionCoach;
 
   factory SessionCoach.fromJson(Map<String, dynamic> json) =>

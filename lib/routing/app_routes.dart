@@ -98,6 +98,7 @@ abstract final class AppRoutes {
   static String coachingBookingDetail(String id) => '/coaching-booking/$id';
 
   // ── Coach role-specific ────────────────────────────────────────────
+  static String coachSessionDetail(String id) => '/coach/session/$id';
   static String studentDetail(String name) =>
       '/coach/student/${Uri.encodeComponent(name)}';
   static const assessmentNew = '/coach/assessment/new';

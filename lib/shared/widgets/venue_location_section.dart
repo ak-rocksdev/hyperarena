@@ -158,8 +158,6 @@ class VenueLocationSection extends StatelessWidget {
     final googleUrl = Uri.parse(
       'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
     );
-    if (await canLaunchUrl(googleUrl)) {
-      await launchUrl(googleUrl, mode: LaunchMode.externalApplication);
-    }
+    await launchUrl(googleUrl, mode: LaunchMode.externalApplication);
   }
 }

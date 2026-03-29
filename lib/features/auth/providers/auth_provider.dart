@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
+import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/auth/data/api_auth_repository.dart';
+import 'package:hyperarena/features/auth/data/mappers/auth_response_mapper.dart';
 import 'package:hyperarena/features/auth/data/api_tenant_repository.dart';
 import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/mock_auth_repository.dart';
@@ -92,6 +94,39 @@ class AuthNotifier extends Notifier<User?> {
     state = user;
     // Fire-and-forget: init FCM after register
     _initializePushNotifications();
+  }
+
+  /// Re-fetch the current user from GET /auth/me and update local state.
+  Future<void> refreshUser() async {
+    final user = await _repo.getCurrentUser();
+    if (user != null) {
+      _updateUser(user);
+    }
+  }
+
+  /// Update auth state from an already-fetched user JSON (e.g. PUT response).
+  void updateFromResponse(Map<String, dynamic> userJson) {
+    final user = parseUserResponse(userJson);
+    _updateUser(user);
+  }
+
+  void _updateUser(User user) {
+    // Preserve current role selection since /me doesn't return it
+    final current = state;
+    final updated =
+        current != null ? user.copyWith(role: current.role) : user;
+    _prefs.setString(_userKey, jsonEncode(updated.toJson()));
+    state = updated;
+  }
+
+  /// Switch the current user's active role and persist the change.
+  void switchRole(UserRole newRole) {
+    final current = state;
+    if (current == null || current.role == newRole) return;
+
+    final updated = current.copyWith(role: newRole);
+    state = updated;
+    _prefs.setString(_userKey, jsonEncode(updated.toJson()));
   }
 
   Future<void> logout() async {

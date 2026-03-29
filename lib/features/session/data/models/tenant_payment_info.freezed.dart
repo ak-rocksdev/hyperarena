@@ -160,13 +160,13 @@ class __$$TenantPaymentInfoImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$TenantPaymentInfoImpl implements _TenantPaymentInfo {
+class _$TenantPaymentInfoImpl extends _TenantPaymentInfo {
   const _$TenantPaymentInfoImpl({
-    @JsonKey(name: 'bank_name') required this.bankName,
-    @JsonKey(name: 'account_number') required this.accountNumber,
-    @JsonKey(name: 'account_holder') required this.accountHolder,
+    @JsonKey(name: 'bank_name') this.bankName = '',
+    @JsonKey(name: 'account_number') this.accountNumber = '',
+    @JsonKey(name: 'account_holder') this.accountHolder = '',
     @JsonKey(name: 'payment_instructions') this.paymentInstructions,
-  });
+  }) : super._();
 
   factory _$TenantPaymentInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$TenantPaymentInfoImplFromJson(json);
@@ -231,13 +231,14 @@ class _$TenantPaymentInfoImpl implements _TenantPaymentInfo {
   }
 }
 
-abstract class _TenantPaymentInfo implements TenantPaymentInfo {
+abstract class _TenantPaymentInfo extends TenantPaymentInfo {
   const factory _TenantPaymentInfo({
-    @JsonKey(name: 'bank_name') required final String bankName,
-    @JsonKey(name: 'account_number') required final String accountNumber,
-    @JsonKey(name: 'account_holder') required final String accountHolder,
+    @JsonKey(name: 'bank_name') final String bankName,
+    @JsonKey(name: 'account_number') final String accountNumber,
+    @JsonKey(name: 'account_holder') final String accountHolder,
     @JsonKey(name: 'payment_instructions') final String? paymentInstructions,
   }) = _$TenantPaymentInfoImpl;
+  const _TenantPaymentInfo._() : super._();
 
   factory _TenantPaymentInfo.fromJson(Map<String, dynamic> json) =
       _$TenantPaymentInfoImpl.fromJson;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
@@ -10,6 +11,7 @@ import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selecto
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 import 'package:hyperarena/features/venue/presentation/widgets/venue_card.dart';
 import 'package:hyperarena/features/venue/providers/venue_providers.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
@@ -29,6 +31,17 @@ class _VenueListScreenState extends ConsumerState<VenueListScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant VenueListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!ref.read(appConfigProvider).useMockData &&
+        widget.searchQuery != oldWidget.searchQuery) {
+      ref
+          .read(marketplaceVenueListProvider.notifier)
+          .loadInitial(search: widget.searchQuery);
+    }
   }
 
   @override
@@ -211,7 +224,9 @@ class _MarketplaceVenueCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
+      child: InkWell(
+        onTap: () => context.push(AppRoutes.marketplaceVenue(venue.id)),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Photo or placeholder
@@ -272,6 +287,7 @@ class _MarketplaceVenueCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

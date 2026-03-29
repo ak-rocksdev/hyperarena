@@ -19,6 +19,11 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
   tenantName: json['tenant_name'] as String?,
   activeRole: json['active_role'] as String?,
   locale: json['locale'] as String?,
+  availableRoles:
+      (json['available_roles'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
@@ -35,6 +40,7 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'tenant_name': instance.tenantName,
       'active_role': instance.activeRole,
       'locale': instance.locale,
+      'available_roles': instance.availableRoles,
     };
 
 const _$UserRoleEnumMap = {

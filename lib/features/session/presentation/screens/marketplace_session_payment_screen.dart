@@ -160,7 +160,13 @@ class _MarketplaceSessionPaymentScreenState
     final payment = _tenantPayment!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pembayaran')),
+      appBar: AppBar(
+        title: const Text('Pembayaran'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => context.go(AppRoutes.marketplaceSession(widget.sessionId)),
+        ),
+      ),
       body: Column(
         children: [
           // ── Countdown + amount header ────────────────────────

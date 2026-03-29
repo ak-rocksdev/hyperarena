@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hyperarena/features/organizer/data/api_organizer_repository.dart';
 import 'package:hyperarena/features/organizer/data/mock_organizer_repository.dart';
 import 'package:hyperarena/features/organizer/data/models/club_member.dart';
 import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
@@ -10,10 +11,15 @@ import 'package:hyperarena/features/organizer/data/organizer_repository.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
+import 'package:hyperarena/shared/providers/network_providers.dart';
 
 final organizerRepositoryProvider = Provider<OrganizerRepository>((ref) {
   final config = ref.watch(appConfigProvider);
-  return MockOrganizerRepository(config);
+  if (config.useMockData) {
+    return MockOrganizerRepository(config);
+  }
+  final apiClient = ref.watch(apiClientProvider);
+  return ApiOrganizerRepository(apiClient, config);
 });
 
 // ── Dashboard filter state (shared between KPI strip & filter bar) ──────

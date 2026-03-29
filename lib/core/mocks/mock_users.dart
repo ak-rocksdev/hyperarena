@@ -10,6 +10,7 @@ abstract final class MockUsers {
     phone: '+6281234567890',
     role: UserRole.player,
     isVerified: true,
+    availableRoles: ['member'],
   );
 
   static const currentProfile = PlayerProfile(
@@ -35,6 +36,7 @@ abstract final class MockUsers {
     phone: '+6281999888777',
     role: UserRole.coach,
     isVerified: true,
+    availableRoles: ['coach', 'member'],
   );
 
   static const organizerUser = User(
@@ -44,6 +46,7 @@ abstract final class MockUsers {
     phone: '+6281555666777',
     role: UserRole.organizer,
     isVerified: true,
+    availableRoles: ['admin', 'member'],
   );
 
   static const ownerUser = User(
@@ -53,6 +56,7 @@ abstract final class MockUsers {
     phone: '+6281333444555',
     role: UserRole.courtOwner,
     isVerified: true,
+    availableRoles: ['court-owner', 'member'],
   );
 
   static const user2 = User(

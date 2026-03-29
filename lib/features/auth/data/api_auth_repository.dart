@@ -60,4 +60,21 @@ class ApiAuthRepository implements AuthRepository {
       rethrowDio(e);
     }
   }
+
+  @override
+  Future<User> switchRole(String role) async {
+    try {
+      final response = await _apiClient.put(
+        '/v1/auth/switch-role',
+        data: {'role': role},
+      );
+      final json = response.data as Map<String, dynamic>;
+      final userJson = json.containsKey('user')
+          ? json['user'] as Map<String, dynamic>
+          : json;
+      return parseUserResponse(userJson);
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 }

@@ -11,4 +11,7 @@ abstract class AuthRepository {
   });
   Future<void> logout({String? deviceToken});
   Future<User?> getCurrentUser();
+
+  /// Switch role via PUT /auth/switch-role. Returns updated User.
+  Future<User> switchRole(String role);
 }

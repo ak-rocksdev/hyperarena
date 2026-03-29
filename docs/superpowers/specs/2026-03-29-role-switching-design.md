@@ -57,7 +57,7 @@ The `/me` (or `/auth/me`) response must include:
   "user": {
     "id": 1,
     "name": "Haris Mustamsikin",
-    "email": "haris@example.com",
+    "email": "haris@peteniskelana.id",
     "active_role": "admin",
     "roles": ["admin"],
     "can_switch_to": ["admin", "member"]

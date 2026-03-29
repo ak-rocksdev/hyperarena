@@ -1,12 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/network/api_exceptions.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
-import 'package:hyperarena/routing/app_routes.dart';
 
 class ApiInterceptor extends Interceptor {
   final SecureStorageService _secureStorage;
-  final GoRouter _router;
+  final void Function()? _onUnauthorized;
   final String? _tenantSlug;
   final String _locale;
 
@@ -14,20 +12,28 @@ class ApiInterceptor extends Interceptor {
 
   ApiInterceptor({
     required SecureStorageService secureStorage,
-    required GoRouter router,
+    void Function()? onUnauthorized,
     String? tenantSlug,
     String locale = 'id',
   })  : _secureStorage = secureStorage,
-        _router = router,
+        _onUnauthorized = onUnauthorized,
         _tenantSlug = tenantSlug,
         _locale = locale;
 
+  static const _publicPaths = [
+    '/v1/auth/login',
+    '/v1/auth/register',
+  ];
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Bearer token (from in-memory cache — synchronous)
-    final token = _secureStorage.getToken();
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
+    // Skip auth header for public endpoints
+    final isPublic = _publicPaths.any((p) => options.path.endsWith(p));
+    if (!isPublic) {
+      final token = _secureStorage.getToken();
+      if (token != null) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
     }
 
     // Dynamic headers (static headers set on BaseOptions)
@@ -104,11 +110,8 @@ class ApiInterceptor extends Interceptor {
   void _handleUnauthorized() {
     if (_isRedirecting) return;
     _isRedirecting = true;
-    // Fire-and-forget — cache is cleared synchronously inside deleteToken(),
-    // encrypted storage write is async but non-critical here.
     _secureStorage.deleteToken();
-    _router.go(AppRoutes.login);
-    // Reset after a short delay to allow navigation to complete
+    _onUnauthorized?.call();
     Future.delayed(const Duration(seconds: 1), () => _isRedirecting = false);
   }
 }

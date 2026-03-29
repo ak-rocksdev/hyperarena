@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "189846066499",
+    "project_id": "hyperarena-9227f",
+    "storage_bucket": "hyperarena-9227f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:189846066499:android:7cb570f1dfff7df92f4bf6",
+        "android_client_info": {
+          "package_name": "com.hyperarena.hyperarena"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyRo1Pbk6fl0Ou5trb5Kou335N1U3Z_HA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

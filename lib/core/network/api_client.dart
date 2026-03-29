@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/network/api_interceptor.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
@@ -10,7 +9,7 @@ class ApiClient {
   ApiClient({
     required AppConfig config,
     required SecureStorageService secureStorage,
-    required GoRouter router,
+    void Function()? onUnauthorized,
     String? tenantSlug,
     String locale = 'id',
   }) : _dio = Dio(BaseOptions(
@@ -27,7 +26,7 @@ class ApiClient {
     _dio.interceptors.add(
       ApiInterceptor(
         secureStorage: secureStorage,
-        router: router,
+        onUnauthorized: onUnauthorized,
         tenantSlug: tenantSlug,
         locale: locale,
       ),

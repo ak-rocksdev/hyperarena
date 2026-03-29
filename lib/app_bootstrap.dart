@@ -23,12 +23,17 @@ Future<void> bootstrap(AppConfig config) async {
 
   // Firebase init (skip in mock mode — no Firebase config available)
   if (!config.useMockData) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    FirebaseMessaging.onBackgroundMessage(
-      _firebaseMessagingBackgroundHandler,
-    );
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
+    } catch (e) {
+      // Firebase not configured for this platform (e.g. web) — continue without it
+      debugPrint('Firebase init skipped: $e');
+    }
   }
 
   final sharedPrefs = await SharedPreferences.getInstance();

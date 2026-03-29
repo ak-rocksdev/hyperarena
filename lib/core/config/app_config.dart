@@ -33,7 +33,7 @@ class AppConfig {
 
   static const local = AppConfig(
     environment: Environment.local,
-    apiBaseUrl: 'http://hyperarena.local/api',
+    apiBaseUrl: 'http://10.142.152.40:8080/api',
     useMockData: false,
     enableLogging: true,
     showDebugBanner: true,

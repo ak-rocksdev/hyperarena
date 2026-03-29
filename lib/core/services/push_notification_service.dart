@@ -4,7 +4,6 @@ import 'dart:ui' show VoidCallback;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
 import 'package:hyperarena/features/notification/data/device_token_repository.dart';
 import 'package:hyperarena/features/notification/utils/notification_route_resolver.dart';
@@ -16,7 +15,7 @@ class PushNotificationService {
   final DeviceTokenRepository _deviceTokenRepository;
   final SecureStorageService _secureStorage;
   final NotificationRouteResolver _routeResolver;
-  final GoRouter _router;
+  final void Function(String route) _onNavigate;
   final VoidCallback _onUnreadCountIncrement;
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -36,12 +35,12 @@ class PushNotificationService {
     required DeviceTokenRepository deviceTokenRepository,
     required SecureStorageService secureStorage,
     required NotificationRouteResolver routeResolver,
-    required GoRouter router,
+    required void Function(String route) onNavigate,
     required VoidCallback onUnreadCountIncrement,
   })  : _deviceTokenRepository = deviceTokenRepository,
         _secureStorage = secureStorage,
         _routeResolver = routeResolver,
-        _router = router,
+        _onNavigate = onNavigate,
         _onUnreadCountIncrement = onUnreadCountIncrement;
 
   /// Broadcast stream for foreground messages — UI subscribes for banners.
@@ -197,7 +196,7 @@ class PushNotificationService {
     final type = message.data['type'] as String?;
     final route = _routeResolver.resolve(type, message.data);
     if (route != null) {
-      _router.go(route);
+      _onNavigate(route);
     }
   }
 }

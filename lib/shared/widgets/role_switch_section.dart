@@ -24,6 +24,8 @@ class RoleSwitchSection extends ConsumerWidget {
     final user = ref.watch(authNotifierProvider);
     if (user == null) return const SizedBox.shrink();
 
+    final isSwitching = ref.watch(isSwitchingRoleProvider);
+
     // Map backend role names to UserRole, deduplicate
     final mappedRoles = user.availableRoles
         .map(mapBackendRole)
@@ -54,7 +56,9 @@ class RoleSwitchSection extends ConsumerWidget {
                   _RoleTile(
                     role: mappedRoles[i],
                     isActive: mappedRoles[i] == user.role,
-                    onTap: () => _onRoleTap(context, ref, user, mappedRoles[i]),
+                    onTap: isSwitching
+                        ? null
+                        : () => _onRoleTap(context, ref, user, mappedRoles[i]),
                   ),
                   if (i < mappedRoles.length - 1)
                     const Divider(height: 1, indent: 56),
@@ -68,22 +72,40 @@ class RoleSwitchSection extends ConsumerWidget {
     );
   }
 
-  void _onRoleTap(
+  Future<void> _onRoleTap(
     BuildContext context,
     WidgetRef ref,
     User user,
     UserRole newRole,
-  ) {
+  ) async {
     if (newRole == user.role) return;
-    ref.read(authNotifierProvider.notifier).switchRole(newRole);
-    context.go(AppRoutes.home(newRole));
+
+    ref.read(isSwitchingRoleProvider.notifier).state = true;
+
+    try {
+      await ref.read(authNotifierProvider.notifier).switchRole(newRole);
+      if (context.mounted) {
+        context.go(AppRoutes.home(newRole));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal beralih peran: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      ref.read(isSwitchingRoleProvider.notifier).state = false;
+    }
   }
 }
 
 class _RoleTile extends StatelessWidget {
   final UserRole role;
   final bool isActive;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _RoleTile({
     required this.role,

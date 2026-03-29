@@ -5,12 +5,21 @@ import 'package:hyperarena/core/storage/secure_storage_service.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/auth/data/api_auth_repository.dart';
 import 'package:hyperarena/features/auth/data/mappers/auth_response_mapper.dart';
+import 'package:hyperarena/features/auth/data/mappers/role_mapper.dart';
 import 'package:hyperarena/features/auth/data/api_tenant_repository.dart';
 import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/mock_auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
 import 'package:hyperarena/features/auth/data/tenant_repository.dart';
+import 'package:hyperarena/features/booking/providers/booking_providers.dart';
+import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
+import 'package:hyperarena/features/gamification/providers/gamification_providers.dart';
+import 'package:hyperarena/features/notification/providers/notification_providers.dart';
+import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
+import 'package:hyperarena/features/owner/providers/owner_providers.dart';
+import 'package:hyperarena/features/session/providers/session_providers.dart';
 import 'package:hyperarena/shared/providers/app_config_provider.dart';
+import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,6 +42,9 @@ final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
 
 final authNotifierProvider =
     NotifierProvider<AuthNotifier, User?>(AuthNotifier.new);
+
+/// True while a role switch API call is in flight.
+final isSwitchingRoleProvider = StateProvider<bool>((ref) => false);
 
 class AuthNotifier extends Notifier<User?> {
   @override
@@ -111,22 +123,79 @@ class AuthNotifier extends Notifier<User?> {
   }
 
   void _updateUser(User user) {
-    // Preserve current role selection since /me doesn't return it
-    final current = state;
-    final updated =
-        current != null ? user.copyWith(role: current.role) : user;
-    _prefs.setString(_userKey, jsonEncode(updated.toJson()));
-    state = updated;
+    // Use backend's active_role as authoritative — do not preserve old role.
+    // Previously this preserved the local role via user.copyWith(role: current.role).
+    // Now that /me returns active_role, the backend is authoritative.
+    _prefs.setString(_userKey, jsonEncode(user.toJson()));
+    state = user;
   }
 
-  /// Switch the current user's active role and persist the change.
-  void switchRole(UserRole newRole) {
+  /// Switch the current user's active role via backend API.
+  Future<void> switchRole(UserRole newRole) async {
     final current = state;
     if (current == null || current.role == newRole) return;
 
-    final updated = current.copyWith(role: newRole);
-    state = updated;
-    _prefs.setString(_userKey, jsonEncode(updated.toJson()));
+    // Use resolveBackendRole to handle super-admin / organizer ambiguity
+    final backendRole = resolveBackendRole(
+      newRole,
+      current.availableRoles,
+    );
+
+    try {
+      final repo = ref.read(authRepositoryProvider);
+      final updatedUser = await repo.switchRole(backendRole);
+
+      // Update state from API response
+      state = updatedUser;
+      _prefs.setString(_userKey, jsonEncode(updatedUser.toJson()));
+
+      // Full provider reset
+      _invalidateAllFeatureProviders();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void _invalidateAllFeatureProviders() {
+    // Marketplace
+    ref.invalidate(marketplaceVenueListProvider);
+    ref.invalidate(marketplaceSessionListProvider);
+    ref.invalidate(marketplaceCoachListProvider);
+    ref.invalidate(sportFiltersProvider);
+
+    // Notifications
+    ref.invalidate(notificationListProvider);
+    ref.invalidate(unreadCountProvider);
+
+    // Gamification
+    ref.invalidate(badgeListProvider);
+    ref.invalidate(playerStatsProvider);
+
+    // Coach sessions
+    ref.invalidate(coachSessionListProvider);
+
+    // Player sessions
+    ref.invalidate(sessionListProvider);
+
+    // Bookings
+    ref.invalidate(bookingListProvider);
+
+    // Organizer
+    ref.invalidate(organizerDashboardProvider);
+    ref.invalidate(organizerSessionsProvider);
+    ref.invalidate(organizerUpcomingSessionsProvider);
+    ref.invalidate(organizerPastSessionsProvider);
+    ref.invalidate(organizerAgendaProvider);
+    ref.invalidate(organizerActionInboxProvider);
+    ref.invalidate(organizerEarningsProvider);
+    ref.invalidate(clubProfileProvider);
+    ref.invalidate(clubMembersProvider);
+
+    // Owner
+    ref.invalidate(ownerDashboardProvider);
+    ref.invalidate(ownerVenuesProvider);
+    ref.invalidate(ownerBookingQueueProvider);
+    ref.invalidate(ownerAvailabilityIssuesProvider);
   }
 
   Future<void> logout() async {

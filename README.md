@@ -73,7 +73,7 @@ HyperArena connects **players**, **coaches**, **organizers**, and **venue owners
 | Models | Freezed + json_serializable |
 | Structure | Feature-first modular architecture |
 
-The app uses a **repository abstraction pattern** — all data flows through abstract repositories, making it easy to swap between mock data and real APIs.
+The app uses a **repository abstraction pattern** — all data flows through abstract repositories. The runtime is always-online (talks to the production VPS by default); mock repositories live in the codebase for unit-test overrides only.
 
 ---
 
@@ -91,14 +91,21 @@ The app uses a **repository abstraction pattern** — all data flows through abs
 # Get dependencies
 flutter pub get
 
-# Run with mock data (recommended for development)
-flutter run -t lib/main_mock.dart
+# Run against production VPS (default — flagless `flutter run` also works)
+./scripts/run-production.sh   # Linux/macOS
+./scripts/run-production.ps1  # Windows PowerShell
+
+# Run against local Laravel backend
+./scripts/run-local.sh
+./scripts/run-local.ps1
 
 # Build release APK
-flutter build apk --release -t lib/main_mock.dart
+./scripts/build-production.sh
 ```
 
-> The app ships with comprehensive mock data so you can explore every screen without a backend.
+VS Code users: pick **"Flutter (local)"** or **"Flutter (production)"** from the Run and Debug panel.
+
+> Environment selection is compile-time via `--dart-define`. See [docs/flutter-environment.md](docs/flutter-environment.md) for the full env table, "adding a new variable" recipe, and troubleshooting. For local-backend setup (Laragon, LAN IP, firewall), see [docs/local-dev-setup.md](docs/local-dev-setup.md).
 
 ---
 

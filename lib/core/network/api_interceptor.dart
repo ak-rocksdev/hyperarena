@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:hyperarena/core/config/http_headers.dart';
 import 'package:hyperarena/core/network/api_exceptions.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
 
@@ -32,16 +33,16 @@ class ApiInterceptor extends Interceptor {
     if (!isPublic) {
       final token = _secureStorage.getToken();
       if (token != null) {
-        options.headers['Authorization'] = 'Bearer $token';
+        options.headers[HttpHeaders.authorization] = 'Bearer $token';
       }
     }
 
     // Dynamic headers (static headers set on BaseOptions)
-    options.headers['Accept-Language'] = _locale;
+    options.headers[HttpHeaders.acceptLanguage] = _locale;
 
     // Tenant slug (optional — null means skip)
     if (_tenantSlug != null) {
-      options.headers['X-Tenant'] = _tenantSlug;
+      options.headers[HttpHeaders.tenant] = _tenantSlug;
     }
 
     handler.next(options);

@@ -1,5 +1,7 @@
 # Local Development Setup (Flutter + Laravel Backend)
 
+This guide covers running the Flutter app against your local Laravel backend (instead of the production VPS). For the env-config system itself, see [flutter-environment.md](flutter-environment.md).
+
 ## Prerequisites
 
 - **Laragon** installed at `C:\laragon\` with Apache + MySQL
@@ -13,7 +15,7 @@
 ipconfig
 ```
 
-Look for the `IPv4 Address` under your active Wi-Fi or Ethernet adapter (e.g., `10.142.152.33`).
+Look for the `IPv4 Address` under your active Wi-Fi or Ethernet adapter (e.g., `192.168.1.6`).
 
 > **Note:** This IP can change when you switch networks. Re-check it if connections start failing.
 
@@ -27,28 +29,7 @@ APP_URL=http://<YOUR_LAN_IP>:8080
 
 This ensures image/asset URLs returned by the API are accessible from your device (not `localhost`).
 
-## Step 3: Update Flutter `apiBaseUrl`
-
-Edit `lib/core/config/app_config.dart`, update the `local` config:
-
-```dart
-static const local = AppConfig(
-  environment: Environment.local,
-  apiBaseUrl: 'http://<YOUR_LAN_IP>:8080/api',  // e.g. http://10.142.152.33:8080/api
-  useMockData: false,
-  enableLogging: true,
-  showDebugBanner: true,
-);
-```
-
-### Which IP to use?
-
-| Device            | IP to use                              |
-|-------------------|----------------------------------------|
-| Physical device   | Your PC's LAN IP (e.g. `192.168.x.x`) |
-| Android emulator  | `10.0.2.2` (special alias for host)    |
-
-## Step 4: Start the Laravel Backend
+## Step 3: Start the Laravel Backend
 
 ```bash
 cd C:\laragon\www\hypercoach
@@ -56,11 +37,11 @@ php artisan serve --host=0.0.0.0 --port=8080
 ```
 
 - `--host=0.0.0.0` makes it accept connections from other devices (not just localhost)
-- `--port=8080` matches the port in `apiBaseUrl`
+- `--port=8080` matches the port you'll pass to the Flutter app
 
-> **Alternative:** You can use Laragon's built-in Apache (port 80), but `php artisan serve` is simpler for development.
+> **Alternative:** Use Laragon's built-in Apache (port 80) if you've configured the `hyperarena.local` vhost. The default helper script assumes this. With `php artisan serve` you'll override the URL — see Step 5.
 
-## Step 5: Windows Firewall Rule (one-time)
+## Step 4: Windows Firewall Rule (one-time)
 
 If the device can't connect (connection timeout), open an **Administrator** terminal and run:
 
@@ -70,30 +51,48 @@ netsh advfirewall firewall add rule name="Laravel Dev" dir=in action=allow proto
 
 This allows incoming TCP connections on port 8080 through Windows Firewall.
 
-## Step 6: Run the Flutter App on Samsung Tab
+## Step 5: Run the Flutter App
+
+The default `run-local` script points at `http://hyperarena.local/api` (Laragon Apache). If you're using `php artisan serve` instead, override `API_BASE_URL` at the command line:
 
 ```bash
-flutter run -t lib/main_local.dart -d RR2X2003GAY
+# Linux/macOS or Git Bash
+./scripts/run-local.sh \
+  --dart-define=API_BASE_URL=http://<YOUR_LAN_IP>:8080/api \
+  -d <your-device-id>
+
+# Windows PowerShell
+./scripts/run-local.ps1 `
+  --dart-define=API_BASE_URL=http://<YOUR_LAN_IP>:8080/api `
+  -d <your-device-id>
 ```
 
-- `-t lib/main_local.dart` — uses the local backend config
-- `-d RR2X2003GAY` — targets the Samsung Galaxy Tab S9 (SM-X816B)
+To find device IDs: `flutter devices`. For an Android emulator, use `10.0.2.2` instead of your LAN IP (`http://10.0.2.2:8080/api`).
 
-> To find device IDs: `flutter devices`
+If you're using Laragon Apache with the default `hyperarena.local` vhost, the unmodified helper script works:
+
+```bash
+./scripts/run-local.sh -d <your-device-id>
+```
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `Connection refused` | Backend not running | Start `php artisan serve` |
-| `Connection timeout` | Wrong IP or firewall | Re-check LAN IP, add firewall rule |
+| `Connection refused` | Backend not running | Start `php artisan serve` (Step 3) |
+| `Connection timeout` | Wrong IP or firewall | Re-check LAN IP, add firewall rule (Step 4) |
 | `10.0.2.2` not working | Using physical device | Use LAN IP instead |
-| Images not loading | Backend image URLs use `localhost` | Update Laravel `APP_URL` in `.env` to `http://<YOUR_LAN_IP>:8080` |
+| Images not loading | Backend image URLs use `localhost` | Update Laravel `APP_URL` in `.env` (Step 2) |
+| `Failed host lookup: hyperarena.local` | Laragon Apache vhost not configured | Use `--dart-define=API_BASE_URL=http://<LAN_IP>:8080/api` (Step 5) |
 
-## Entry Points
+## How the Environment Config Works
 
-| File | Environment | Backend |
-|------|-------------|---------|
-| `lib/main.dart` | mock | No backend needed |
-| `lib/main_local.dart` | local | Local Laravel server |
-| `lib/main_dev.dart` | dev | `dev-api.hyperarena.id` |
+The Flutter app reads three compile-time `--dart-define` flags:
+
+| Flag | Default | Source |
+|------|---------|--------|
+| `APP_ENV` | `production` | `lib/core/config/app_env.dart` |
+| `API_BASE_URL` | `https://api.hyperarena.hyperscore.cloud/api` | same |
+| `DEFAULT_TENANT_SLUG` | `petenis-kelana` | same |
+
+A flagless `flutter run` hits production safely. The helper scripts in `scripts/` set `APP_ENV=local` and the local URL. To use a different URL, override at the command line as shown in Step 5. See [flutter-environment.md](flutter-environment.md) for the full reference.

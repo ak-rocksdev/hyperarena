@@ -1,9 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/network/dio_error_handler.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
-import 'package:hyperarena/features/organizer/data/mock_organizer_repository.dart';
 import 'package:hyperarena/features/organizer/data/models/club_member.dart';
 import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/organizer/data/models/create_session_draft.dart';
@@ -16,10 +14,8 @@ import 'package:hyperarena/features/session/data/models/session_participant.dart
 
 class ApiOrganizerRepository implements OrganizerRepository {
   final ApiClient _apiClient;
-  final MockOrganizerRepository _fallback;
 
-  ApiOrganizerRepository(this._apiClient, AppConfig config)
-      : _fallback = MockOrganizerRepository(config);
+  ApiOrganizerRepository(this._apiClient);
 
   // Short-lived caches to deduplicate concurrent requests from multiple
   // Riverpod providers that fire simultaneously on the dashboard screen.
@@ -228,25 +224,25 @@ class ApiOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<OpenSession> createSession(CreateSessionDraft draft) =>
-      _fallback.createSession(draft);
+      throw UnimplementedError('createSession: backend endpoint not yet available');
 
   @override
   Future<OpenSession> updateSession(
     String sessionId,
     CreateSessionDraft draft,
   ) =>
-      _fallback.updateSession(sessionId, draft);
+      throw UnimplementedError('updateSession: backend endpoint not yet available');
 
   @override
   Future<OpenSession> duplicateSession(
     String sessionId, {
     required DateTime newDate,
   }) =>
-      _fallback.duplicateSession(sessionId, newDate: newDate);
+      throw UnimplementedError('duplicateSession: backend endpoint not yet available');
 
   @override
   Future<OpenSession> createFromTemplate(String templateId, DateTime date) =>
-      _fallback.createFromTemplate(templateId, date);
+      throw UnimplementedError('createFromTemplate: backend endpoint not yet available');
 
   @override
   Future<OpenSession> rescheduleSession(
@@ -255,41 +251,36 @@ class ApiOrganizerRepository implements OrganizerRepository {
     required String newStartTime,
     required String newEndTime,
   }) =>
-      _fallback.rescheduleSession(
-        sessionId,
-        newDate: newDate,
-        newStartTime: newStartTime,
-        newEndTime: newEndTime,
-      );
+      throw UnimplementedError('rescheduleSession: backend endpoint not yet available');
 
   @override
   Future<OpenSession> cancelSession(
     String sessionId, {
     required String reason,
   }) =>
-      _fallback.cancelSession(sessionId, reason: reason);
+      throw UnimplementedError('cancelSession: backend endpoint not yet available');
 
   @override
   Future<OpenSession> completeSession(String sessionId) =>
-      _fallback.completeSession(sessionId);
+      throw UnimplementedError('completeSession: backend endpoint not yet available');
 
   @override
   Future<SessionParticipant> markNoShow(String participantId) =>
-      _fallback.markNoShow(participantId);
+      throw UnimplementedError('markNoShow: backend endpoint not yet available');
 
   @override
   Future<SessionParticipant> requestRefund(
     String participantId, {
     required String reason,
   }) =>
-      _fallback.requestRefund(participantId, reason: reason);
+      throw UnimplementedError('requestRefund: backend endpoint not yet available');
 
   @override
   Future<SessionParticipant> resolveDispute(
     String participantId, {
     required String resolution,
   }) =>
-      _fallback.resolveDispute(participantId, resolution: resolution);
+      throw UnimplementedError('resolveDispute: backend endpoint not yet available');
 
   @override
   Future<List<OrganizerActionItem>> getActionInbox({
@@ -322,12 +313,7 @@ class ApiOrganizerRepository implements OrganizerRepository {
     String? customMessage,
     bool pendingOnly = false,
   }) =>
-      _fallback.sendParticipantMessage(
-        sessionId,
-        templateCode: templateCode,
-        customMessage: customMessage,
-        pendingOnly: pendingOnly,
-      );
+      throw UnimplementedError('sendParticipantMessage: backend endpoint not yet available');
 
   @override
   Future<OrganizerEarningsSummary> getEarningsSummary() async {
@@ -383,15 +369,17 @@ class ApiOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<OrganizerSessionSettlement> getSessionSettlement(String sessionId) =>
-      _fallback.getSessionSettlement(sessionId);
+      throw UnimplementedError('getSessionSettlement: backend endpoint not yet available');
 
   @override
-  Future<ClubProfile> getClubProfile() => _fallback.getClubProfile();
+  Future<ClubProfile> getClubProfile() =>
+      throw UnimplementedError('getClubProfile: backend endpoint not yet available');
 
   @override
-  Future<List<ClubMember>> getClubMembers() => _fallback.getClubMembers();
+  Future<List<ClubMember>> getClubMembers() =>
+      throw UnimplementedError('getClubMembers: backend endpoint not yet available');
 
   @override
   Future<Map<String, String>> getSessionTemplates() =>
-      _fallback.getSessionTemplates();
+      throw UnimplementedError('getSessionTemplates: backend endpoint not yet available');
 }

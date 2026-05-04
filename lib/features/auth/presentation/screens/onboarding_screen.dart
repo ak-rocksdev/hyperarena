@@ -7,7 +7,7 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
+import 'package:hyperarena/shared/providers/network_providers.dart';
 
 class _OnboardingPage {
   final IconData icon;

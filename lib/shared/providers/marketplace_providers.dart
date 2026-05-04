@@ -8,7 +8,6 @@ import 'package:hyperarena/features/venue/data/api_marketplace_venue_repository.
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 import 'package:hyperarena/shared/data/api_sport_repository.dart';
 import 'package:hyperarena/shared/data/models/sport_filter.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 
 // ── Repository providers ──────────────────────────────────

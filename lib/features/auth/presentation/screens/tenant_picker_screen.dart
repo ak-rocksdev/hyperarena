@@ -11,7 +11,6 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/auth/data/models/tenant_summary.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 
 class TenantPickerScreen extends ConsumerStatefulWidget {

@@ -7,7 +7,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
+import 'package:hyperarena/shared/providers/network_providers.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});

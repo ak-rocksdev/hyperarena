@@ -1,10 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/services/push_notification_service.dart';
+import 'package:hyperarena/core/storage/secure_storage_service.dart';
 import 'package:hyperarena/features/notification/providers/notification_providers.dart';
 import 'package:hyperarena/routing/app_router.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
+
+/// Provided via ProviderScope.overrides in bootstrap
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError(
+    'sharedPreferencesProvider must be overridden at startup',
+  );
+});
+
+/// Provided via ProviderScope.overrides in bootstrap
+final secureStorageProvider = Provider<SecureStorageService>((ref) {
+  throw UnimplementedError(
+    'secureStorageProvider must be overridden at startup',
+  );
+});
 
 final tenantSlugProvider = StateProvider<String?>((ref) => null);
 

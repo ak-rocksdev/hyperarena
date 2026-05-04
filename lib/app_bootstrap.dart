@@ -7,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
 import 'package:hyperarena/firebase_options.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
+import 'package:hyperarena/shared/providers/app_config_provider.dart'; // appConfigProvider only
+import 'package:hyperarena/shared/providers/network_providers.dart'; // shared + secure storage providers
 import 'package:hyperarena/app.dart';
 
 /// Top-level background message handler (Firebase requirement).

@@ -7,7 +7,6 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_list_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/session_list_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_list_screen.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
@@ -31,8 +30,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final useMock = ref.watch(appConfigProvider).useMockData;
-
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -93,8 +90,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               ),
             ),
 
-            // Sport filter chips (API mode only — mock mode chips live in sub-screens)
-            if (!useMock) _buildApiSportChips(),
+            // Sport filter chips
+            _buildApiSportChips(),
 
             // Tab views
             Expanded(

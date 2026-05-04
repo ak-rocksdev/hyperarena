@@ -2,17 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
-import 'package:hyperarena/core/theme/app_enums.dart';
-import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
-import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
-import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
-import 'package:hyperarena/features/venue/presentation/widgets/venue_card.dart';
-import 'package:hyperarena/features/venue/providers/venue_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
 
@@ -36,8 +29,7 @@ class _VenueListScreenState extends ConsumerState<VenueListScreen> {
   @override
   void didUpdateWidget(covariant VenueListScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!ref.read(appConfigProvider).useMockData &&
-        widget.searchQuery != oldWidget.searchQuery) {
+    if (widget.searchQuery != oldWidget.searchQuery) {
       ref
           .read(marketplaceVenueListProvider.notifier)
           .loadInitial(search: widget.searchQuery);
@@ -60,94 +52,7 @@ class _VenueListScreenState extends ConsumerState<VenueListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final useMock = ref.watch(appConfigProvider).useMockData;
-    return useMock ? _buildMock() : _buildApi();
-  }
-
-  // ── Mock mode (unchanged logic) ──────────────────────────
-
-  Widget _buildMock() {
-    final filter = ref.watch(venueFilterProvider);
-    final venueList = ref.watch(venueListProvider);
-
-    return Column(
-      children: [
-        // Sport filter chips
-        SizedBox(
-          height: AppDimensions.chipHeight + AppDimensions.base,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.screenHorizontal,
-              vertical: AppDimensions.sm,
-            ),
-            children: Sport.values.map((sport) {
-              return Padding(
-                padding: const EdgeInsets.only(right: AppDimensions.sm),
-                child: SportChipSelector(
-                  sport: sport,
-                  isSelected: filter.sport == sport,
-                  onToggle: (_) =>
-                      ref.read(venueFilterProvider.notifier).setSport(sport),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-
-        // Venue list
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => ref.refresh(venueListProvider.future),
-            child: AsyncValueWidget(
-              value: venueList,
-              loading: () => ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.screenHorizontal,
-                ),
-                itemCount: 3,
-                itemBuilder: (_, _) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppDimensions.md),
-                  child: ShimmerLoading.card(height: 220),
-                ),
-              ),
-              error: (e, _) => ErrorView(
-                error: e,
-                onRetry: () => ref.invalidate(venueListProvider),
-              ),
-              data: (venues) {
-                final searchQuery = widget.searchQuery;
-                var filtered = venues;
-                if (searchQuery.isNotEmpty) {
-                  filtered = venues
-                      .where((v) =>
-                          v.name.toLowerCase().contains(searchQuery) ||
-                          v.city.toLowerCase().contains(searchQuery) ||
-                          v.address.toLowerCase().contains(searchQuery))
-                      .toList();
-                }
-                if (filtered.isEmpty) {
-                  return const EmptyState(
-                    message: 'Tidak ada lapangan ditemukan',
-                    icon: Icons.search_off,
-                  );
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.screenHorizontal,
-                  ),
-                  itemCount: filtered.length,
-                  itemBuilder: (_, i) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppDimensions.md),
-                    child: VenueCard(venue: filtered[i]),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    );
+    return _buildApi();
   }
 
   // ── API mode ─────────────────────────────────────────────

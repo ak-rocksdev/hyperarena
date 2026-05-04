@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hyperarena/core/mocks/mock_users.dart';
 import 'package:hyperarena/core/network/api_exceptions.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -12,7 +11,6 @@ import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/core/widgets/app_text_field.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -31,14 +29,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    final useMock = ref.read(appConfigProvider).useMockData;
-    // Pre-fill with mock credentials for fast dev login
-    _emailController = TextEditingController(
-      text: useMock ? MockUsers.currentUser.email : '',
-    );
-    _passwordController = TextEditingController(
-      text: useMock ? MockUsers.mockPassword : '',
-    );
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
   }
 
   @override
@@ -94,12 +86,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  void _quickLogin(String email) {
-    _emailController.text = email;
-    _passwordController.text = MockUsers.mockPassword;
-    _submit();
   }
 
   @override
@@ -246,71 +232,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ],
                         ),
-                        // Quick login buttons (mock only)
-                        if (ref.read(appConfigProvider).useMockData) ...[
-                          const SizedBox(height: AppDimensions.xl),
-                          Divider(color: AppColors.neutral200),
-                          const SizedBox(height: AppDimensions.sm),
-                          Text(
-                            'Quick Login (Mock)',
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textTertiary,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: AppDimensions.sm),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _QuickLoginButton(
-                                  label: 'Player',
-                                  icon: Icons.person,
-                                  color: AppColors.primary,
-                                  onPressed: _isLoading
-                                      ? null
-                                      : () => _quickLogin(MockUsers.currentUser.email),
-                                ),
-                              ),
-                              const SizedBox(width: AppDimensions.sm),
-                              Expanded(
-                                child: _QuickLoginButton(
-                                  label: 'Coach',
-                                  icon: Icons.sports,
-                                  color: AppColors.secondary,
-                                  onPressed: _isLoading
-                                      ? null
-                                      : () => _quickLogin(MockUsers.coachUser.email),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppDimensions.sm),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _QuickLoginButton(
-                                  label: 'Host',
-                                  icon: Icons.event,
-                                  color: AppColors.accent,
-                                  onPressed: _isLoading
-                                      ? null
-                                      : () => _quickLogin(MockUsers.organizerUser.email),
-                                ),
-                              ),
-                              const SizedBox(width: AppDimensions.sm),
-                              Expanded(
-                                child: _QuickLoginButton(
-                                  label: 'Owner',
-                                  icon: Icons.store,
-                                  color: AppColors.neutral500,
-                                  onPressed: _isLoading
-                                      ? null
-                                      : () => _quickLogin(MockUsers.ownerUser.email),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
                         const SizedBox(height: AppDimensions.xxl),
                         Text(
                           'Beta Release v0.0.1',
@@ -332,30 +253,3 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-class _QuickLoginButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback? onPressed;
-
-  const _QuickLoginButton({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: color,
-        side: BorderSide(color: color),
-        padding: const EdgeInsets.symmetric(vertical: AppDimensions.sm),
-      ),
-    );
-  }
-}

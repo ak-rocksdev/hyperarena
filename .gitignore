@@ -3,6 +3,8 @@
 *.lock
 *.log
 *.pyc
+.tmp-plan/
+HANDOFF-FLUTTER-VPS-ENV.md
 *.swp
 .buildlog/
 .history

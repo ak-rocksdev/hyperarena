@@ -11,12 +11,10 @@ final tenantSlugProvider = StateProvider<String?>((ref) => null);
 final localeProvider = StateProvider<String>((ref) => 'id');
 
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final config = ref.watch(appConfigProvider);
   final secureStorage = ref.watch(secureStorageProvider);
   final tenantSlug = ref.watch(tenantSlugProvider);
   final locale = ref.watch(localeProvider);
   return ApiClient(
-    config: config,
     secureStorage: secureStorage,
     onUnauthorized: () => ref.read(appRouterProvider).go(AppRoutes.login),
     tenantSlug: tenantSlug,

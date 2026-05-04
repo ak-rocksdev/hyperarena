@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:hyperarena/core/config/app_config.dart';
+import 'package:hyperarena/core/config/app_env.dart';
+import 'package:hyperarena/core/config/http_headers.dart';
 import 'package:hyperarena/core/network/api_interceptor.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
 
@@ -7,20 +8,19 @@ class ApiClient {
   final Dio _dio;
 
   ApiClient({
-    required AppConfig config,
     required SecureStorageService secureStorage,
     void Function()? onUnauthorized,
     String? tenantSlug,
     String locale = 'id',
   }) : _dio = Dio(BaseOptions(
-          baseUrl: config.apiBaseUrl,
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 15),
+          baseUrl: AppEnv.apiBaseUrl,
+          connectTimeout: AppEnv.httpTimeout,
+          receiveTimeout: AppEnv.httpTimeout,
           headers: {
-            'X-Client-Type': 'mobile',
-            'X-Device-Name': 'HyperArena Mobile',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
+            HttpHeaders.clientType: HttpHeaders.clientTypeMobile,
+            HttpHeaders.deviceName: 'HyperArena Mobile',
+            HttpHeaders.accept: 'application/json',
+            HttpHeaders.contentType: 'application/json',
           },
         )) {
     _dio.interceptors.add(
@@ -31,7 +31,7 @@ class ApiClient {
         locale: locale,
       ),
     );
-    if (config.enableLogging) {
+    if (AppEnv.isLocal) {
       _dio.interceptors.add(LogInterceptor(
         requestBody: true,
         responseBody: true,

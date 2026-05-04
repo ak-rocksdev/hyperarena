@@ -14,7 +14,8 @@ The HyperArena Flutter app uses compile-time `--dart-define` flags to switch bet
 ./scripts/run-production.ps1  # Windows PowerShell
 
 # Release APK
-./scripts/build-production.sh
+./scripts/build-production.sh   # Linux/macOS
+./scripts/build-production.ps1  # Windows PowerShell
 ```
 
 VS Code users: pick **"Flutter (local)"** or **"Flutter (production)"** from the Run and Debug panel.
@@ -39,7 +40,7 @@ To add a new env var (e.g. `FCM_SERVER_KEY`):
    );
    ```
 2. **Add a unit test** in `test/core/config/app_env_test.dart` for the default value.
-3. **Add the flag** to all four helper scripts (`scripts/run-local.{sh,ps1}` and `scripts/run-production.{sh,ps1}`) and `scripts/build-production.{sh,ps1}`.
+3. **Add the flag** to all six helper scripts (`scripts/run-local.{sh,ps1}`, `scripts/run-production.{sh,ps1}`, and `scripts/build-production.{sh,ps1}`).
 4. **Add the flag** to both configurations in `.vscode/launch.json`.
 5. **Add a row** to the table above.
 

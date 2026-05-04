@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hyperarena/core/config/app_env.dart';
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/services/push_notification_service.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
@@ -21,7 +22,12 @@ final secureStorageProvider = Provider<SecureStorageService>((ref) {
   );
 });
 
-final tenantSlugProvider = StateProvider<String?>((ref) => null);
+/// Defaults to `AppEnv.defaultTenantSlug` for the single-tenant world.
+/// On login, `auth_provider` overwrites with the user's actual tenant
+/// from the API response. When multi-tenant lands, default to `null` and
+/// surface the tenant picker before `apiClientProvider` builds.
+final tenantSlugProvider =
+    StateProvider<String?>((ref) => AppEnv.defaultTenantSlug);
 
 final localeProvider = StateProvider<String>((ref) => 'id');
 

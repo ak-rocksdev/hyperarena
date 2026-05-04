@@ -14,7 +14,7 @@ class AppEnv {
 
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://api.hyperarena.hyperscore.cloud/api/v1',
+    defaultValue: 'https://api.hyperarena.hyperscore.cloud/api',
   );
 
   static const String defaultTenantSlug = String.fromEnvironment(

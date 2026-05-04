@@ -25,7 +25,7 @@ VS Code users: pick **"Flutter (local)"** or **"Flutter (production)"** from the
 | `--dart-define` flag | `AppEnv` accessor | Local value | Production value | Default |
 |---|---|---|---|---|
 | `APP_ENV` | `AppEnv.name` | `local` | `production` | `production` |
-| `API_BASE_URL` | `AppEnv.apiBaseUrl` | `http://hyperarena.local/api/v1` | `https://api.hyperarena.hyperscore.cloud/api/v1` | production URL |
+| `API_BASE_URL` | `AppEnv.apiBaseUrl` | `http://hyperarena.local/api` | `https://api.hyperarena.hyperscore.cloud/api` | production URL |
 | `DEFAULT_TENANT_SLUG` | `AppEnv.defaultTenantSlug` | `petenis-kelana` | `petenis-kelana` | `petenis-kelana` |
 
 ## Adding a New Environment Variable

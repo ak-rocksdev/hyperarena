@@ -10,7 +10,7 @@ void main() {
     test('apiBaseUrl defaults to VPS production URL', () {
       expect(
         AppEnv.apiBaseUrl,
-        'https://api.hyperarena.hyperscore.cloud/api/v1',
+        'https://api.hyperarena.hyperscore.cloud/api',
       );
     });
 

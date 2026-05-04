@@ -2,28 +2,26 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Mock",
+      "name": "Flutter (local)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main_mock.dart"
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=APP_ENV=local",
+        "--dart-define=API_BASE_URL=http://hyperarena.local/api/v1",
+        "--dart-define=DEFAULT_TENANT_SLUG=petenis-kelana"
+      ]
     },
     {
-      "name": "Local",
+      "name": "Flutter (production)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main_local.dart"
-    },
-    {
-      "name": "Dev",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main_dev.dart"
-    },
-    {
-      "name": "Production",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main.dart"
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=APP_ENV=production",
+        "--dart-define=API_BASE_URL=https://api.hyperarena.hyperscore.cloud/api/v1",
+        "--dart-define=DEFAULT_TENANT_SLUG=petenis-kelana"
+      ]
     }
   ]
 }

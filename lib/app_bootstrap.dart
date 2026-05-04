@@ -21,19 +21,16 @@ Future<void> bootstrap(AppConfig config) async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  // Firebase init (skip in mock mode — no Firebase config available)
-  if (!config.useMockData) {
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      FirebaseMessaging.onBackgroundMessage(
-        _firebaseMessagingBackgroundHandler,
-      );
-    } catch (e) {
-      // Firebase not configured for this platform (e.g. web) — continue without it
-      debugPrint('Firebase init skipped: $e');
-    }
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(
+      _firebaseMessagingBackgroundHandler,
+    );
+  } catch (e) {
+    // Firebase not configured for this platform (e.g. web) — continue without it.
+    debugPrint('Firebase init skipped: $e');
   }
 
   final sharedPrefs = await SharedPreferences.getInstance();

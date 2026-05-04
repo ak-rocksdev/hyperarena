@@ -33,7 +33,7 @@ class AppConfig {
 
   static const local = AppConfig(
     environment: Environment.local,
-    apiBaseUrl: 'http://10.142.152.40:8080/api',
+    apiBaseUrl: 'http://192.168.1.6:8080/api',
     useMockData: false,
     enableLogging: true,
     showDebugBanner: true,
@@ -49,7 +49,7 @@ class AppConfig {
 
   static const production = AppConfig(
     environment: Environment.production,
-    apiBaseUrl: 'https://api.hyperarena.id/api',
+    apiBaseUrl: 'https://api.hyperarena.hyperscore.cloud/api/v1',
     useMockData: false,
     enableLogging: false,
     showDebugBanner: false,

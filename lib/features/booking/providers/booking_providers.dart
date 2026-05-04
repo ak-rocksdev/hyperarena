@@ -7,13 +7,10 @@ import 'package:hyperarena/features/booking/data/models/booking_summary.dart';
 import 'package:hyperarena/features/venue/data/models/court.dart';
 import 'package:hyperarena/features/venue/data/models/court_slot.dart';
 import 'package:hyperarena/features/venue/data/models/venue.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
-
 // ── DI ──────────────────────────────────────────────────────────
 
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  return MockBookingRepository(config);
+  return MockBookingRepository();
 });
 
 // ── Booking Flow ────────────────────────────────────────────────

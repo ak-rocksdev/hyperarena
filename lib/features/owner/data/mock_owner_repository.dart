@@ -1,4 +1,3 @@
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/booking/data/models/booking.dart';
@@ -9,9 +8,10 @@ import 'package:hyperarena/features/venue/data/models/court.dart';
 import 'package:hyperarena/features/venue/data/models/venue.dart';
 
 class MockOwnerRepository implements OwnerRepository {
-  MockOwnerRepository(this.config);
+  static const Duration _delay = Duration(milliseconds: 500);
 
-  final AppConfig config;
+  MockOwnerRepository();
+
   static const _ownerId = 'owner-001';
 
   List<Venue> get _venues =>
@@ -31,7 +31,7 @@ class MockOwnerRepository implements OwnerRepository {
 
   @override
   Future<OwnerDashboardStats> getDashboard() async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final venues = _venues;
     final venueIds = venues.map((v) => v.id).toList();
     final now = DateTime.now();
@@ -78,13 +78,13 @@ class MockOwnerRepository implements OwnerRepository {
 
   @override
   Future<List<Venue>> getMyVenues() async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _venues;
   }
 
   @override
   Future<Venue> getVenueDetail(String venueId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _venues.firstWhere((v) => v.id == venueId);
   }
 
@@ -95,7 +95,7 @@ class MockOwnerRepository implements OwnerRepository {
     String? description,
     String? address,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final venue = await getVenueDetail(venueId);
     final updated = venue.copyWith(
       name: name ?? venue.name,
@@ -108,7 +108,7 @@ class MockOwnerRepository implements OwnerRepository {
 
   @override
   Future<List<Booking>> getBookingQueue({String? venueId}) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final venueIds = venueId != null
         ? [venueId]
         : _venues.map((v) => v.id).toList();
@@ -117,7 +117,7 @@ class MockOwnerRepository implements OwnerRepository {
 
   @override
   Future<Booking> confirmBookingPayment(String bookingId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final booking = MockData.bookings.firstWhere((b) => b.id == bookingId);
     final updated = booking.copyWith(status: BookingStatus.confirmed);
     MockData.upsertBooking(updated);
@@ -129,7 +129,7 @@ class MockOwnerRepository implements OwnerRepository {
     String bookingId, {
     required String reason,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final booking = MockData.bookings.firstWhere((b) => b.id == bookingId);
     final updated = booking.copyWith(status: BookingStatus.rejected);
     MockData.upsertBooking(updated);
@@ -138,7 +138,7 @@ class MockOwnerRepository implements OwnerRepository {
 
   @override
   Future<Booking> markBookingSettled(String bookingId, {String? note}) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final booking = MockData.bookings.firstWhere((b) => b.id == bookingId);
     final updated = booking.copyWith(status: BookingStatus.confirmed);
     MockData.upsertBooking(updated);
@@ -147,7 +147,7 @@ class MockOwnerRepository implements OwnerRepository {
 
   @override
   Future<List<CourtAvailabilityIssue>> getCourtAvailabilityIssues() async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final myVenueIds = _venues.map((v) => v.id).toSet();
     return MockData.ownerIssues
         .where((i) => myVenueIds.contains(i.venueId))
@@ -167,7 +167,7 @@ class MockOwnerRepository implements OwnerRepository {
     required DateTime to,
     required String reason,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final court = _findCourtById(courtId);
     final venue = _venues.firstWhere((v) => v.id == court.venueId);
     final issue = CourtAvailabilityIssue(

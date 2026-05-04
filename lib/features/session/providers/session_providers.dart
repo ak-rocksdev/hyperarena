@@ -3,13 +3,10 @@ import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/session/data/mock_session_repository.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/session_repository.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
-
 // ── DI ──────────────────────────────────────────────────────────
 
 final sessionRepositoryProvider = Provider<SessionRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  return MockSessionRepository(config);
+  return MockSessionRepository();
 });
 
 // ── Filter state ────────────────────────────────────────────────

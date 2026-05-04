@@ -4,13 +4,10 @@ import 'package:hyperarena/features/venue/data/mock_venue_repository.dart';
 import 'package:hyperarena/features/venue/data/models/court_slot.dart';
 import 'package:hyperarena/features/venue/data/models/venue.dart';
 import 'package:hyperarena/features/venue/data/venue_repository.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
-
 // ── DI ──────────────────────────────────────────────────────────
 
 final venueRepositoryProvider = Provider<VenueRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  return MockVenueRepository(config);
+  return MockVenueRepository();
 });
 
 // ── Filter state ────────────────────────────────────────────────

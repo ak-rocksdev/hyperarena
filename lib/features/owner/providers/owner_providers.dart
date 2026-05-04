@@ -5,11 +5,8 @@ import 'package:hyperarena/features/owner/data/models/court_availability_issue.d
 import 'package:hyperarena/features/owner/data/models/owner_dashboard_stats.dart';
 import 'package:hyperarena/features/owner/data/owner_repository.dart';
 import 'package:hyperarena/features/venue/data/models/venue.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
-
 final ownerRepositoryProvider = Provider<OwnerRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  return MockOwnerRepository(config);
+  return MockOwnerRepository();
 });
 
 final ownerDashboardProvider = FutureProvider<OwnerDashboardStats>((ref) {

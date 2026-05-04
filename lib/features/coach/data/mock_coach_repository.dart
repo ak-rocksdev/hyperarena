@@ -1,4 +1,3 @@
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/coach/data/coach_repository.dart';
@@ -8,18 +7,18 @@ import 'package:hyperarena/features/coach/data/models/coach_package.dart';
 import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 
 class MockCoachRepository implements CoachRepository {
-  final AppConfig config;
+  static const Duration _delay = Duration(milliseconds: 500);
 
   // Mock current user constants
   static const _currentCoachId = 'coach-001';
   static const _currentPlayerId = 'user-001';
   static const _currentPlayerName = 'Budi Santoso';
 
-  MockCoachRepository(this.config);
+  MockCoachRepository();
 
   @override
   Future<List<Coach>> getCoaches({Sport? sport}) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     var coaches = MockData.coaches;
     if (sport != null) {
       coaches = coaches.where((c) => c.sports.contains(sport)).toList();
@@ -29,13 +28,13 @@ class MockCoachRepository implements CoachRepository {
 
   @override
   Future<Coach> getCoach(String id) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.coaches.firstWhere((c) => c.id == id);
   }
 
   @override
   Future<List<CoachPackage>> getCoachPackages(String coachId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.coachPackages
         .where((p) => p.coachId == coachId)
         .toList();
@@ -46,7 +45,7 @@ class MockCoachRepository implements CoachRepository {
     String? coachId,
     String? playerId,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     var bookings = MockData.coachingBookings;
     if (coachId != null) {
       bookings = bookings.where((b) => b.coachId == coachId).toList();
@@ -66,7 +65,7 @@ class MockCoachRepository implements CoachRepository {
     required String endTime,
     required String venueName,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final coach = MockData.coaches.firstWhere((c) => c.id == coachId);
     final package = MockData.coachPackages.firstWhere((p) => p.id == packageId);
     return CoachingBooking(
@@ -93,7 +92,7 @@ class MockCoachRepository implements CoachRepository {
     String? coachId,
     String? studentId,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     var assessments = MockData.assessments;
     if (coachId != null) {
       assessments =
@@ -124,7 +123,7 @@ class MockCoachRepository implements CoachRepository {
     String? playingStyleNotes,
     String? strengthHighlight,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final coach =
         MockData.coaches.firstWhere((c) => c.id == _currentCoachId);
     return Assessment(
@@ -152,7 +151,7 @@ class MockCoachRepository implements CoachRepository {
 
   @override
   Future<List<String>> getStudentNames(String coachId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final bookings = MockData.coachingBookings
         .where((b) => b.coachId == coachId)
         .toList();

@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/booking/data/booking_repository.dart';
@@ -8,9 +7,9 @@ import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:intl/intl.dart';
 
 class MockBookingRepository implements BookingRepository {
-  final AppConfig config;
+  static const Duration _delay = Duration(milliseconds: 500);
 
-  MockBookingRepository(this.config);
+  MockBookingRepository();
 
   List<Booking> get _bookings => MockData.bookings;
 
@@ -32,7 +31,7 @@ class MockBookingRepository implements BookingRepository {
     String? venueName,
     String? courtName,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final now = DateTime.now();
     final booking = Booking(
       id: 'booking-${now.millisecondsSinceEpoch}',
@@ -58,7 +57,7 @@ class MockBookingRepository implements BookingRepository {
 
   @override
   Future<List<Booking>> getBookings({BookingStatus? status}) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     if (status != null) {
       return _bookings.where((b) => b.status == status).toList();
     }
@@ -67,13 +66,13 @@ class MockBookingRepository implements BookingRepository {
 
   @override
   Future<Booking> getBooking(String id) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _bookings.firstWhere((b) => b.id == id);
   }
 
   @override
   Future<Booking> uploadPaymentProof(String bookingId, String proofUrl) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final index = _bookings.indexWhere((b) => b.id == bookingId);
     final updated = _bookings[index].copyWith(
       status: BookingStatus.waitingConfirmation,
@@ -85,7 +84,7 @@ class MockBookingRepository implements BookingRepository {
 
   @override
   Future<Booking> cancelBooking(String id) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final index = _bookings.indexWhere((b) => b.id == id);
     final updated = _bookings[index].copyWith(status: BookingStatus.cancelled);
     MockData.upsertBooking(updated);

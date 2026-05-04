@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/booking/data/models/booking.dart';
@@ -15,9 +14,10 @@ import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
 
 class MockOrganizerRepository implements OrganizerRepository {
-  MockOrganizerRepository(this.config);
+  static const Duration _delay = Duration(milliseconds: 500);
 
-  final AppConfig config;
+  MockOrganizerRepository();
+
   static const _organizerId = 'organizer-001';
 
   List<OpenSession> get _mySessions =>
@@ -64,7 +64,7 @@ class MockOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<OrganizerDashboardStats> getDashboard() async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final now = DateTime.now();
     final next7 = now.add(const Duration(days: 7));
     final sessions = _mySessions;
@@ -132,7 +132,7 @@ class MockOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<List<OpenSession>> getMySessions({bool upcomingOnly = false}) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     if (!upcomingOnly) {
       return _mySessions;
     }
@@ -145,7 +145,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     required DateTime from,
     required DateTime to,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final rangeStart = _startOfDay(from);
     final rangeEnd = _endOfDay(to);
     return _mySessions
@@ -155,13 +155,13 @@ class MockOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<OpenSession> getSessionDetail(String sessionId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _mySessions.firstWhere((s) => s.id == sessionId);
   }
 
   @override
   Future<OpenSession> createSession(CreateSessionDraft draft) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final now = DateTime.now();
     final id = 'session-${now.millisecondsSinceEpoch}';
 
@@ -202,7 +202,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     String sessionId,
     CreateSessionDraft draft,
   ) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final current = await getSessionDetail(sessionId);
     final updated = _applyDraftToSession(current, draft);
     MockData.upsertSession(updated);
@@ -214,7 +214,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     String sessionId, {
     required DateTime newDate,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final source = await getSessionDetail(sessionId);
     final duplicate = source.copyWith(
       id: 'session-${DateTime.now().millisecondsSinceEpoch}',
@@ -235,7 +235,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     String templateId,
     DateTime date,
   ) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final totalSessions = MockData.sessions.isEmpty
         ? 1
         : MockData.sessions.length;
@@ -251,7 +251,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     required String newStartTime,
     required String newEndTime,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final current = await getSessionDetail(sessionId);
     final updated = current.copyWith(
       date: newDate,
@@ -267,7 +267,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     String sessionId, {
     required String reason,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final current = await getSessionDetail(sessionId);
     final updated = current.copyWith(status: OpenSessionStatus.cancelled);
     MockData.upsertSession(updated);
@@ -276,7 +276,7 @@ class MockOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<OpenSession> completeSession(String sessionId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final current = await getSessionDetail(sessionId);
     final updated = current.copyWith(status: OpenSessionStatus.completed);
     MockData.upsertSession(updated);
@@ -285,7 +285,7 @@ class MockOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<List<SessionParticipant>> getParticipants(String sessionId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _participantsBySession(sessionId);
   }
 
@@ -349,7 +349,7 @@ class MockOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<SessionParticipant> confirmParticipant(String participantId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _updateParticipant(
       participantId,
       SessionParticipantStatus.confirmed,
@@ -361,7 +361,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     String participantId, {
     required String reason,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _updateParticipant(
       participantId,
       SessionParticipantStatus.rejected,
@@ -371,7 +371,7 @@ class MockOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<SessionParticipant> markNoShow(String participantId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _updateParticipant(participantId, SessionParticipantStatus.noShow);
   }
 
@@ -380,7 +380,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     String participantId, {
     required String reason,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _updateParticipant(
       participantId,
       SessionParticipantStatus.refunded,
@@ -393,7 +393,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     String participantId, {
     required String resolution,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return _updateParticipant(
       participantId,
       SessionParticipantStatus.confirmed,
@@ -406,7 +406,7 @@ class MockOrganizerRepository implements OrganizerRepository {
     OrganizerActionType? type,
     OrganizerActionSeverity? severity,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final items = <OrganizerActionItem>[];
     final sessions = _mySessions;
     final now = DateTime.now();
@@ -498,12 +498,12 @@ class MockOrganizerRepository implements OrganizerRepository {
     String? customMessage,
     bool pendingOnly = false,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
   }
 
   @override
   Future<OrganizerEarningsSummary> getEarningsSummary() async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final settlements = _mySessions.map((session) {
       final gross = session.currentPlayers * session.pricePerPerson;
       final estimatedCost = (session.courtCost ?? 0) + (session.coachCost ?? 0);
@@ -563,26 +563,26 @@ class MockOrganizerRepository implements OrganizerRepository {
   Future<OrganizerSessionSettlement> getSessionSettlement(
     String sessionId,
   ) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final earnings = await getEarningsSummary();
     return earnings.settlements.firstWhere((s) => s.sessionId == sessionId);
   }
 
   @override
   Future<ClubProfile> getClubProfile() async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.clubProfile;
   }
 
   @override
   Future<List<ClubMember>> getClubMembers() async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.clubMembers;
   }
 
   @override
   Future<Map<String, String>> getSessionTemplates() async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.organizerSessionTemplates;
   }
 }

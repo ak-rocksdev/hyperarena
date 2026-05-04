@@ -1,27 +1,26 @@
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/features/review/data/models/venue_rating_aggregate.dart';
 import 'package:hyperarena/features/review/data/models/venue_review.dart';
 import 'package:hyperarena/features/review/data/venue_review_repository.dart';
 
 class MockVenueReviewRepository implements VenueReviewRepository {
-  final AppConfig config;
+  static const Duration _delay = Duration(milliseconds: 500);
 
   static const _currentPlayerId = 'user-001';
   static const _currentPlayerName = 'Budi Santoso';
 
-  MockVenueReviewRepository(this.config);
+  MockVenueReviewRepository();
 
   @override
   Future<List<VenueReview>> getVenueReviews(String venueId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.venueReviews.where((r) => r.venueId == venueId).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   @override
   Future<List<VenueReview>> getPlayerVenueReviews(String reviewerId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.venueReviews
         .where((r) => r.reviewerId == reviewerId)
         .toList()
@@ -33,7 +32,7 @@ class MockVenueReviewRepository implements VenueReviewRepository {
     required String reviewerId,
     required String bookingId,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.venueReviews.any(
       (r) => r.reviewerId == reviewerId && r.bookingId == bookingId,
     );
@@ -46,7 +45,7 @@ class MockVenueReviewRepository implements VenueReviewRepository {
     required int rating,
     String? comment,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final booking = MockData.bookings.firstWhere((b) => b.id == bookingId);
     final review = VenueReview(
       id: 'vr-${DateTime.now().millisecondsSinceEpoch}',
@@ -66,7 +65,7 @@ class MockVenueReviewRepository implements VenueReviewRepository {
 
   @override
   Future<VenueRatingAggregate> getVenueRating(String venueId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final reviews =
         MockData.venueReviews.where((r) => r.venueId == venueId).toList();
     if (reviews.isEmpty) {

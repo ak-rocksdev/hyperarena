@@ -1,34 +1,33 @@
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/features/review/data/models/coach_rating_aggregate.dart';
 import 'package:hyperarena/features/review/data/models/review.dart';
 import 'package:hyperarena/features/review/data/review_repository.dart';
 
 class MockReviewRepository implements ReviewRepository {
-  final AppConfig config;
+  static const Duration _delay = Duration(milliseconds: 500);
 
   static const _currentPlayerId = 'user-001';
   static const _currentPlayerName = 'Budi Santoso';
 
-  MockReviewRepository(this.config);
+  MockReviewRepository();
 
   @override
   Future<List<Review>> getCoachReviews(String coachId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.reviews.where((r) => r.coachId == coachId).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   @override
   Future<List<Review>> getPlayerReviews(String reviewerId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.reviews.where((r) => r.reviewerId == reviewerId).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   @override
   Future<List<Review>> getSessionReviews(String sessionId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.reviews.where((r) => r.sessionId == sessionId).toList();
   }
 
@@ -37,7 +36,7 @@ class MockReviewRepository implements ReviewRepository {
     required String reviewerId,
     required String sessionId,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.reviews.any(
       (r) => r.reviewerId == reviewerId && r.sessionId == sessionId,
     );
@@ -50,7 +49,7 @@ class MockReviewRepository implements ReviewRepository {
     required int rating,
     String? comment,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final session = MockData.sessions.firstWhere((s) => s.id == sessionId);
     final coach = MockData.coaches.firstWhere((c) => c.id == coachId);
     final review = Review(
@@ -72,7 +71,7 @@ class MockReviewRepository implements ReviewRepository {
 
   @override
   Future<CoachRatingAggregate> getCoachRating(String coachId) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     final reviews =
         MockData.reviews.where((r) => r.coachId == coachId).toList();
     if (reviews.isEmpty) {

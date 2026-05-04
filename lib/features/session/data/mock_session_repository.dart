@@ -1,17 +1,16 @@
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/session_repository.dart';
 
 class MockSessionRepository implements SessionRepository {
-  final AppConfig config;
+  static const Duration _delay = Duration(milliseconds: 500);
 
-  MockSessionRepository(this.config);
+  MockSessionRepository();
 
   @override
   Future<List<OpenSession>> getSessions({Sport? sport}) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     var sessions = MockData.sessions;
     if (sport != null) {
       sessions = sessions.where((s) => s.sport == sport).toList();
@@ -21,7 +20,7 @@ class MockSessionRepository implements SessionRepository {
 
   @override
   Future<OpenSession> getSession(String id) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     return MockData.sessions.firstWhere((s) => s.id == id);
   }
 }

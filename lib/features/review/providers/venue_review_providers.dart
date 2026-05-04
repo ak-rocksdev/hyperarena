@@ -3,13 +3,10 @@ import 'package:hyperarena/features/review/data/mock_venue_review_repository.dar
 import 'package:hyperarena/features/review/data/models/venue_rating_aggregate.dart';
 import 'package:hyperarena/features/review/data/models/venue_review.dart';
 import 'package:hyperarena/features/review/data/venue_review_repository.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
-
 // ── DI ──────────────────────────────────────────────────────────
 
 final venueReviewRepositoryProvider = Provider<VenueReviewRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  return MockVenueReviewRepository(config);
+  return MockVenueReviewRepository();
 });
 
 // ── Venue reviews (all reviews for a venue — PUBLIC) ────────────

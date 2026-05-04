@@ -3,13 +3,10 @@ import 'package:hyperarena/features/review/data/mock_review_repository.dart';
 import 'package:hyperarena/features/review/data/models/coach_rating_aggregate.dart';
 import 'package:hyperarena/features/review/data/models/review.dart';
 import 'package:hyperarena/features/review/data/review_repository.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
-
 // ── DI ──────────────────────────────────────────────────────────
 
 final reviewRepositoryProvider = Provider<ReviewRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  return MockReviewRepository(config);
+  return MockReviewRepository();
 });
 
 // ── Coach reviews (coach views their own reviews) ───────────────

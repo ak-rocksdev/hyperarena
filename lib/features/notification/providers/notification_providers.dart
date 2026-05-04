@@ -5,12 +5,10 @@ import 'package:hyperarena/features/notification/data/mock_notification_reposito
 import 'package:hyperarena/features/notification/data/models/notification_item.dart';
 import 'package:hyperarena/features/notification/data/notification_repository.dart';
 import 'package:hyperarena/features/notification/utils/notification_route_resolver.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  return MockNotificationRepository(config);
+  return MockNotificationRepository();
 });
 
 final notificationListProvider =

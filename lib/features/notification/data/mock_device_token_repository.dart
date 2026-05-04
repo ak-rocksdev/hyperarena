@@ -1,12 +1,11 @@
 import 'dart:developer';
 
-import 'package:hyperarena/core/config/app_config.dart';
 import 'package:hyperarena/features/notification/data/device_token_repository.dart';
 
 class MockDeviceTokenRepository implements DeviceTokenRepository {
-  final AppConfig config;
+  static const Duration _delay = Duration(milliseconds: 500);
 
-  MockDeviceTokenRepository(this.config);
+  MockDeviceTokenRepository();
 
   @override
   Future<void> registerToken({
@@ -14,13 +13,13 @@ class MockDeviceTokenRepository implements DeviceTokenRepository {
     required String platform,
     String? deviceName,
   }) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     log('MockDeviceTokenRepository.registerToken: $fcmToken ($platform)');
   }
 
   @override
   Future<void> removeToken(String fcmToken) async {
-    await Future.delayed(config.mockDelay);
+    await Future.delayed(_delay);
     log('MockDeviceTokenRepository.removeToken: $fcmToken');
   }
 }

@@ -3,8 +3,6 @@
 *.lock
 *.log
 *.pyc
-.tmp-plan/
-HANDOFF-FLUTTER-VPS-ENV.md
 *.swp
 .buildlog/
 .history
@@ -122,3 +120,6 @@ app.*.symbols
 
 # Screenshots
 screenshot_*.png
+
+# Local release artifacts
+/releases/

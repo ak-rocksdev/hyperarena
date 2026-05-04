@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/features/notification/data/api_device_token_repository.dart';
 import 'package:hyperarena/features/notification/data/device_token_repository.dart';
-import 'package:hyperarena/features/notification/data/mock_device_token_repository.dart';
 import 'package:hyperarena/features/notification/data/mock_notification_repository.dart';
 import 'package:hyperarena/features/notification/data/models/notification_item.dart';
 import 'package:hyperarena/features/notification/data/notification_repository.dart';
@@ -43,10 +42,6 @@ class UnreadCountNotifier extends AsyncNotifier<int> {
 // ── Device token repository ──
 
 final deviceTokenRepositoryProvider = Provider<DeviceTokenRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  if (config.useMockData) {
-    return MockDeviceTokenRepository(config);
-  }
   final apiClient = ref.watch(apiClientProvider);
   return ApiDeviceTokenRepository(apiClient);
 });

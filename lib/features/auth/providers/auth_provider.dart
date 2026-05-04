@@ -8,7 +8,6 @@ import 'package:hyperarena/features/auth/data/mappers/auth_response_mapper.dart'
 import 'package:hyperarena/features/auth/data/mappers/role_mapper.dart';
 import 'package:hyperarena/features/auth/data/api_tenant_repository.dart';
 import 'package:hyperarena/features/auth/data/auth_repository.dart';
-import 'package:hyperarena/features/auth/data/mock_auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
 import 'package:hyperarena/features/auth/data/tenant_repository.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
@@ -18,7 +17,6 @@ import 'package:hyperarena/features/notification/providers/notification_provider
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/owner/providers/owner_providers.dart';
 import 'package:hyperarena/features/session/providers/session_providers.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,10 +25,6 @@ const _userKey = 'auth_user';
 const _legacyTokenKey = 'auth_token';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final config = ref.watch(appConfigProvider);
-  if (config.useMockData) {
-    return MockAuthRepository(config);
-  }
   final apiClient = ref.watch(apiClientProvider);
   return ApiAuthRepository(apiClient);
 });
@@ -241,9 +235,8 @@ class AuthNotifier extends Notifier<User?> {
   }
 
   Future<void> _initializePushNotifications() async {
-    final config = ref.read(appConfigProvider);
-    if (config.useMockData) return; // No Firebase in mock mode
-
+    // Firebase init may have failed during bootstrap (e.g. on web).
+    // pushNotificationServiceProvider handles its own degradation.
     try {
       final pushService = ref.read(pushNotificationServiceProvider);
       await pushService.initialize();

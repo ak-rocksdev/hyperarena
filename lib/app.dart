@@ -4,11 +4,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hyperarena/core/config/app_env.dart';
 import 'package:hyperarena/core/theme/app_theme.dart';
 import 'package:hyperarena/core/theme/app_theme_dark.dart';
 import 'package:hyperarena/features/notification/utils/notification_route_resolver.dart';
 import 'package:hyperarena/routing/app_router.dart';
-import 'package:hyperarena/shared/providers/app_config_provider.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 import 'package:hyperarena/shared/widgets/in_app_notification_banner.dart';
 
@@ -17,12 +17,11 @@ class HyperArenaApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final config = ref.watch(appConfigProvider);
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
       title: 'HyperArena',
-      debugShowCheckedModeBanner: config.showDebugBanner,
+      debugShowCheckedModeBanner: AppEnv.isLocal,
       theme: AppTheme.light(),
       darkTheme: AppThemeDark.dark(),
       themeMode: ThemeMode.system,
@@ -70,9 +69,7 @@ class _ForegroundNotificationListenerState
   }
 
   void _subscribe() {
-    final config = ref.read(appConfigProvider);
-    if (config.useMockData) return;
-
+    // pushNotificationServiceProvider handles Firebase-unavailable degradation.
     final pushService = ref.read(pushNotificationServiceProvider);
     _foregroundSub = pushService.foregroundMessageStream.listen(_showBanner);
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hyperarena/core/theme/app_colors.dart';
+import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
-import 'package:hyperarena/shared/widgets/feature_in_progress_view.dart';
 
 class CoachAvailabilityScreen extends StatelessWidget {
   const CoachAvailabilityScreen({super.key});
@@ -12,13 +13,37 @@ class CoachAvailabilityScreen extends StatelessWidget {
         title: Text('Ketersediaan', style: AppTypography.titleMedium),
         centerTitle: true,
       ),
-      body: const SafeArea(
-        child: FeatureInProgressView(
-          icon: Icons.event_available,
-          title: 'Pengaturan ketersediaan belum aktif',
-          description:
-              'Backend untuk menyimpan jadwal ketersediaan coach sedang '
-              'dalam pengembangan. Anda akan diberi tahu saat fitur ini siap.',
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding:
+                const EdgeInsets.all(AppDimensions.screenHorizontal),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.admin_panel_settings_outlined,
+                  size: 64,
+                  color: AppColors.textTertiary,
+                ),
+                const SizedBox(height: AppDimensions.base),
+                Text(
+                  'Penjadwalan diatur oleh admin',
+                  style: AppTypography.headingSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppDimensions.sm),
+                Text(
+                  'Penjadwalan diatur langsung oleh admin sekolahmu. '
+                  'Hubungi admin untuk mengatur ketersediaan dan jadwal sesimu.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

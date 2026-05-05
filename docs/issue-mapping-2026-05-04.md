@@ -19,6 +19,7 @@ Investigation of 12 reported issues across the Flutter app (this repo) and the L
 | 2026-05-05 | `1c85d7c` (`flutter-mobile-prod-readiness`) | **Trust-pass** — 5 issues addressed FE-side. Issues 4a, 7, 12.1, 12.2 ✅ done. Issues 3, 10 partially resolved (FE no longer misleading; BE wire-up still pending). |
 | 2026-05-05 | BE `09a9843` (Laravel `flutter-issue-mapping-2`) | Backend doc enhanced against FE feedback — adds Response Contract Conventions, `completion_state` enum for Issue 1, per-field response contract for Issue 2, explicit response shapes for Issue 4c, event-type table for Issue 11. No code changes. |
 | 2026-05-05 | BE `a535d3f` (Laravel `feature/flutter-mobile-backend-fixes`) | New **Issue 13 — Coach review system** spec. Locks design (integer 1-5, no anonymous, no edit, no delete, coach=zero visibility, admin=full). Schema + 5 endpoints + permission matrix. Resolves Issue 2 conflict by removing `Rating` + `Ulasan Terbaru` from coach dashboard fields. Resolves Issue 4c reviews-endpoint data source. |
+| 2026-05-05 | Issue 3 BE parked + FE copy update | Backend Issue 3 (coach availability) parked indefinitely — admin handles scheduling manually. FE `coach_availability_screen.dart` placeholder reframed from "Feature in Progress" to informational "Penjadwalan diatur oleh admin." See Issue 3 entry below. |
 
 ### Trust-pass 2026-05-05 — what changed
 
@@ -117,23 +118,24 @@ New shared widget: `lib/shared/widgets/feature_in_progress_view.dart`. Net 9 fil
 
 ## Issue 3 — Atur Ketersediaan Jam: false success toast
 
-**Kategori:** C. Both
+**Kategori:** A. Frontend (BE parked — see status below)
 
-**Temuan:**
-- `lib/features/coach/presentation/screens/coach_availability_screen.dart:46` reads initial state from `MockData.coaches.firstWhere((c) => c.id == 'coach-001')`.
-- Save button at lines 209-215 calls `ScaffoldMessenger.showSnackBar('Ketersediaan berhasil disimpan')` then `context.pop()`. **No HTTP call. No persistence.**
-- The screen imports `mock_data.dart` directly (line 4), confirming this was never wired.
+**Status (2026-05-05):**
+- ✅ Trust-pass FE removed misleading "berhasil disimpan" toast (commit `1c85d7c`).
+- ✅ Backend **PARKED** indefinitely (BE doc Issue 3, 2026-05-05). Reasoning: tenant admin handles scheduling manually via direct outreach (WhatsApp / call). Self-service coach availability solves a problem that doesn't yet exist. Re-open when multi-tenant signups grow to where admin scheduling becomes a bottleneck.
+- ✅ FE follow-up landed (this update): placeholder copy reframed from "Feature in Progress" to informational — `coach_availability_screen.dart` now shows "Penjadwalan diatur oleh admin" with the message "Penjadwalan diatur langsung oleh admin sekolahmu. Hubungi admin untuk mengatur ketersediaan dan jadwal sesimu." Custom inline UI (not `FeatureInProgressView`) because the semantic is "managed externally," not "in progress."
 
-**Status API/Data:** No availability/schedule routes exist in `routes/api.php` (grep on "availability", "schedule", "ketersediaan" → zero matches). No `CoachAvailabilityController` in `app/Http/Controllers/Coach/`.
+**Temuan (historical, pre-trust-pass):**
+- `lib/features/coach/presentation/screens/coach_availability_screen.dart:46` read initial state from `MockData.coaches.firstWhere((c) => c.id == 'coach-001')`.
+- Save button at lines 209-215 called `ScaffoldMessenger.showSnackBar('Ketersediaan berhasil disimpan')` then `context.pop()`. **No HTTP call. No persistence.**
 
-**Action Plan FE (until backend ready):**
-- Remove the misleading success snackbar. Replace with one of:
-  - Disable the save button + show "Feature in Progress: Pengaturan ketersediaan belum aktif" badge above the form.
-  - Or hide the entry point from the coach menu entirely.
+**Status API/Data:** No availability routes exist on backend. None planned (parked).
 
-**Action Plan BE:** see backend doc — design availability schema + `GET/PUT /v1/coach/availability`.
+**Action Plan FE:** ✅ Done — informational copy in place; entry tile already removed from coach dashboard during trust-pass.
 
-**Catatan:** Highest UX trust priority. The misleading toast actively lies to coaches.
+**Action Plan BE:** None — parked.
+
+**Catatan:** If product reverses the parking decision, FE has the screen scaffolding ready to re-wire. The route `AppRoutes.coachAvailability` and the screen file remain in the codebase.
 
 ---
 

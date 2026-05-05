@@ -17,6 +17,7 @@ Investigation of 12 reported issues across the Flutter app (this repo) and the L
 |---|---|---|
 | 2026-05-04 | (initial) | 12 issues investigated and mapped. |
 | 2026-05-05 | `1c85d7c` (`flutter-mobile-prod-readiness`) | **Trust-pass** — 5 issues addressed FE-side. Issues 4a, 7, 12.1, 12.2 ✅ done. Issues 3, 10 partially resolved (FE no longer misleading; BE wire-up still pending). |
+| 2026-05-05 | BE `09a9843` (Laravel `flutter-issue-mapping-2`) | Backend doc enhanced against FE feedback — adds Response Contract Conventions, `completion_state` enum for Issue 1, per-field response contract for Issue 2, explicit response shapes for Issue 4c, event-type table for Issue 11. No code changes. |
 
 ### Trust-pass 2026-05-05 — what changed
 

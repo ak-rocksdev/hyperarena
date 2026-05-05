@@ -11,6 +11,25 @@ Investigation of 12 reported issues across the Flutter app (this repo) and the L
 
 ---
 
+## Status Log
+
+| Date | Commit | Note |
+|---|---|---|
+| 2026-05-04 | (initial) | 12 issues investigated and mapped. |
+| 2026-05-05 | `1c85d7c` (`flutter-mobile-prod-readiness`) | **Trust-pass** — 5 issues addressed FE-side. Issues 4a, 7, 12.1, 12.2 ✅ done. Issues 3, 10 partially resolved (FE no longer misleading; BE wire-up still pending). |
+
+### Trust-pass 2026-05-05 — what changed
+
+- **Issue 3 (Atur Ketersediaan):** form fake-save replaced with `FeatureInProgressView` placeholder; entry tile removed from coach dashboard. Backend work for `GET/PUT /v1/coach/availability` still required — see backend doc.
+- **Issue 4a (expanded):** `ProfileScreen` now role-aware — coach/organizer/court-owner no longer see XP bar, level pill, streak banner, badges, sport stats, recent activity, Perkembangan, or Pencapaian menu. Player-only derivations made `late final` so non-player paths skip the work.
+- **Issue 7 (Klub):** tab removed from organizer bottom nav (4 → 3 tabs). `AppRoutes.organizerClub` and `OrganizerCommunityScreen` preserved for easy re-enable. Dangling `clubProfileProvider`/`clubMembersProvider` invalidations cleaned from `auth_provider`.
+- **Issue 10 (Assessment):** form (5 sliders + 3 textareas) replaced with `FeatureInProgressView`. Schema-mapping decision still gates wire-up — see backend doc.
+- **Issue 12.1, 12.2:** hardcoded greetings replaced via new `Formatters.firstName(name, fallback)` helper.
+
+New shared widget: `lib/shared/widgets/feature_in_progress_view.dart`. Net 9 files changed, 218 insertions / 896 deletions.
+
+---
+
 ## Issue 1 — Schedule / Jadwal: status logic & follow-up actions
 
 **Kategori:** C. Both

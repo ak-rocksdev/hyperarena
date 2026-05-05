@@ -31,7 +31,6 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_session_det
 import 'package:hyperarena/features/coach/presentation/screens/student_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/student_list_screen.dart';
 import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
-import 'package:hyperarena/features/organizer/presentation/screens/organizer_community_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_earnings_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_session_detail_screen.dart';
@@ -143,11 +142,6 @@ class RoleShell extends StatelessWidget {
         icon: Icon(Icons.event_outlined),
         selectedIcon: Icon(Icons.event),
         label: 'Sessions',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.group_outlined),
-        selectedIcon: Icon(Icons.group),
-        label: 'Klub',
       ),
       NavigationDestination(
         icon: Icon(Icons.person_outline),
@@ -503,7 +497,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             CoachDetailScreen(coachId: state.pathParameters['id']!),
       ),
 
-      // ── Organizer role shell (4 tabs) ────────────────
+      // ── Organizer role shell (3 tabs — Klub hidden until backend ready) ──
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) =>
             RoleShell(navigationShell: shell, role: UserRole.organizer),
@@ -521,14 +515,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.organizerSessions,
                 builder: (_, _) => const OrganizerSessionListScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.organizerClub,
-                builder: (_, _) => const OrganizerCommunityScreen(),
               ),
             ],
           ),

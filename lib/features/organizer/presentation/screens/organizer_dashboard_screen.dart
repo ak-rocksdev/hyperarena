@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/action_queue_widget.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/earnings_snapshot_card.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/kpi_strip_widget.dart';
@@ -28,6 +30,7 @@ class OrganizerDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authNotifierProvider);
     final statsAsync = ref.watch(organizerDashboardProvider);
     final inboxAsync = ref.watch(organizerActionInboxProvider);
     final agendaAsync = ref.watch(organizerAgendaProvider);
@@ -69,7 +72,7 @@ class OrganizerDashboardScreen extends ConsumerWidget {
               children: [
                 // ── 1. Greeting ──────────────────────────────────
                 Text(
-                  '${_greeting()}, Sari!',
+                  '${_greeting()}, ${Formatters.firstName(user?.name, fallback: 'Organizer')}!',
                   style: AppTypography.headingLarge,
                 ),
                 const SizedBox(height: AppDimensions.base),

@@ -80,4 +80,11 @@ abstract final class Formatters {
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
+
+  /// First word of a name: "Sari Wijayanti" → "Sari". Returns [fallback]
+  /// when [name] is null or blank.
+  static String firstName(String? name, {required String fallback}) {
+    if (name == null || name.trim().isEmpty) return fallback;
+    return name.trim().split(_whitespace).first;
+  }
 }

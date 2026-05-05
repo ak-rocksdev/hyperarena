@@ -11,6 +11,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 import 'package:hyperarena/features/coach/data/models/assessment.dart';
 import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
@@ -34,6 +35,7 @@ class CoachDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authNotifierProvider);
     final scheduleAsync = ref.watch(coachScheduleProvider);
     final assessmentsAsync = ref.watch(assessmentListProvider);
     final reviewsAsync = ref.watch(coachReviewsProvider('coach-001'));
@@ -57,7 +59,7 @@ class CoachDashboardScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${_greeting()}, Coach Andi!',
+                          '${_greeting()}, ${Formatters.firstName(user?.name, fallback: 'Coach')}!',
                           style: AppTypography.headingLarge,
                         ),
                         const SizedBox(height: AppDimensions.xs),
@@ -77,15 +79,6 @@ class CoachDashboardScreen extends ConsumerWidget {
 
               // ── 2. Quick Stats Row ───────────────────────────────
               const _QuickStatsRow(),
-              const SizedBox(height: AppDimensions.xl),
-
-              // ── 2b. Kelola Ketersediaan ────────────────────────────
-              _ActionTile(
-                icon: Icons.event_available,
-                title: 'Ketersediaan',
-                subtitle: 'Atur hari & jam operasional',
-                onTap: () => context.push(AppRoutes.coachAvailability),
-              ),
               const SizedBox(height: AppDimensions.xl),
 
               // ── 3. Jadwal Hari Ini ───────────────────────────────
@@ -575,70 +568,3 @@ class _ReviewCard extends StatelessWidget {
   }
 }
 
-// ── Action Tile (quick-link card) ─────────────────────────────────────
-class _ActionTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _ActionTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppSurfaces.surface,
-      borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        child: Container(
-          padding: const EdgeInsets.all(AppDimensions.base),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            boxShadow: AppShadows.xs,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primary50,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                ),
-                child: Icon(icon, color: AppColors.primary, size: AppDimensions.iconMd),
-              ),
-              const SizedBox(width: AppDimensions.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: AppTypography.titleSmall),
-                    const SizedBox(height: AppDimensions.xxs),
-                    Text(
-                      subtitle,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: AppColors.textTertiary,
-                size: AppDimensions.iconMd,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

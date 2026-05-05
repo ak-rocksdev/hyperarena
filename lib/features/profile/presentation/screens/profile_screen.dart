@@ -25,34 +25,37 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authNotifierProvider);
-    final profile = MockData.currentProfile;
-    final badges = MockData.badges;
-    final bookings = MockData.bookings;
-    final gamification =
+    final isPlayer = user?.role == UserRole.player;
+    final userName = user?.name ?? 'Player';
+
+    // Player-only derivations are `late` so coaches/organizers/owners don't
+    // pay the cost of reading mock data, sorting bookings, or resolving theme
+    // extensions that their profile never renders.
+    late final profile = MockData.currentProfile;
+    late final badges = MockData.badges;
+    late final gamification =
         Theme.of(context).extension<GamificationThemeExtension>()!;
-    final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
-    final statusTheme =
+    late final sportTheme =
+        Theme.of(context).extension<SportThemeExtension>()!;
+    late final statusTheme =
         Theme.of(context).extension<BookingStatusThemeExtension>()!;
 
-    final nextThreshold = GamificationHelpers.threshold(profile.levelTier);
-    final progress = GamificationHelpers.xpProgress(
+    late final nextThreshold = GamificationHelpers.threshold(profile.levelTier);
+    late final progress = GamificationHelpers.xpProgress(
       profile.totalXp,
       profile.levelTier,
     );
-    final xpToNext = nextThreshold - profile.totalXp;
+    late final xpToNext = nextThreshold - profile.totalXp;
 
-    // Sort bookings by date descending, take last 3
-    final recentBookings = [...bookings]
-      ..sort((a, b) => b.bookingDate.compareTo(a.bookingDate));
-    final lastThreeBookings = recentBookings.take(3).toList();
+    late final lastThreeBookings = ([...MockData.bookings]
+          ..sort((a, b) => b.bookingDate.compareTo(a.bookingDate)))
+        .take(3)
+        .toList();
 
-    // Hardcoded sport stats (since Booking model lacks sport field)
-    final sportStats = <Sport, Map<String, int>>{
+    late final sportStats = <Sport, Map<String, int>>{
       Sport.tennis: {'bookings': 4, 'hours': 8},
       Sport.badminton: {'bookings': 2, 'hours': 4},
     };
-
-    final userName = user?.name ?? 'Player';
 
     return Scaffold(
       body: CustomScrollView(
@@ -151,43 +154,48 @@ class ProfileScreen extends ConsumerWidget {
                                   color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(height: AppDimensions.sm),
-                              // Level badge pill
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: gamification
-                                      .levelBackgroundColor(profile.levelTier),
-                                  borderRadius: BorderRadius.circular(
-                                    AppDimensions.radiusFull,
+                              if (isPlayer) ...[
+                                const SizedBox(height: AppDimensions.sm),
+                                // Level badge pill (player-only — tied to gamification)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: gamification.levelBackgroundColor(
+                                      profile.levelTier,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                      AppDimensions.radiusFull,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.star_rounded,
+                                        size: 16,
+                                        color: gamification.levelTextColor(
+                                          profile.levelTier,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppDimensions.xs),
+                                      Text(
+                                        GamificationHelpers.tierLabel(
+                                          profile.levelTier,
+                                        ),
+                                        style: AppTypography.labelMedium
+                                            .copyWith(
+                                          color: gamification.levelTextColor(
+                                            profile.levelTier,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.star_rounded,
-                                      size: 16,
-                                      color: gamification
-                                          .levelTextColor(profile.levelTier),
-                                    ),
-                                    const SizedBox(width: AppDimensions.xs),
-                                    Text(
-                                      GamificationHelpers.tierLabel(
-                                        profile.levelTier,
-                                      ),
-                                      style:
-                                          AppTypography.labelMedium.copyWith(
-                                        color: gamification
-                                            .levelTextColor(profile.levelTier),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
@@ -205,6 +213,7 @@ class ProfileScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppDimensions.base),
+                if (isPlayer) ...[
                 // ── 2. XP Progress Section ──
                 Container(
                     margin: const EdgeInsets.symmetric(
@@ -428,6 +437,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppDimensions.xl),
+                ], // end if (isPlayer)
 
                 // ── 7. Role Switch Section ──
                 const RoleSwitchSection(),
@@ -444,16 +454,18 @@ class ProfileScreen extends ConsumerWidget {
                         label: 'Edit Profil',
                         onTap: () => context.push(AppRoutes.editProfile),
                       ),
-                      _MenuItem(
-                        icon: Icons.show_chart,
-                        label: 'Perkembangan',
-                        onTap: () => context.push(AppRoutes.career),
-                      ),
-                      _MenuItem(
-                        icon: Icons.emoji_events,
-                        label: 'Pencapaian',
-                        onTap: () => context.push(AppRoutes.achievements),
-                      ),
+                      if (isPlayer) ...[
+                        _MenuItem(
+                          icon: Icons.show_chart,
+                          label: 'Perkembangan',
+                          onTap: () => context.push(AppRoutes.career),
+                        ),
+                        _MenuItem(
+                          icon: Icons.emoji_events,
+                          label: 'Pencapaian',
+                          onTap: () => context.push(AppRoutes.achievements),
+                        ),
+                      ],
                       _MenuItem(
                         icon: Icons.settings,
                         label: 'Pengaturan',

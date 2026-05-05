@@ -182,8 +182,6 @@ class AuthNotifier extends Notifier<User?> {
     ref.invalidate(organizerAgendaProvider);
     ref.invalidate(organizerActionInboxProvider);
     ref.invalidate(organizerEarningsProvider);
-    ref.invalidate(clubProfileProvider);
-    ref.invalidate(clubMembersProvider);
 
     // Owner
     ref.invalidate(ownerDashboardProvider);

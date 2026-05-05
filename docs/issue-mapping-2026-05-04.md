@@ -18,6 +18,7 @@ Investigation of 12 reported issues across the Flutter app (this repo) and the L
 | 2026-05-04 | (initial) | 12 issues investigated and mapped. |
 | 2026-05-05 | `1c85d7c` (`flutter-mobile-prod-readiness`) | **Trust-pass** — 5 issues addressed FE-side. Issues 4a, 7, 12.1, 12.2 ✅ done. Issues 3, 10 partially resolved (FE no longer misleading; BE wire-up still pending). |
 | 2026-05-05 | BE `09a9843` (Laravel `flutter-issue-mapping-2`) | Backend doc enhanced against FE feedback — adds Response Contract Conventions, `completion_state` enum for Issue 1, per-field response contract for Issue 2, explicit response shapes for Issue 4c, event-type table for Issue 11. No code changes. |
+| 2026-05-05 | BE `a535d3f` (Laravel `feature/flutter-mobile-backend-fixes`) | New **Issue 13 — Coach review system** spec. Locks design (integer 1-5, no anonymous, no edit, no delete, coach=zero visibility, admin=full). Schema + 5 endpoints + permission matrix. Resolves Issue 2 conflict by removing `Rating` + `Ulasan Terbaru` from coach dashboard fields. Resolves Issue 4c reviews-endpoint data source. |
 
 ### Trust-pass 2026-05-05 — what changed
 
@@ -28,6 +29,25 @@ Investigation of 12 reported issues across the Flutter app (this repo) and the L
 - **Issue 12.1, 12.2:** hardcoded greetings replaced via new `Formatters.firstName(name, fallback)` helper.
 
 New shared widget: `lib/shared/widgets/feature_in_progress_view.dart`. Net 9 files changed, 218 insertions / 896 deletions.
+
+### Issue 13 (NEW) — Coach review system spec landed
+
+**Kategori:** C. Both. Backend: `coach_reviews` table + 5 new endpoints (see Laravel doc Issue 13). Frontend: UI already exists, needs to be wired to real endpoints + privacy notice fix + small contract adjustments.
+
+**FE side action items (when BE ships):**
+1. **Update privacy notice** in `lib/features/review/presentation/screens/submit_review_screen.dart:209` from `"Ulasan ini hanya dapat dilihat oleh Anda dan coach."` to `"Ulasan ini hanya dapat dilihat oleh Anda dan admin. Coach tidak melihat ulasan secara langsung."`
+2. **Create `ApiReviewRepository`** to replace `MockReviewRepository`. Methods map to:
+   - `submitReview(...)` → `POST /v1/coach/sessions/{sessionId}/reviews`
+   - `hasReviewed(reviewerId, sessionId)` → call `GET /v1/coach/sessions/{sessionId}/my-review`, return `review != null`. (Or rename to `getMyReview` for richer typed return.)
+   - `getPlayerReviews(reviewerId)` → `GET /v1/me/reviews` (server already scopes to current user; reviewerId param ignored or removed)
+   - `getCoachRating(coachId)` → admin-only via `GET /v1/admin/coaches/{coachId}/reviews/aggregate`. Coach must NEVER call this.
+   - `getCoachReviews(coachId)` → admin-only via `GET /v1/admin/coaches/{coachId}/reviews`. Coach must NEVER call this.
+3. **Drop `isAnonymous`** from `Review` model (`lib/features/review/data/models/review.dart`) — Issue 13 spec forbids anonymity.
+4. **Coach dashboard cleanup** — when wiring real `GET /v1/coach/dashboard` (Issue 2), remove "Rating" and "Ulasan Terbaru" widgets from `coach_dashboard_screen.dart`. Spec forbids coach from seeing review data.
+5. **Submit-review CTA gating** — show "Beri Ulasan" button only when (session past + user attended + `my-review` returned `null`). Currently FE relies on `hasReviewed` only; needs the past+attended check too.
+6. **Repository error handling** — surface friendly Indonesian messages for the 4 expected error cases (`409 sudah ulasan`, `403 not attended`, `422 session not yet ended`, `422 invalid rating`).
+
+**Cross-reference:** full BE spec at `C:\laragon\www\hypercoach\docs\superpowers\flutter-issue-mapping-2026-05-04.md` Issue 13.
 
 ---
 

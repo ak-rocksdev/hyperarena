@@ -85,67 +85,84 @@ class VenueLocationSection extends StatelessWidget {
           const SizedBox(height: AppDimensions.sm),
         ],
 
-        // Address + venue name
+        // Address + venue name. Tapping the address row launches Maps when
+        // coordinates exist — same destination as the explicit button.
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(AppDimensions.md),
           decoration: BoxDecoration(
             color: AppSurfaces.surface,
             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             boxShadow: AppShadows.xs,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (venueName != null && venueName!.isNotEmpty) ...[
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 18,
-                      color: AppColors.neutral400,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: _hasCoordinates ? _openInMaps : null,
+            child: Padding(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (venueName != null && venueName!.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 18,
+                          color: AppColors.neutral400,
+                        ),
+                        const SizedBox(width: AppDimensions.xs),
+                        Expanded(
+                          child: Text(
+                            venueName!,
+                            style: AppTypography.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        if (_hasCoordinates)
+                          Icon(
+                            Icons.open_in_new,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
+                      ],
                     ),
-                    const SizedBox(width: AppDimensions.xs),
-                    Expanded(
+                  if (_hasAddress) ...[
+                    if (venueName != null && venueName!.isNotEmpty)
+                      const SizedBox(height: AppDimensions.xs),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 26),
                       child: Text(
-                        venueName!,
-                        style: AppTypography.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
+                        address!,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: _hasCoordinates
+                              ? AppColors.primary
+                              : AppColors.textSecondary,
+                          decoration: _hasCoordinates
+                              ? TextDecoration.underline
+                              : null,
                         ),
                       ),
                     ),
                   ],
-                ),
-              ],
-              if (_hasAddress) ...[
-                if (venueName != null && venueName!.isNotEmpty)
-                  const SizedBox(height: AppDimensions.xs),
-                Padding(
-                  padding: const EdgeInsets.only(left: 26),
-                  child: Text(
-                    address!,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
+                  if (_hasCoordinates) ...[
+                    const SizedBox(height: AppDimensions.md),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _openInMaps,
+                        icon: const Icon(Icons.map_outlined, size: 18),
+                        label: const Text('Buka di Maps'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: BorderSide(color: AppColors.primary),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ],
-              if (_hasCoordinates) ...[
-                const SizedBox(height: AppDimensions.md),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _openInMaps(),
-                    icon: const Icon(Icons.map_outlined, size: 18),
-                    label: const Text('Buka di Maps'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: BorderSide(color: AppColors.primary),
-                    ),
-                  ),
-                ),
-              ],
-            ],
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(height: AppDimensions.xl),

@@ -346,6 +346,129 @@ class _ParticipantCard extends ConsumerWidget {
             participant: participant,
             sessionId: sessionId,
           ),
+
+          // Attendance toggle — only for confirmed (paid) participants.
+          if (participant.status == SessionParticipantStatus.confirmed &&
+              participant.bookingId != null)
+            _AttendanceRow(
+              bookingId: participant.bookingId!,
+              sessionId: sessionId,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Admin attendance toggle. Each tap sends `PATCH /admin/session-students/{id}/attendance`.
+class _AttendanceRow extends ConsumerStatefulWidget {
+  const _AttendanceRow({
+    required this.bookingId,
+    required this.sessionId,
+  });
+
+  final String bookingId;
+  final String sessionId;
+
+  @override
+  ConsumerState<_AttendanceRow> createState() => _AttendanceRowState();
+}
+
+class _AttendanceRowState extends ConsumerState<_AttendanceRow> {
+  bool _saving = false;
+
+  Future<void> _set(String status) async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      await ref.read(participantManagementProvider).setAttendance(
+            bookingId: widget.bookingId,
+            sessionId: widget.sessionId,
+            status: status,
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Kehadiran disimpan: ${_label(status)}'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyimpan kehadiran: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String _label(String status) => switch (status) {
+        'present' => 'Hadir',
+        'late' => 'Telat',
+        'absent' => 'Absen',
+        _ => status,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppDimensions.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Kehadiran',
+            style: AppTypography.labelMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.xs),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _saving ? null : () => _set('present'),
+                  icon: const Icon(Icons.check_circle_outline, size: 16),
+                  label: const Text('Hadir'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.success,
+                    side: const BorderSide(color: AppColors.success),
+                    minimumSize: const Size(0, AppDimensions.buttonHeightSm),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppDimensions.sm),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _saving ? null : () => _set('late'),
+                  icon: const Icon(Icons.schedule, size: 16),
+                  label: const Text('Telat'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.warning,
+                    side: const BorderSide(color: AppColors.warning),
+                    minimumSize: const Size(0, AppDimensions.buttonHeightSm),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppDimensions.sm),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _saving ? null : () => _set('absent'),
+                  icon: const Icon(Icons.cancel_outlined, size: 16),
+                  label: const Text('Absen'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                    minimumSize: const Size(0, AppDimensions.buttonHeightSm),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -533,7 +656,7 @@ class _InlineActions extends ConsumerWidget {
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
           ),
-          child: const Text('Konfirmasi'),
+          child: const Text('Tandai Lunas'),
         ),
         OutlinedButton(
           onPressed: () => _showReasonDialog(

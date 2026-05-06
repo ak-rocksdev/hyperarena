@@ -22,6 +22,7 @@ import 'package:hyperarena/features/gamification/providers/gamification_provider
 import 'package:hyperarena/features/notification/providers/notification_providers.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/owner/providers/owner_providers.dart';
+import 'package:hyperarena/features/profile/providers/activity_provider.dart';
 import 'package:hyperarena/features/profile/providers/career_provider.dart';
 import 'package:hyperarena/features/review/providers/review_providers.dart';
 import 'package:hyperarena/features/review/providers/venue_review_providers.dart';
@@ -223,6 +224,9 @@ class AuthNotifier extends Notifier<User?> {
     ref.invalidate(coachRatingProvider);
     ref.invalidate(hasReviewedBookingProvider);
     ref.invalidate(playerWrittenReviewsProvider);
+
+    // ── Activity feed ───────────────────────────────────────────
+    ref.invalidate(activityListProvider);
 
     // ── Organizer ───────────────────────────────────────────────
     ref.invalidate(organizerDashboardProvider);

@@ -402,6 +402,11 @@ class MockOrganizerRepository implements OrganizerRepository {
   }
 
   @override
+  Future<void> setAttendance(String bookingId, String status) async {
+    await Future.delayed(_delay);
+  }
+
+  @override
   Future<List<OrganizerActionItem>> getActionInbox({
     OrganizerActionType? type,
     OrganizerActionSeverity? severity,

@@ -283,6 +283,18 @@ class ApiOrganizerRepository implements OrganizerRepository {
       throw UnimplementedError('resolveDispute: backend endpoint not yet available');
 
   @override
+  Future<void> setAttendance(String bookingId, String status) async {
+    try {
+      await _apiClient.patch(
+        '/v1/admin/session-students/$bookingId/attendance',
+        data: {'status': status},
+      );
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  @override
   Future<List<OrganizerActionItem>> getActionInbox({
     OrganizerActionType? type,
     OrganizerActionSeverity? severity,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
@@ -64,21 +65,19 @@ class _CoachSessionDetailScreenState
           existing;
     });
 
-    // If attendance already exists, start read-only
+    // If attendance already exists, start read-only.
+    // Otherwise auto-enter edit mode for sessions that have started.
     if (existing.isNotEmpty) {
       _editMode = false;
     } else {
-      _editMode = _isWithinGraceWindow(session);
+      _editMode = _canEditAttendance(session);
     }
   }
 
-  /// Grace window: from session start until 24 hours after session end.
-  bool _isWithinGraceWindow(CoachSession session) {
-    final now = DateTime.now();
-    final start = session.startAt.toLocal();
-    final end = start.add(Duration(minutes: session.durationMinutes));
-    final graceEnd = end.add(const Duration(hours: 24));
-    return now.isAfter(start) && now.isBefore(graceEnd);
+  /// Coach may edit attendance any time once the session has started — no
+  /// upper bound. Filling attendance late is the primary use case.
+  bool _canEditAttendance(CoachSession session) {
+    return DateTime.now().isAfter(session.startAt.toLocal());
   }
 
   Widget _buildShimmer() {
@@ -106,7 +105,7 @@ class _CoachSessionDetailScreenState
   Widget _buildContent(CoachSession session) {
     final localAttendance =
         ref.watch(attendanceLocalStateProvider(widget.sessionId));
-    final withinGrace = _isWithinGraceWindow(session);
+    final canEdit = _canEditAttendance(session);
 
     // Active (non-cancelled) students only
     final activeStudents = session.sessionStudents
@@ -269,7 +268,7 @@ class _CoachSessionDetailScreenState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Kehadiran', style: AppTypography.titleMedium),
-                        if (withinGrace &&
+                        if (canEdit &&
                             !_editMode &&
                             session.attendances.isNotEmpty)
                           TextButton.icon(
@@ -297,7 +296,7 @@ class _CoachSessionDetailScreenState
                         return _StudentAttendanceRow(
                           student: student,
                           status: currentStatus,
-                          editable: _editMode && withinGrace,
+                          editable: _editMode && canEdit,
                           onStatusChanged: (newStatus) {
                             final map = Map<String, String>.from(
                               ref.read(attendanceLocalStateProvider(
@@ -313,9 +312,22 @@ class _CoachSessionDetailScreenState
                         );
                       }),
 
+                    // ── Grading section (past sessions only) ─
+                    if (canEdit && activeStudents.isNotEmpty) ...[
+                      const SizedBox(height: AppDimensions.lg),
+                      Text('Penilaian Peserta',
+                          style: AppTypography.titleMedium),
+                      const SizedBox(height: AppDimensions.sm),
+                      ...activeStudents.map((student) => _GradingRow(
+                            student: student,
+                            sessionId: widget.sessionId,
+                            sessionTitle: session.name,
+                          )),
+                    ],
+
                     // Bottom padding for sticky bar
                     SizedBox(
-                        height: (_editMode && withinGrace && hasChanges)
+                        height: (_editMode && canEdit && hasChanges)
                             ? 100
                             : AppDimensions.screenBottom),
                   ],
@@ -326,7 +338,7 @@ class _CoachSessionDetailScreenState
         ),
 
         // ── Sticky save button ─────────────────────────
-        if (_editMode && withinGrace && hasChanges)
+        if (_editMode && canEdit && hasChanges)
           Positioned(
             left: 0,
             right: 0,
@@ -624,6 +636,76 @@ class _StatusBadge extends StatelessWidget {
         style: AppTypography.labelSmall.copyWith(
           color: fg,
           fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// Per-participant grading entry. Tap navigates to AssessmentFormScreen.
+class _GradingRow extends StatelessWidget {
+  final CoachSessionStudent student;
+  final String sessionId;
+  final String sessionTitle;
+
+  const _GradingRow({
+    required this.student,
+    required this.sessionId,
+    required this.sessionTitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = student.studentProfile;
+    final name = profile != null
+        ? '${profile.firstName ?? ''} ${profile.lastName ?? ''}'.trim()
+        : 'Peserta';
+    final photoUrl = profile?.photoUrls?['sm'];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+      child: Container(
+        padding: const EdgeInsets.all(AppDimensions.md),
+        decoration: BoxDecoration(
+          color: AppSurfaces.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          border: Border.all(color: AppColors.neutral200),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.primary100,
+              backgroundImage:
+                  photoUrl != null ? NetworkImage(photoUrl) : null,
+              child: photoUrl == null
+                  ? Text(
+                      Formatters.initials(name),
+                      style: AppTypography.labelMedium.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: AppDimensions.md),
+            Expanded(
+              child: Text(name, style: AppTypography.bodyMedium),
+            ),
+            FilledButton.tonal(
+              onPressed: () {
+                final path = '/coach/assessment/new'
+                    '?sessionId=$sessionId'
+                    '&sessionTitle=${Uri.encodeComponent(sessionTitle)}'
+                    '&studentId=${student.studentProfileId}'
+                    '&studentName=${Uri.encodeComponent(name)}';
+                context.push(path);
+              },
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, AppDimensions.buttonHeightSm),
+              ),
+              child: const Text('Beri Penilaian'),
+            ),
+          ],
         ),
       ),
     );

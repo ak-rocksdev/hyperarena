@@ -5,6 +5,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session_detail.dart';
 import 'package:hyperarena/features/session/data/models/tenant_payment_info.dart';
@@ -180,6 +181,23 @@ class _DetailBody extends ConsumerWidget {
                     const SizedBox(height: AppDimensions.md),
                     ...session.coaches.map(
                       (coach) => _CoachRow(coach: coach),
+                    ),
+                    const SizedBox(height: AppDimensions.lg),
+                  ],
+
+                  // Review banner — past sessions the user has booked.
+                  // Banner self-gates to its 4 states based on myReviewProvider;
+                  // attendance status isn't yet exposed by the marketplace
+                  // detail endpoint, so the disabled "absen belum tercatat"
+                  // state is the safe default until BE Issue 16 lands.
+                  if (userStatus.isBooked &&
+                      localEnd.isBefore(DateTime.now()) &&
+                      session.coaches.isNotEmpty) ...[
+                    PostSessionReviewBanner(
+                      sessionId: sessionId,
+                      coachId: session.coaches.first.id,
+                      coachName: session.coaches.first.user?.name ?? 'Coach',
+                      sessionTitle: session.name,
                     ),
                     const SizedBox(height: AppDimensions.lg),
                   ],

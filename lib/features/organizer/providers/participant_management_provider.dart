@@ -63,6 +63,19 @@ class ParticipantManagementController {
     _invalidate(sessionId);
   }
 
+  /// Admin sets attendance for a participant. [bookingId] must be the
+  /// `SessionStudent.id` (FE field `bookingId` on `SessionParticipant`).
+  Future<void> setAttendance({
+    required String bookingId,
+    required String sessionId,
+    required String status,
+  }) async {
+    await ref
+        .read(organizerRepositoryProvider)
+        .setAttendance(bookingId, status);
+    _invalidate(sessionId);
+  }
+
   Future<void> sendMessage({
     required String sessionId,
     required String templateCode,

@@ -13,9 +13,10 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/profile/data/models/activity_item.dart';
+import 'package:hyperarena/features/profile/providers/activity_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/widgets/role_switch_section.dart';
-import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:hyperarena/features/gamification/data/models/badge.dart'
     as badge_model;
 
@@ -37,8 +38,6 @@ class ProfileScreen extends ConsumerWidget {
         Theme.of(context).extension<GamificationThemeExtension>()!;
     late final sportTheme =
         Theme.of(context).extension<SportThemeExtension>()!;
-    late final statusTheme =
-        Theme.of(context).extension<BookingStatusThemeExtension>()!;
 
     late final nextThreshold = GamificationHelpers.threshold(profile.levelTier);
     late final progress = GamificationHelpers.xpProgress(
@@ -46,11 +45,6 @@ class ProfileScreen extends ConsumerWidget {
       profile.levelTier,
     );
     late final xpToNext = nextThreshold - profile.totalXp;
-
-    late final lastThreeBookings = ([...MockData.bookings]
-          ..sort((a, b) => b.bookingDate.compareTo(a.bookingDate)))
-        .take(3)
-        .toList();
 
     late final sportStats = <Sport, Map<String, int>>{
       Sport.tennis: {'bookings': 4, 'hours': 8},
@@ -421,20 +415,7 @@ class ProfileScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.screenHorizontal,
                   ),
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < lastThreeBookings.length; i++) ...[
-                        _RecentActivityCard(
-                          booking: lastThreeBookings[i],
-                          statusTheme: statusTheme,
-                          sportTheme: sportTheme,
-                          sport: profile.sports.first,
-                        ),
-                        if (i < lastThreeBookings.length - 1)
-                          const SizedBox(height: AppDimensions.sm),
-                      ],
-                    ],
-                  ),
+                  child: const _ActivityFeedSection(),
                 ),
                 const SizedBox(height: AppDimensions.xl),
                 ], // end if (isPlayer)
@@ -689,151 +670,158 @@ class _SportStatRow extends StatelessWidget {
   }
 }
 
-// ── Recent Activity Card Widget ──
+// ── Activity Feed Section ──
 
-class _RecentActivityCard extends StatelessWidget {
-  final Booking booking;
-  final BookingStatusThemeExtension statusTheme;
-  final SportThemeExtension sportTheme;
-  final Sport sport;
+class _ActivityFeedSection extends ConsumerWidget {
+  const _ActivityFeedSection();
 
-  const _RecentActivityCard({
-    required this.booking,
-    required this.statusTheme,
-    required this.sportTheme,
-    required this.sport,
-  });
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activityAsync = ref.watch(activityListProvider);
 
-  String _statusLabel(BookingStatus status) => switch (status) {
-        BookingStatus.pendingPayment => 'Menunggu Bayar',
-        BookingStatus.waitingConfirmation => 'Menunggu Konfirmasi',
-        BookingStatus.confirmed => 'Dikonfirmasi',
-        BookingStatus.completed => 'Selesai',
-        BookingStatus.cancelled => 'Dibatalkan',
-        BookingStatus.rejected => 'Ditolak',
-        BookingStatus.expired => 'Kedaluwarsa',
-      };
+    return activityAsync.when(
+      loading: () => Column(
+        children: List.generate(
+          3,
+          (_) => Padding(
+            padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+            child: Container(
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.neutral100,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              ),
+            ),
+          ),
+        ),
+      ),
+      error: (_, _) => Container(
+        padding: const EdgeInsets.all(AppDimensions.md),
+        decoration: BoxDecoration(
+          color: AppColors.neutral50,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline,
+                size: 18, color: AppColors.textTertiary),
+            const SizedBox(width: AppDimensions.sm),
+            Expanded(
+              child: Text(
+                'Gagal memuat aktivitas.',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textTertiary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => ref.invalidate(activityListProvider),
+              child: const Text('Coba lagi'),
+            ),
+          ],
+        ),
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(AppDimensions.lg),
+            decoration: BoxDecoration(
+              color: AppColors.neutral50,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            ),
+            child: Center(
+              child: Text(
+                'Belum ada aktivitas.',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textTertiary,
+                ),
+              ),
+            ),
+          );
+        }
+        final top = items.take(3).toList();
+        return Column(
+          children: [
+            for (var i = 0; i < top.length; i++) ...[
+              _ActivityItemCard(item: top[i]),
+              if (i < top.length - 1)
+                const SizedBox(height: AppDimensions.sm),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ActivityItemCard extends StatelessWidget {
+  final ActivityItem item;
+
+  const _ActivityItemCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final xpEarned = booking.totalAmount ~/ 15000;
+    final (icon, accent) = _iconFor(item.type);
     return Container(
       decoration: BoxDecoration(
         color: AppSurfaces.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         boxShadow: AppShadows.xs,
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            // Sport-colored left accent bar
-            Container(
-              width: 4,
-              decoration: BoxDecoration(
-                color: sportTheme.color(sport),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(AppDimensions.radiusLg),
-                  bottomLeft: Radius.circular(AppDimensions.radiusLg),
-                ),
-              ),
+      padding: const EdgeInsets.all(AppDimensions.base),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
             ),
-            // Card content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimensions.base),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Row 1: Date + Status badge
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          Formatters.formatDate(booking.bookingDate),
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusTheme.backgroundColor(
-                              booking.status,
-                            ),
-                            borderRadius: BorderRadius.circular(
-                              AppDimensions.radiusFull,
-                            ),
-                          ),
-                          child: Text(
-                            _statusLabel(booking.status),
-                            style: AppTypography.caption.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: statusTheme.textColor(booking.status),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppDimensions.xs),
-                    // Row 2: Venue name + Court name
-                    Text(
-                      booking.venueName ?? 'Venue',
-                      style: AppTypography.titleSmall,
-                    ),
-                    Text(
-                      booking.courtName ?? 'Court',
-                      style: AppTypography.caption,
-                    ),
-                    const SizedBox(height: AppDimensions.sm),
-                    // Row 3: Time range + XP earned pill
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          Formatters.formatTimeRange(
-                            booking.startTime,
-                            booking.endTime,
-                          ),
-                          style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.accent50,
-                            borderRadius: BorderRadius.circular(
-                              AppDimensions.radiusFull,
-                            ),
-                          ),
-                          child: Text(
-                            '+$xpEarned XP',
-                            style: AppTypography.caption.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.accent,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+            child: Icon(icon, size: 18, color: accent),
+          ),
+          const SizedBox(width: AppDimensions.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.description,
+                  style: AppTypography.bodyMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
+                if (item.occurredAt != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    Formatters.formatDate(item.occurredAt!),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+
+  (IconData, Color) _iconFor(ActivityType type) => switch (type) {
+        ActivityType.sessionCompleted =>
+          (Icons.event_available_outlined, AppColors.primary),
+        ActivityType.attendanceFilled =>
+          (Icons.checklist_outlined, AppColors.success),
+        ActivityType.assessmentSubmitted =>
+          (Icons.grading_outlined, AppColors.accent),
+        ActivityType.profileUpdated =>
+          (Icons.person_outline, AppColors.textSecondary),
+        ActivityType.reviewSent =>
+          (Icons.star_outline, AppColors.warning),
+        ActivityType.unknown =>
+          (Icons.history, AppColors.textTertiary),
+      };
 }
 
 // ── Badge Icon Mapping ──

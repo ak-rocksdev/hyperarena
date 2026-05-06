@@ -470,16 +470,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final query = state.uri.queryParameters;
           return AssessmentFormScreen(
-            sessionId: query['sessionId'],
+            sessionId: query['sessionId']!,
+            studentId: query['studentId']!,
             sessionTitle: query['sessionTitle'],
-            studentId: query['studentId'],
             studentName: query['studentName'],
-            sport: query['sport'] != null
-                ? Sport.values.firstWhere(
-                    (s) => s.name == query['sport'],
-                    orElse: () => Sport.tennis,
-                  )
-                : null,
           );
         },
       ),

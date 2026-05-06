@@ -48,6 +48,10 @@ abstract class OrganizerRepository {
     required String resolution,
   });
 
+  /// Admin-only. [bookingId] is `SessionStudent.id` (FE field `bookingId`).
+  /// [status] is one of `present`, `late`, `absent`, `not_recorded`.
+  Future<void> setAttendance(String bookingId, String status);
+
   Future<List<OrganizerActionItem>> getActionInbox({
     OrganizerActionType? type,
     OrganizerActionSeverity? severity,

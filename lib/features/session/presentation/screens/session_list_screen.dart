@@ -79,9 +79,13 @@ class _SessionListScreenState extends ConsumerState<SessionListScreen> {
     }
 
     if (state.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.event_outlined,
-        message: 'Belum ada sesi tersedia',
+        message: 'Belum ada sesi mendatang.\n'
+            'Sesi yang sudah dijadwalkan oleh admin akan muncul di sini.',
+        actionLabel: 'Muat ulang',
+        onAction: () =>
+            ref.read(marketplaceSessionListProvider.notifier).loadInitial(),
       );
     }
 

@@ -741,7 +741,8 @@ class _AttendanceSegmented extends StatelessWidget {
           icon: Icon(Icons.schedule, size: 16),
         ),
       ],
-      selected: value != null ? {value!} : {},
+      selected: value != null ? {value!} : <String>{},
+      emptySelectionAllowed: true,
       onSelectionChanged: (set) {
         if (set.isNotEmpty) onChanged(set.first);
       },

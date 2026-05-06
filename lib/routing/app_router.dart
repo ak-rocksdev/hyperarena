@@ -27,8 +27,9 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_dashboard_s
 import 'package:hyperarena/features/coach/presentation/screens/coach_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_schedule_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_session_detail_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_student_detail_screen.dart';
+import 'package:hyperarena/features/coach/presentation/screens/coach_students_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/student_detail_screen.dart';
-import 'package:hyperarena/features/coach/presentation/screens/student_list_screen.dart';
 import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_earnings_screen.dart';
@@ -436,7 +437,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/coach/students',
-                builder: (_, _) => const StudentListScreen(),
+                builder: (_, _) => const CoachStudentsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, state) => CoachStudentDetailScreen(
+                      studentId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

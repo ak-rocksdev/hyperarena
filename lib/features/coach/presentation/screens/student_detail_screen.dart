@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
@@ -15,7 +14,6 @@ import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selecto
 import 'package:hyperarena/features/coach/data/models/assessment.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/radar_chart_widget.dart';
 import 'package:hyperarena/features/coach/providers/student_provider.dart';
-import 'package:hyperarena/routing/app_routes.dart';
 
 class StudentDetailScreen extends ConsumerWidget {
   final String studentName;
@@ -127,7 +125,15 @@ class StudentDetailScreen extends ConsumerWidget {
                 child: AppButton(
                   label: 'Buat Penilaian Baru',
                   icon: Icons.add,
-                  onPressed: () => context.push(AppRoutes.assessmentNew),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Penilaian sekarang dilakukan dari detail sesi.',
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),

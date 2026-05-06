@@ -289,13 +289,12 @@ class _BottomAction extends StatelessWidget {
         child: booking.status == BookingStatus.completed
             ? FilledButton(
                 onPressed: () {
-                  context.push(
-                    '${AppRoutes.assessmentNew}'
-                    '?sessionId=${booking.id}'
-                    '&sessionTitle=${booking.packageName}'
-                    '&studentId=${booking.playerId}'
-                    '&studentName=${booking.playerName}'
-                    '&sport=${booking.sport.name}',
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Penilaian sekarang dilakukan dari detail sesi.',
+                      ),
+                    ),
                   );
                 },
                 style: FilledButton.styleFrom(

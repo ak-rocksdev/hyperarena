@@ -96,6 +96,42 @@ abstract final class Formatters {
     return joined.isEmpty ? fallback : joined;
   }
 
+  /// Indonesian relative date: "Hari ini" / "Kemarin" / "3 hari lalu" /
+  /// "2 minggu lalu" / "5 bulan lalu" / "Mar 2024" for older dates.
+  /// Future dates fall back to absolute formatting.
+  static String relativeDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final that = DateTime(date.year, date.month, date.day);
+    final diffDays = today.difference(that).inDays;
+    if (diffDays < 0) return formatDateShort(date);
+    if (diffDays == 0) return 'Hari ini';
+    if (diffDays == 1) return 'Kemarin';
+    if (diffDays < 7) return '$diffDays hari lalu';
+    if (diffDays < 30) {
+      final weeks = (diffDays / 7).floor();
+      return '$weeks minggu lalu';
+    }
+    if (diffDays < 365) {
+      final months = (diffDays / 30).floor();
+      return '$months bulan lalu';
+    }
+    return formatDateShort(date);
+  }
+
+  /// Whole-year age from DOB. Null in → null out (caller renders fallback
+  /// like "Umur Not Set" — we don't bake the fallback string in here).
+  static int? ageInYears(DateTime? dateOfBirth) {
+    if (dateOfBirth == null) return null;
+    final now = DateTime.now();
+    var age = now.year - dateOfBirth.year;
+    if (now.month < dateOfBirth.month ||
+        (now.month == dateOfBirth.month && now.day < dateOfBirth.day)) {
+      age--;
+    }
+    return age < 0 ? null : age;
+  }
+
   /// Returns `null` when the input is empty, else the input itself. Useful
   /// for clearing nullable backend fields when a user wipes a form input —
   /// `'bio': nullIfEmpty(_bio.text.trim())` sends `null` (clears column)

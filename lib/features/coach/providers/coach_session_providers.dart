@@ -1,6 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hyperarena/features/coach/data/api_coach_enrollment_repository.dart';
+import 'package:hyperarena/features/coach/data/api_coach_program_repository.dart';
 import 'package:hyperarena/features/coach/data/api_coach_session_repository.dart';
 import 'package:hyperarena/features/coach/data/models/coach_session.dart';
+import 'package:hyperarena/features/coach/data/models/enrollment.dart';
+import 'package:hyperarena/features/coach/data/models/level_skill.dart';
+import 'package:hyperarena/features/coach/data/models/program.dart';
+import 'package:hyperarena/features/coach/data/models/session_progress_detail.dart';
+import 'package:hyperarena/features/coach/data/models/session_recommendation.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 
 // ── Repository ──────────────────────────────────────────
@@ -111,3 +118,81 @@ final attendanceLocalStateProvider =
     StateProvider.family<Map<String, String>, String>(
   (ref, sessionId) => {},
 );
+
+// ── Grading ─────────────────────────────────────────────
+
+final coachEnrollmentRepoProvider =
+    Provider<ApiCoachEnrollmentRepository>((ref) {
+  return ApiCoachEnrollmentRepository(ref.watch(apiClientProvider));
+});
+
+final coachProgramRepoProvider = Provider<ApiCoachProgramRepository>((ref) {
+  return ApiCoachProgramRepository(ref.watch(apiClientProvider));
+});
+
+/// Active enrollment for one student. `null` when not enrolled.
+final coachStudentEnrollmentProvider =
+    FutureProvider.family<Enrollment?, int>((ref, studentProfileId) async {
+  final repo = ref.watch(coachEnrollmentRepoProvider);
+  return repo.getActiveForStudent(studentProfileId);
+});
+
+/// Standard level skills + per-student personal overrides, merged into one
+/// list ordered by sort_order. Used by the grading panel.
+final coachStudentLevelSkillsProvider = FutureProvider.family<
+    List<LevelSkill>, ({int studentProfileId, int levelId})>((ref, k) async {
+  final repo = ref.watch(coachEnrollmentRepoProvider);
+  final results = await Future.wait([
+    repo.getLevelSkills(k.levelId),
+    // Overrides are best-effort: a 403/404 just means the student has no
+    // personal skills configured. Swallow + return empty to keep the panel
+    // rendering with the standard list.
+    repo
+        .getStudentOverrides(
+            studentProfileId: k.studentProfileId, levelId: k.levelId)
+        .catchError((_) => <LevelSkill>[]),
+  ]);
+  final all = [...results[0], ...results[1]];
+  all.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  return all;
+});
+
+/// Existing session_progress + skill_progress for a session — hydrates the
+/// grading drafts on first render.
+final coachSessionProgressProvider =
+    FutureProvider.family<SessionProgressDetail, String>(
+        (ref, sessionId) async {
+  final repo = ref.watch(coachSessionRepoProvider);
+  try {
+    return await repo.getSessionProgress(int.parse(sessionId));
+  } catch (_) {
+    // No progress yet — render an empty detail rather than an error state.
+    return const SessionProgressDetail();
+  }
+});
+
+/// "Fokus yang Disarankan" panel data. Errors are swallowed (panel just
+/// won't render).
+final coachSessionRecommendationsProvider =
+    FutureProvider.family<List<SessionRecommendation>, String>(
+        (ref, sessionId) async {
+  final repo = ref.watch(coachSessionRepoProvider);
+  try {
+    return await repo.getRecommendations(int.parse(sessionId));
+  } catch (_) {
+    return const [];
+  }
+});
+
+/// Programs available for enrollment (cached for the dialog dropdown).
+final coachProgramsProvider = FutureProvider<List<Program>>((ref) async {
+  final repo = ref.watch(coachProgramRepoProvider);
+  return repo.getPrograms();
+});
+
+/// Levels for one program — cascading dropdown on the enrollment dialog.
+final coachProgramLevelsProvider =
+    FutureProvider.family<List<ProgramLevel>, int>((ref, programId) async {
+  final repo = ref.watch(coachProgramRepoProvider);
+  return repo.getLevels(programId);
+});

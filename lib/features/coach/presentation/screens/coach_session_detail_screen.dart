@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
@@ -9,6 +8,11 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/coach/data/models/coach_session.dart';
+import 'package:hyperarena/features/coach/data/models/enrollment.dart';
+import 'package:hyperarena/features/coach/data/models/session_progress_detail.dart';
+import 'package:hyperarena/features/coach/data/models/session_recommendation.dart';
+import 'package:hyperarena/features/coach/presentation/widgets/enrollment_dialog.dart';
+import 'package:hyperarena/features/coach/presentation/widgets/student_grading_panel.dart';
 import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
 
@@ -25,9 +29,18 @@ class _CoachSessionDetailScreenState
     extends ConsumerState<CoachSessionDetailScreen> {
   bool _saving = false;
   bool _initialized = false;
+  bool _draftsHydrated = false;
 
   /// Whether attendance is currently in edit mode.
   bool _editMode = false;
+
+  /// Currently expanded student profile id, or null when none. Single-expanded
+  /// pattern keeps the screen scannable on mobile.
+  int? _expandedStudentId;
+
+  /// Per-student grading drafts. Persists across collapse/expand within the
+  /// screen lifecycle so the coach doesn't lose work in progress.
+  final Map<int, StudentGradingDraft> _drafts = {};
 
   @override
   Widget build(BuildContext context) {
@@ -59,19 +72,15 @@ class _CoachSessionDetailScreenState
     for (final a in session.attendances) {
       existing[a.studentProfileId] = a.status;
     }
-    // Defer state update to after build
+    // Defer the provider write until after this build completes.
     Future.microtask(() {
       ref.read(attendanceLocalStateProvider(widget.sessionId).notifier).state =
           existing;
     });
 
-    // If attendance already exists, start read-only.
-    // Otherwise auto-enter edit mode for sessions that have started.
-    if (existing.isNotEmpty) {
-      _editMode = false;
-    } else {
-      _editMode = _canEditAttendance(session);
-    }
+    // Existing attendance starts read-only; an empty list on a started
+    // session jumps straight into edit mode so the coach can fill it in.
+    _editMode = existing.isEmpty && _canEditAttendance(session);
   }
 
   /// Coach may edit attendance any time once the session has started — no
@@ -102,17 +111,51 @@ class _CoachSessionDetailScreenState
     );
   }
 
+  /// Hydrates the per-student grading drafts from the server's existing
+  /// progress on the first build that has data. Subsequent saves invalidate
+  /// the provider but we keep the local draft (server is source of truth on
+  /// next screen open).
+  void _hydrateDrafts(SessionProgressDetail detail) {
+    if (_draftsHydrated) return;
+    _draftsHydrated = true;
+    // Hydration races user input: if the user expands a panel and starts
+    // editing while the progress fetch is still in flight, this method runs
+    // afterward. Use ??= / emptiness checks so server values only seed
+    // empty fields and never overwrite in-progress edits.
+    for (final sp in detail.sessionProgress) {
+      final id = int.parse(sp.studentProfileId);
+      final draft = _drafts.putIfAbsent(id, StudentGradingDraft.new);
+      draft.overallStatus ??= sp.status;
+      draft.overallScore ??= sp.score;
+      if (draft.notes.isEmpty) draft.notes = sp.notes ?? '';
+    }
+    for (final s in detail.skillProgress) {
+      final id = int.parse(s.studentProfileId);
+      final draft = _drafts.putIfAbsent(id, StudentGradingDraft.new);
+      draft.skills.putIfAbsent(
+        int.parse(s.levelSkillId),
+        () => SkillEntry(status: s.status, score: s.score),
+      );
+    }
+  }
+
+  StudentGradingDraft _draftFor(int studentProfileId) {
+    return _drafts.putIfAbsent(studentProfileId, StudentGradingDraft.new);
+  }
+
   Widget _buildContent(CoachSession session) {
     final localAttendance =
         ref.watch(attendanceLocalStateProvider(widget.sessionId));
     final canEdit = _canEditAttendance(session);
 
-    // Active (non-cancelled) students only
+    // Hydrate drafts from server-side progress on first arrival.
+    final progressAsync =
+        ref.watch(coachSessionProgressProvider(widget.sessionId));
+    progressAsync.whenData(_hydrateDrafts);
+
     final activeStudents = session.sessionStudents
         .where((s) => s.cancelledAt == null)
         .toList();
-
-    // Check if there are any unsaved local changes
     final hasChanges = _hasUnsavedChanges(session, localAttendance);
 
     return Stack(
@@ -312,17 +355,57 @@ class _CoachSessionDetailScreenState
                         );
                       }),
 
+                    // ── Recommendations panel ─────────────
+                    if (canEdit && activeStudents.isNotEmpty)
+                      _RecommendationsCard(sessionId: widget.sessionId),
+
                     // ── Grading section (past sessions only) ─
                     if (canEdit && activeStudents.isNotEmpty) ...[
                       const SizedBox(height: AppDimensions.lg),
-                      Text('Penilaian Peserta',
-                          style: AppTypography.titleMedium),
+                      Row(
+                        children: [
+                          Text('Penilaian Peserta',
+                              style: AppTypography.titleMedium),
+                          const SizedBox(width: AppDimensions.xs),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimensions.xs,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.neutral50,
+                              borderRadius: BorderRadius.circular(
+                                  AppDimensions.radiusFull),
+                            ),
+                            child: Text(
+                              'Tap siswa untuk menilai',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textTertiary,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: AppDimensions.sm),
-                      ...activeStudents.map((student) => _GradingRow(
-                            student: student,
-                            sessionId: widget.sessionId,
-                            sessionTitle: session.name,
-                          )),
+                      ...activeStudents.map((student) {
+                        final id = int.parse(student.studentProfileId);
+                        return _GradingCard(
+                          key: ValueKey('grade-$id'),
+                          student: student,
+                          sessionId: widget.sessionId,
+                          expanded: _expandedStudentId == id,
+                          draft: _draftFor(id),
+                          onToggle: () => setState(() {
+                            _expandedStudentId =
+                                _expandedStudentId == id ? null : id;
+                          }),
+                          onSaved: () => setState(() {
+                            _expandedStudentId = null;
+                          }),
+                          onDraftChanged: () => setState(() {}),
+                        );
+                      }),
                     ],
 
                     // Bottom padding for sticky bar
@@ -385,12 +468,9 @@ class _CoachSessionDetailScreenState
 
   bool _hasUnsavedChanges(
       CoachSession session, Map<String, String> localAttendance) {
-    // Build the server state map
-    final serverMap = <String, String>{};
-    for (final a in session.attendances) {
-      serverMap[a.studentProfileId] = a.status;
-    }
-    // Compare
+    final serverMap = <String, String>{
+      for (final a in session.attendances) a.studentProfileId: a.status,
+    };
     if (localAttendance.length != serverMap.length) return true;
     for (final entry in localAttendance.entries) {
       if (serverMap[entry.key] != entry.value) return true;
@@ -415,7 +495,6 @@ class _CoachSessionDetailScreenState
       final repo = ref.read(coachSessionRepoProvider);
       await repo.bulkSaveAttendance(int.parse(widget.sessionId), attendances);
 
-      // Refresh detail from server
       ref.invalidate(coachSessionDetailProvider(widget.sessionId));
       _initialized = false;
 
@@ -642,75 +721,300 @@ class _StatusBadge extends StatelessWidget {
   }
 }
 
-/// Per-participant grading entry. Tap navigates to AssessmentFormScreen.
-class _GradingRow extends StatelessWidget {
+/// One student in the grading list. Header row stays visible; tapping it
+/// toggles the inline `StudentGradingPanel` accordion below. Three-dot menu
+/// gives access to enrollment management (enroll / change program/level /
+/// withdraw).
+class _GradingCard extends ConsumerWidget {
   final CoachSessionStudent student;
   final String sessionId;
-  final String sessionTitle;
+  final bool expanded;
+  final StudentGradingDraft draft;
+  final VoidCallback onToggle;
+  final VoidCallback onSaved;
+  final VoidCallback onDraftChanged;
 
-  const _GradingRow({
+  const _GradingCard({
+    super.key,
     required this.student,
     required this.sessionId,
-    required this.sessionTitle,
+    required this.expanded,
+    required this.draft,
+    required this.onToggle,
+    required this.onSaved,
+    required this.onDraftChanged,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final profile = student.studentProfile;
     final name = profile != null
         ? '${profile.firstName ?? ''} ${profile.lastName ?? ''}'.trim()
         : 'Peserta';
     final photoUrl = profile?.photoUrls?['sm'];
+    final id = int.parse(student.studentProfileId);
+    final enrollmentAsync = ref.watch(coachStudentEnrollmentProvider(id));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-      child: Container(
-        padding: const EdgeInsets.all(AppDimensions.md),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
           color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          border: Border.all(color: AppColors.neutral200),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          border: Border.all(
+            color: expanded
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : AppColors.neutral200,
+            width: expanded ? 1.4 : 1,
+          ),
         ),
-        child: Row(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primary100,
-              backgroundImage:
-                  photoUrl != null ? NetworkImage(photoUrl) : null,
-              child: photoUrl == null
-                  ? Text(
-                      Formatters.initials(name),
-                      style: AppTypography.labelMedium.copyWith(
-                        color: AppColors.primary,
+            InkWell(
+              onTap: onToggle,
+              child: Padding(
+                padding: const EdgeInsets.all(AppDimensions.md),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: AppColors.primary100,
+                      backgroundImage: photoUrl != null
+                          ? NetworkImage(photoUrl)
+                          : null,
+                      child: photoUrl == null
+                          ? Text(
+                              Formatters.initials(name),
+                              style: AppTypography.labelMedium.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: AppDimensions.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name,
+                              style: AppTypography.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w600,
+                              )),
+                          const SizedBox(height: 2),
+                          enrollmentAsync.when(
+                            loading: () => Text(
+                              '…',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textTertiary,
+                              ),
+                            ),
+                            error: (_, _) => const SizedBox.shrink(),
+                            data: (enrollment) {
+                              if (enrollment == null) {
+                                return Text(
+                                  'Belum terdaftar di program',
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.textTertiary,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                );
+                              }
+                              final level =
+                                  enrollment.currentLevel?.name;
+                              return Text(
+                                level == null
+                                    ? enrollment.program?.name ?? '—'
+                                    : '${enrollment.program?.name ?? ""} · $level',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: AppDimensions.md),
-            Expanded(
-              child: Text(name, style: AppTypography.bodyMedium),
-            ),
-            FilledButton.tonal(
-              onPressed: () {
-                final path = '/coach/assessment/new'
-                    '?sessionId=$sessionId'
-                    '&sessionTitle=${Uri.encodeComponent(sessionTitle)}'
-                    '&studentId=${student.studentProfileId}'
-                    '&studentName=${Uri.encodeComponent(name)}';
-                context.push(path);
-              },
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(0, AppDimensions.buttonHeightSm),
+                    ),
+                    if (draft.isReady)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            right: AppDimensions.xs),
+                        child: Icon(
+                          Icons.check_circle,
+                          size: 18,
+                          color: AppColors.success,
+                        ),
+                      ),
+                    PopupMenuButton<_StudentMenuAction>(
+                      icon: const Icon(Icons.more_vert, size: 20),
+                      onSelected: (action) async {
+                        final enrollment = enrollmentAsync.valueOrNull;
+                        switch (action) {
+                          case _StudentMenuAction.enroll:
+                            await EnrollmentDialog.show(
+                              context: context,
+                              studentProfileId: id,
+                              studentName: name,
+                            );
+                            break;
+                          case _StudentMenuAction.changeProgram:
+                            await EnrollmentDialog.show(
+                              context: context,
+                              studentProfileId: id,
+                              studentName: name,
+                              existing: enrollment,
+                            );
+                            break;
+                          case _StudentMenuAction.withdraw:
+                            if (enrollment != null && context.mounted) {
+                              await _confirmWithdraw(
+                                  context, ref, enrollment, name);
+                            }
+                            break;
+                        }
+                      },
+                      itemBuilder: (_) {
+                        final enrollment = enrollmentAsync.valueOrNull;
+                        return enrollment == null
+                            ? const [
+                                PopupMenuItem(
+                                  value: _StudentMenuAction.enroll,
+                                  child: ListTile(
+                                    dense: true,
+                                    leading: Icon(Icons.school_outlined),
+                                    title: Text('Daftarkan ke Program'),
+                                  ),
+                                ),
+                              ]
+                            : const [
+                                PopupMenuItem(
+                                  value: _StudentMenuAction.changeProgram,
+                                  child: ListTile(
+                                    dense: true,
+                                    leading: Icon(Icons.edit_outlined),
+                                    title: Text('Ubah Program / Level'),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: _StudentMenuAction.withdraw,
+                                  child: ListTile(
+                                    dense: true,
+                                    leading: Icon(
+                                      Icons.exit_to_app_outlined,
+                                      color: AppColors.error,
+                                    ),
+                                    title: Text(
+                                      'Tarik dari Program',
+                                      style: TextStyle(
+                                          color: AppColors.error),
+                                    ),
+                                  ),
+                                ),
+                              ];
+                      },
+                    ),
+                    AnimatedRotation(
+                      turns: expanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 180),
+                      child: Icon(
+                        Icons.expand_more,
+                        size: 20,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text('Beri Penilaian'),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 180),
+              child: expanded
+                  ? StudentGradingPanel(
+                      sessionId: sessionId,
+                      studentProfileId: id,
+                      studentName: name,
+                      draft: draft,
+                      onChanged: onDraftChanged,
+                      onSaved: onSaved,
+                    )
+                  : const SizedBox.shrink(),
             ),
           ],
         ),
       ),
     );
   }
+
+  Future<void> _confirmWithdraw(
+    BuildContext context,
+    WidgetRef ref,
+    Enrollment enrollment,
+    String name,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tarik dari Program?'),
+        content: Text(
+          '$name akan dikeluarkan dari ${enrollment.program?.name ?? "program"}. '
+          'Riwayat penilaian tetap tersimpan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Tarik'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref
+          .read(coachEnrollmentRepoProvider)
+          .withdraw(int.parse(enrollment.id));
+      final spId = int.parse(enrollment.studentProfileId);
+      ref.invalidate(coachStudentEnrollmentProvider(spId));
+      // Level skills cache is keyed by (studentProfileId, levelId). Drop it
+      // for this student's previous level so re-enrolling at the same level
+      // forces a fresh fetch instead of replaying stale skills.
+      if (enrollment.currentLevelId != null) {
+        ref.invalidate(coachStudentLevelSkillsProvider((
+          studentProfileId: spId,
+          levelId: int.parse(enrollment.currentLevelId!),
+        )));
+      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$name ditarik dari program.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
 }
+
+enum _StudentMenuAction { enroll, changeProgram, withdraw }
 
 class _AttendanceSegmented extends StatelessWidget {
   final String? value;
@@ -751,6 +1055,113 @@ class _AttendanceSegmented extends StatelessWidget {
         visualDensity: VisualDensity.compact,
         textStyle: WidgetStatePropertyAll(AppTypography.labelSmall),
       ),
+    );
+  }
+}
+
+
+class _RecommendationBullet extends StatelessWidget {
+  final SessionRecommendation item;
+
+  const _RecommendationBullet({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = <String>[
+      if (item.studentName != null && item.studentName!.isNotEmpty)
+        item.studentName!,
+      if (item.title != null && item.title!.isNotEmpty) item.title!,
+      if (item.skills.isNotEmpty) item.skills.join(', '),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Icon(Icons.fiber_manual_record,
+                size: 8, color: AppColors.accent700),
+          ),
+          const SizedBox(width: AppDimensions.sm),
+          Expanded(
+            child: Text(
+              parts.join(' — '),
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.accent900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecommendationsCard extends ConsumerWidget {
+  final String sessionId;
+
+  const _RecommendationsCard({required this.sessionId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(coachSessionRecommendationsProvider(sessionId));
+    return async.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (items) {
+        if (items.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(top: AppDimensions.lg),
+          child: Container(
+            padding: const EdgeInsets.all(AppDimensions.md),
+            decoration: BoxDecoration(
+              color: AppColors.accent50,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              border: Border.all(
+                  color: AppColors.accent200.withValues(alpha: 0.6)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.lightbulb_outline,
+                        size: 18, color: AppColors.accent700),
+                    const SizedBox(width: AppDimensions.xs),
+                    Text(
+                      "Fokus yang Disarankan",
+                      style: AppTypography.titleSmall.copyWith(
+                        color: AppColors.accent700,
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.xs),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent200,
+                        borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusFull),
+                      ),
+                      child: Text(
+                        items.length.toString(),
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.accent900,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppDimensions.sm),
+                ...items.take(3).map((r) => _RecommendationBullet(item: r)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

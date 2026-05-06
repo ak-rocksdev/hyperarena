@@ -18,7 +18,6 @@ import 'package:hyperarena/features/booking/presentation/screens/booking_list_sc
 import 'package:hyperarena/features/booking/presentation/screens/booking_summary_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/payment_screen.dart';
 import 'package:hyperarena/features/booking/presentation/screens/slot_selection_screen.dart';
-import 'package:hyperarena/features/coach/presentation/screens/assessment_form_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_confirmation_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coaching_booking_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_payment_screen.dart';
@@ -464,18 +463,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StudentDetailScreen(
           studentName: Uri.decodeComponent(state.pathParameters['name']!),
         ),
-      ),
-      GoRoute(
-        path: '/coach/assessment/new',
-        builder: (_, state) {
-          final query = state.uri.queryParameters;
-          return AssessmentFormScreen(
-            sessionId: query['sessionId']!,
-            studentId: query['studentId']!,
-            sessionTitle: query['sessionTitle'],
-            studentName: query['studentName'],
-          );
-        },
       ),
 
       // ── Coach availability (coach role) ────────────────────

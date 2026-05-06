@@ -572,6 +572,101 @@ class _ParticipantRow extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.base),
               ..._buildContextualActions(ctx, actions),
+
+              // Attendance section — for confirmed participants with a
+              // session_student id (bookingId). Calls
+              // PATCH /v1/admin/session-students/{id}/attendance.
+              if (participant.status == SessionParticipantStatus.confirmed &&
+                  participant.bookingId != null) ...[
+                const SizedBox(height: AppDimensions.base),
+                const Divider(),
+                const SizedBox(height: AppDimensions.sm),
+                Text('Kehadiran', style: AppTypography.titleSmall),
+                const SizedBox(height: AppDimensions.sm),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          await actions.setAttendance(
+                            bookingId: participant.bookingId!,
+                            sessionId: sessionId,
+                            status: 'present',
+                          );
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Tercatat: Hadir'),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.check_circle_outline,
+                            size: 16),
+                        label: const Text('Hadir'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.success,
+                          side: const BorderSide(color: AppColors.success),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.sm),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          await actions.setAttendance(
+                            bookingId: participant.bookingId!,
+                            sessionId: sessionId,
+                            status: 'late',
+                          );
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Tercatat: Telat'),
+                              backgroundColor: AppColors.warning,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.schedule, size: 16),
+                        label: const Text('Telat'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.warning,
+                          side: const BorderSide(color: AppColors.warning),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.sm),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          await actions.setAttendance(
+                            bookingId: participant.bookingId!,
+                            sessionId: sessionId,
+                            status: 'absent',
+                          );
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Tercatat: Absen'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.cancel_outlined, size: 16),
+                        label: const Text('Absen'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.error,
+                          side: const BorderSide(color: AppColors.error),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
               const SizedBox(height: AppDimensions.sm),
               SizedBox(
                 width: double.infinity,
@@ -614,7 +709,7 @@ class _ParticipantRow extends ConsumerWidget {
                   sessionId: sessionId,
                 );
               },
-              child: const Text('Konfirmasi Pembayaran'),
+              child: const Text('Tandai Lunas'),
             ),
           ),
           const SizedBox(height: AppDimensions.sm),

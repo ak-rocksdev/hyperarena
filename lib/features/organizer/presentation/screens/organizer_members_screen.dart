@@ -98,10 +98,12 @@ class _OrganizerMembersScreenState
                 ),
               ),
             ),
-            // Stats ticker (overlaps hero by 24px for depth)
+            // Stats ticker — sits below the hero with explicit breathing
+            // room above (no overlap; the prior Transform.translate-based
+            // overlap merged the card visually with the hero).
             SliverToBoxAdapter(
-              child: Transform.translate(
-                offset: const Offset(0, -AppDimensions.lg),
+              child: Padding(
+                padding: const EdgeInsets.only(top: AppDimensions.lg),
                 child: summaryAsync.when(
                   loading: _buildStatsLoading,
                   error: (_, _) => const SizedBox.shrink(),

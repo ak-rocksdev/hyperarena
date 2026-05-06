@@ -32,6 +32,12 @@ mixin _$CoachSession {
   String? get status => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+
+  /// Backend-derived quality flag — independent of `status`.
+  /// Values: `not_yet | needs_attendance | needs_grading | complete`.
+  /// `not_yet` = future session; the other three drive Issue 1 warning chips.
+  @JsonKey(name: 'completion_state')
+  String get completionState => throw _privateConstructorUsedError;
   @JsonKey(name: 'booked_students_count')
   int get bookedStudentsCount => throw _privateConstructorUsedError;
   CoachSessionVenue? get venue => throw _privateConstructorUsedError;
@@ -69,6 +75,7 @@ abstract class $CoachSessionCopyWith<$Res> {
     String? status,
     String? notes,
     String name,
+    @JsonKey(name: 'completion_state') String completionState,
     @JsonKey(name: 'booked_students_count') int bookedStudentsCount,
     CoachSessionVenue? venue,
     List<CoachSessionCoach> coaches,
@@ -103,6 +110,7 @@ class _$CoachSessionCopyWithImpl<$Res, $Val extends CoachSession>
     Object? status = freezed,
     Object? notes = freezed,
     Object? name = null,
+    Object? completionState = null,
     Object? bookedStudentsCount = null,
     Object? venue = freezed,
     Object? coaches = null,
@@ -142,6 +150,10 @@ class _$CoachSessionCopyWithImpl<$Res, $Val extends CoachSession>
             name: null == name
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            completionState: null == completionState
+                ? _value.completionState
+                : completionState // ignore: cast_nullable_to_non_nullable
                       as String,
             bookedStudentsCount: null == bookedStudentsCount
                 ? _value.bookedStudentsCount
@@ -201,6 +213,7 @@ abstract class _$$CoachSessionImplCopyWith<$Res>
     String? status,
     String? notes,
     String name,
+    @JsonKey(name: 'completion_state') String completionState,
     @JsonKey(name: 'booked_students_count') int bookedStudentsCount,
     CoachSessionVenue? venue,
     List<CoachSessionCoach> coaches,
@@ -235,6 +248,7 @@ class __$$CoachSessionImplCopyWithImpl<$Res>
     Object? status = freezed,
     Object? notes = freezed,
     Object? name = null,
+    Object? completionState = null,
     Object? bookedStudentsCount = null,
     Object? venue = freezed,
     Object? coaches = null,
@@ -275,6 +289,10 @@ class __$$CoachSessionImplCopyWithImpl<$Res>
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
                   as String,
+        completionState: null == completionState
+            ? _value.completionState
+            : completionState // ignore: cast_nullable_to_non_nullable
+                  as String,
         bookedStudentsCount: null == bookedStudentsCount
             ? _value.bookedStudentsCount
             : bookedStudentsCount // ignore: cast_nullable_to_non_nullable
@@ -312,6 +330,7 @@ class _$CoachSessionImpl implements _CoachSession {
     this.status,
     this.notes,
     this.name = 'Sesi Latihan',
+    @JsonKey(name: 'completion_state') this.completionState = 'not_yet',
     @JsonKey(name: 'booked_students_count') this.bookedStudentsCount = 0,
     this.venue,
     final List<CoachSessionCoach> coaches = const [],
@@ -346,6 +365,13 @@ class _$CoachSessionImpl implements _CoachSession {
   @override
   @JsonKey()
   final String name;
+
+  /// Backend-derived quality flag — independent of `status`.
+  /// Values: `not_yet | needs_attendance | needs_grading | complete`.
+  /// `not_yet` = future session; the other three drive Issue 1 warning chips.
+  @override
+  @JsonKey(name: 'completion_state')
+  final String completionState;
   @override
   @JsonKey(name: 'booked_students_count')
   final int bookedStudentsCount;
@@ -382,7 +408,7 @@ class _$CoachSessionImpl implements _CoachSession {
 
   @override
   String toString() {
-    return 'CoachSession(id: $id, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, status: $status, notes: $notes, name: $name, bookedStudentsCount: $bookedStudentsCount, venue: $venue, coaches: $coaches, sessionStudents: $sessionStudents, attendances: $attendances)';
+    return 'CoachSession(id: $id, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, status: $status, notes: $notes, name: $name, completionState: $completionState, bookedStudentsCount: $bookedStudentsCount, venue: $venue, coaches: $coaches, sessionStudents: $sessionStudents, attendances: $attendances)';
   }
 
   @override
@@ -400,6 +426,8 @@ class _$CoachSessionImpl implements _CoachSession {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.completionState, completionState) ||
+                other.completionState == completionState) &&
             (identical(other.bookedStudentsCount, bookedStudentsCount) ||
                 other.bookedStudentsCount == bookedStudentsCount) &&
             (identical(other.venue, venue) || other.venue == venue) &&
@@ -426,6 +454,7 @@ class _$CoachSessionImpl implements _CoachSession {
     status,
     notes,
     name,
+    completionState,
     bookedStudentsCount,
     venue,
     const DeepCollectionEquality().hash(_coaches),
@@ -457,6 +486,7 @@ abstract class _CoachSession implements CoachSession {
     final String? status,
     final String? notes,
     final String name,
+    @JsonKey(name: 'completion_state') final String completionState,
     @JsonKey(name: 'booked_students_count') final int bookedStudentsCount,
     final CoachSessionVenue? venue,
     final List<CoachSessionCoach> coaches,
@@ -487,6 +517,13 @@ abstract class _CoachSession implements CoachSession {
   String? get notes;
   @override
   String get name;
+
+  /// Backend-derived quality flag — independent of `status`.
+  /// Values: `not_yet | needs_attendance | needs_grading | complete`.
+  /// `not_yet` = future session; the other three drive Issue 1 warning chips.
+  @override
+  @JsonKey(name: 'completion_state')
+  String get completionState;
   @override
   @JsonKey(name: 'booked_students_count')
   int get bookedStudentsCount;

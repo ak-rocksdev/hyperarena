@@ -11,6 +11,8 @@ class User with _$User {
     required String name,
     required String email,
     String? phone,
+    String? bio,
+    String? city,
     String? avatarUrl,
     required UserRole role,
     @Default(false) bool isVerified,

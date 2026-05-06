@@ -42,6 +42,8 @@ User _parseUser(Map<String, dynamic> json) {
     name: json['name'] as String,
     email: json['email'] as String,
     phone: json['phone'] as String?,
+    bio: json['bio'] as String?,
+    city: json['city'] as String?,
     avatarUrl: _extractAvatarUrl(json),
     role: mapBackendRole(effectiveRole),
     activeRole: effectiveRole,

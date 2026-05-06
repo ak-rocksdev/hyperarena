@@ -17,6 +17,7 @@ _$CoachSessionImpl _$$CoachSessionImplFromJson(
   status: json['status'] as String?,
   notes: json['notes'] as String?,
   name: json['name'] as String? ?? 'Sesi Latihan',
+  completionState: json['completion_state'] as String? ?? 'not_yet',
   bookedStudentsCount: (json['booked_students_count'] as num?)?.toInt() ?? 0,
   venue: json['venue'] == null
       ? null
@@ -50,6 +51,7 @@ Map<String, dynamic> _$$CoachSessionImplToJson(_$CoachSessionImpl instance) =>
       'status': instance.status,
       'notes': instance.notes,
       'name': instance.name,
+      'completion_state': instance.completionState,
       'booked_students_count': instance.bookedStudentsCount,
       'venue': instance.venue,
       'coaches': instance.coaches,

@@ -21,6 +21,13 @@ class CoachSession with _$CoachSession {
     String? status,
     String? notes,
     @Default('Sesi Latihan') String name,
+    /// Backend-derived quality flag — independent of `status`.
+    /// Values: `not_yet | needs_attendance | needs_grading | complete`.
+    /// `not_yet` = future session; the other three surface warning chips on
+    /// the coach dashboard (e.g. "Kehadiran Belum Lengkap").
+    @JsonKey(name: 'completion_state')
+    @Default('not_yet')
+    String completionState,
     @JsonKey(name: 'booked_students_count') @Default(0) int bookedStudentsCount,
     CoachSessionVenue? venue,
     @Default([]) List<CoachSessionCoach> coaches,

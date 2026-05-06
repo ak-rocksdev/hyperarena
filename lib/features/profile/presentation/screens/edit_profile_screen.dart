@@ -38,8 +38,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     _nameController = TextEditingController(text: user?.name ?? '');
     _phoneController = TextEditingController(text: user?.phone ?? '');
-    _bioController = TextEditingController();
-    _cityController = TextEditingController();
+    _bioController = TextEditingController(text: user?.bio ?? '');
+    _cityController = TextEditingController(text: user?.city ?? '');
     _selectedSports = <Sport>{};
     _selfAssessedLevels = {};
   }
@@ -82,10 +82,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _saving = true);
     try {
       final apiClient = ref.read(apiClientProvider);
+      final phone = _phoneController.text.trim();
+      final bio = _bioController.text.trim();
+      final city = _cityController.text.trim();
       final response = await apiClient.put('/v1/auth/profile', data: {
         'name': _nameController.text.trim(),
-        if (_phoneController.text.trim().isNotEmpty)
-          'phone': _phoneController.text.trim(),
+        if (phone.isNotEmpty) 'phone': phone,
+        // Send empty string as null so the BE column clears when user wipes the field.
+        'bio': bio.isEmpty ? null : bio,
+        'city': city.isEmpty ? null : city,
       });
       // Update auth state from PUT response (avoids extra GET /me call)
       final data = response.data as Map<String, dynamic>?;

@@ -25,6 +25,8 @@ mixin _$User {
   String get name => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
+  String? get bio => throw _privateConstructorUsedError;
+  String? get city => throw _privateConstructorUsedError;
   String? get avatarUrl => throw _privateConstructorUsedError;
   UserRole get role => throw _privateConstructorUsedError;
   bool get isVerified => throw _privateConstructorUsedError;
@@ -54,6 +56,8 @@ abstract class $UserCopyWith<$Res> {
     String name,
     String email,
     String? phone,
+    String? bio,
+    String? city,
     String? avatarUrl,
     UserRole role,
     bool isVerified,
@@ -85,6 +89,8 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? name = null,
     Object? email = null,
     Object? phone = freezed,
+    Object? bio = freezed,
+    Object? city = freezed,
     Object? avatarUrl = freezed,
     Object? role = null,
     Object? isVerified = null,
@@ -112,6 +118,14 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
             phone: freezed == phone
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            bio: freezed == bio
+                ? _value.bio
+                : bio // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            city: freezed == city
+                ? _value.city
+                : city // ignore: cast_nullable_to_non_nullable
                       as String?,
             avatarUrl: freezed == avatarUrl
                 ? _value.avatarUrl
@@ -168,6 +182,8 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     String name,
     String email,
     String? phone,
+    String? bio,
+    String? city,
     String? avatarUrl,
     UserRole role,
     bool isVerified,
@@ -196,6 +212,8 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? name = null,
     Object? email = null,
     Object? phone = freezed,
+    Object? bio = freezed,
+    Object? city = freezed,
     Object? avatarUrl = freezed,
     Object? role = null,
     Object? isVerified = null,
@@ -223,6 +241,14 @@ class __$$UserImplCopyWithImpl<$Res>
         phone: freezed == phone
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        bio: freezed == bio
+            ? _value.bio
+            : bio // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        city: freezed == city
+            ? _value.city
+            : city // ignore: cast_nullable_to_non_nullable
                   as String?,
         avatarUrl: freezed == avatarUrl
             ? _value.avatarUrl
@@ -273,6 +299,8 @@ class _$UserImpl implements _User {
     required this.name,
     required this.email,
     this.phone,
+    this.bio,
+    this.city,
     this.avatarUrl,
     required this.role,
     this.isVerified = false,
@@ -295,6 +323,10 @@ class _$UserImpl implements _User {
   final String email;
   @override
   final String? phone;
+  @override
+  final String? bio;
+  @override
+  final String? city;
   @override
   final String? avatarUrl;
   @override
@@ -323,7 +355,7 @@ class _$UserImpl implements _User {
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, email: $email, phone: $phone, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
+    return 'User(id: $id, name: $name, email: $email, phone: $phone, bio: $bio, city: $city, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
   }
 
   @override
@@ -335,6 +367,8 @@ class _$UserImpl implements _User {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.bio, bio) || other.bio == bio) &&
+            (identical(other.city, city) || other.city == city) &&
             (identical(other.avatarUrl, avatarUrl) ||
                 other.avatarUrl == avatarUrl) &&
             (identical(other.role, role) || other.role == role) &&
@@ -363,6 +397,8 @@ class _$UserImpl implements _User {
     name,
     email,
     phone,
+    bio,
+    city,
     avatarUrl,
     role,
     isVerified,
@@ -394,6 +430,8 @@ abstract class _User implements User {
     required final String name,
     required final String email,
     final String? phone,
+    final String? bio,
+    final String? city,
     final String? avatarUrl,
     required final UserRole role,
     final bool isVerified,
@@ -415,6 +453,10 @@ abstract class _User implements User {
   String get email;
   @override
   String? get phone;
+  @override
+  String? get bio;
+  @override
+  String? get city;
   @override
   String? get avatarUrl;
   @override

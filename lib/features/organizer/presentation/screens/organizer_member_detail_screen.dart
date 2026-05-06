@@ -5,22 +5,17 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/core/widgets/error_view.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/club/data/models/student_detail.dart';
+import 'package:hyperarena/features/club/providers/club_providers.dart';
+import 'package:hyperarena/shared/widgets/session_result_sheet.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
+import 'package:hyperarena/shared/widgets/zoomable_image.dart';
 
-/// Organizer-side member profile. Same hero/KPI/enrollment/performance/skills
-/// layout as the coach's read-only detail, plus two financial sections that
-/// only the organizer needs:
-///
-/// - **RINGKASAN KEUANGAN** — 3 KPIs (bayar bulan ini, tagihan pending,
-///   total transaksi) sit between the engagement KPI strip and the
-///   enrollment card.
-/// - **RIWAYAT PEMBAYARAN** — chronological list of recent purchases with
-///   amount, status pill, and tap-to-view-proof.
-/// - Session history rows pick up a payment chip alongside the attendance
-///   pill.
-///
-/// Stub data; wires to `GET /v1/admin/students/{id}/detail` (BE Issue 19.3)
-/// when that ships.
+/// Organizer-side member profile. Wired to `GET /v1/admin/students/{id}/detail`
+/// (Issue 19.3). Same hero/KPIs/enrollment/performance/skills as coach
+/// detail (19.2) plus two financial sections only the organizer sees.
 class OrganizerMemberDetailScreen extends ConsumerWidget {
   final String memberId;
 
@@ -28,12 +23,68 @@ class OrganizerMemberDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final detail = _stubDetail;
+    final id = int.tryParse(memberId);
+    if (id == null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(AppDimensions.lg),
+            child: Text('ID anggota tidak valid.'),
+          ),
+        ),
+      );
+    }
+    final async = ref.watch(adminStudentDetailProvider(id));
+    return async.when(
+      loading: () => const _LoadingScaffold(),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(),
+        body: ErrorView(
+          error: e,
+          onRetry: () => ref.invalidate(adminStudentDetailProvider(id)),
+        ),
+      ),
+      data: (detail) => _Body(detail: detail),
+    );
+  }
+}
+
+class _LoadingScaffold extends StatelessWidget {
+  const _LoadingScaffold();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(elevation: 0, backgroundColor: AppColors.primary900),
+      body: ListView(
+        padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+        children: [
+          ShimmerLoading.card(height: 240),
+          const SizedBox(height: AppDimensions.lg),
+          ShimmerLoading.card(height: 90),
+          const SizedBox(height: AppDimensions.lg),
+          ShimmerLoading.card(height: 90),
+          const SizedBox(height: AppDimensions.lg),
+          ShimmerLoading.card(height: 240),
+        ],
+      ),
+    );
+  }
+}
+
+class _Body extends StatelessWidget {
+  final AdminStudentDetail detail;
+
+  const _Body({required this.detail});
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.neutral50,
       body: CustomScrollView(
         slivers: [
-          _Hero(detail: detail),
+          _Hero(student: detail.student),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -45,27 +96,31 @@ class OrganizerMemberDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _EngagementKpiStrip(detail: detail),
+                  _EngagementKpiStrip(stats: detail.student.stats),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('RINGKASAN KEUANGAN'),
                   const SizedBox(height: AppDimensions.sm),
-                  _FinancialKpiStrip(detail: detail),
+                  _FinancialKpiStrip(fin: detail.financialStats),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('ENROLLMENT'),
                   const SizedBox(height: AppDimensions.sm),
-                  _EnrollmentCard(detail: detail),
+                  _EnrollmentCard(enrollment: detail.student.enrollment),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('PERFORMA TERKINI'),
                   const SizedBox(height: AppDimensions.sm),
                   _TrendStrip(trend: detail.recentTrend),
-                  const SizedBox(height: AppDimensions.xl),
-                  _SectionLabel('PROGRES KEAHLIAN'),
-                  const SizedBox(height: AppDimensions.sm),
-                  _SkillBreakdown(breakdown: detail.skillBreakdown),
-                  const SizedBox(height: AppDimensions.xl),
-                  _SectionLabel('RIWAYAT PEMBAYARAN'),
-                  const SizedBox(height: AppDimensions.sm),
-                  _PaymentHistoryList(payments: detail.paymentHistory),
+                  if (detail.skillBreakdown.isNotEmpty) ...[
+                    const SizedBox(height: AppDimensions.xl),
+                    _SectionLabel('PROGRES KEAHLIAN'),
+                    const SizedBox(height: AppDimensions.sm),
+                    _SkillBreakdown(breakdown: detail.skillBreakdown),
+                  ],
+                  if (detail.paymentHistory.isNotEmpty) ...[
+                    const SizedBox(height: AppDimensions.xl),
+                    _SectionLabel('RIWAYAT PEMBAYARAN'),
+                    const SizedBox(height: AppDimensions.sm),
+                    _PaymentHistoryList(payments: detail.paymentHistory),
+                  ],
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('RIWAYAT SESI'),
                   const SizedBox(height: AppDimensions.sm),
@@ -83,14 +138,14 @@ class OrganizerMemberDetailScreen extends ConsumerWidget {
 // ── Hero ────────────────────────────────────────────────────────────
 
 class _Hero extends StatelessWidget {
-  final _StubMemberDetail detail;
+  final StudentProfileSummary student;
 
-  const _Hero({required this.detail});
+  const _Hero({required this.student});
 
   @override
   Widget build(BuildContext context) {
     final ageText =
-        detail.age != null ? '${detail.age} tahun' : 'Umur Not Set';
+        student.age != null ? '${student.age} tahun' : 'Umur Not Set';
     return SliverAppBar(
       expandedHeight: 280,
       pinned: true,
@@ -103,7 +158,7 @@ class _Hero extends StatelessWidget {
             opacity: collapsed ? 1 : 0,
             duration: const Duration(milliseconds: 150),
             child: Text(
-              detail.fullName,
+              student.fullName,
               style: AppTypography.bodyMedium.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -119,19 +174,18 @@ class _Hero extends StatelessWidget {
                 gradient: AppSurfaces.primaryGradient,
               ),
             ),
-            // Tappable centered avatar — Hero target syncs with the list
-            // row so the transition is shared.
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 60),
                 child: ZoomableAvatar(
-                  heroTag: 'member-${detail.studentProfileId}',
-                  imageUrl: detail.photoUrl,
-                  fallbackInitials: Formatters.initials(detail.fullName),
+                  heroTag: 'member-${student.id}',
+                  imageUrl:
+                      student.photoUrls?['lg'] ?? student.photoUrls?['md'],
+                  fallbackInitials: Formatters.initials(student.fullName),
                   radius: 56,
                   bgColor: Colors.white.withValues(alpha: 0.18),
                   fgColor: Colors.white,
-                  caption: detail.fullName,
+                  caption: student.fullName,
                 ),
               ),
             ),
@@ -163,25 +217,24 @@ class _Hero extends StatelessWidget {
                     runSpacing: 4,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      _HeroChip(
-                          label: ageText, icon: Icons.cake_outlined),
-                      if (detail.gender != null)
+                      _HeroChip(label: ageText, icon: Icons.cake_outlined),
+                      if (student.gender != null)
                         _HeroChip(
-                          label: _genderLabel(detail.gender!),
-                          icon: detail.gender == 'female'
+                          label: _genderLabel(student.gender!),
+                          icon: student.gender == 'female'
                               ? Icons.female
                               : Icons.male,
                         ),
-                      if (detail.assignedCoachName != null)
+                      if (student.sport != null)
                         _HeroChip(
-                          label: 'Coach ${detail.assignedCoachName!}',
-                          icon: Icons.sports,
+                          label: student.sport!,
+                          icon: Icons.sports_tennis,
                         ),
                     ],
                   ),
                   const SizedBox(height: AppDimensions.xs),
                   Text(
-                    detail.fullName,
+                    student.fullName,
                     style: AppTypography.headingLarge.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -269,9 +322,9 @@ class _SectionLabel extends StatelessWidget {
 // ── Engagement KPI strip ───────────────────────────────────────────
 
 class _EngagementKpiStrip extends StatelessWidget {
-  final _StubMemberDetail detail;
+  final StudentEngagementStats stats;
 
-  const _EngagementKpiStrip({required this.detail});
+  const _EngagementKpiStrip({required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -290,18 +343,18 @@ class _EngagementKpiStrip extends StatelessWidget {
           children: [
             Expanded(
               child: _KpiTile(
-                value: detail.totalSessions.toString(),
+                value: stats.totalSessions.toString(),
                 label: 'Sesi diikuti',
               ),
             ),
             const _KpiDivider(),
             Expanded(
               child: _KpiTile(
-                value: '${(detail.attendanceRate * 100).round()}%',
+                value: '${(stats.attendanceRate * 100).round()}%',
                 label: 'Tingkat hadir',
-                color: detail.attendanceRate >= 0.85
+                color: stats.attendanceRate >= 0.85
                     ? AppColors.success
-                    : detail.attendanceRate >= 0.7
+                    : stats.attendanceRate >= 0.7
                         ? AppColors.warning
                         : AppColors.error,
               ),
@@ -310,7 +363,7 @@ class _EngagementKpiStrip extends StatelessWidget {
             Expanded(
               child: _KpiTile(
                 value:
-                    '${detail.skillsMasteredCount}/${detail.skillsTotalCount}',
+                    '${stats.skillsMasteredCount}/${stats.skillsTotalCount}',
                 label: 'Skill dikuasai',
               ),
             ),
@@ -321,17 +374,16 @@ class _EngagementKpiStrip extends StatelessWidget {
   }
 }
 
-// ── Financial KPI strip (organizer-only) ───────────────────────────
+// ── Financial KPI strip ────────────────────────────────────────────
 
 class _FinancialKpiStrip extends StatelessWidget {
-  final _StubMemberDetail detail;
+  final FinancialStats fin;
 
-  const _FinancialKpiStrip({required this.detail});
+  const _FinancialKpiStrip({required this.fin});
 
   @override
   Widget build(BuildContext context) {
-    final outstanding = detail.outstandingAmount;
-    final hasOutstanding = outstanding > 0;
+    final hasOutstanding = fin.outstandingAmount > 0;
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: AppDimensions.lg,
@@ -351,7 +403,7 @@ class _FinancialKpiStrip extends StatelessWidget {
           children: [
             Expanded(
               child: _KpiTile(
-                value: Formatters.formatRupiahCompact(detail.paidThisMonth),
+                value: Formatters.formatRupiahCompact(fin.paidThisMonth),
                 label: 'Bayar bulan ini',
                 color: AppColors.success,
               ),
@@ -360,10 +412,10 @@ class _FinancialKpiStrip extends StatelessWidget {
             Expanded(
               child: _KpiTile(
                 value: hasOutstanding
-                    ? Formatters.formatRupiahCompact(outstanding)
+                    ? Formatters.formatRupiahCompact(fin.outstandingAmount)
                     : '—',
                 label: hasOutstanding
-                    ? '${detail.outstandingCount} tagihan'
+                    ? '${fin.outstandingCount} tagihan'
                     : 'Tidak ada tagihan',
                 color: hasOutstanding ? AppColors.error : AppColors.success,
               ),
@@ -371,7 +423,7 @@ class _FinancialKpiStrip extends StatelessWidget {
             const _KpiDivider(),
             Expanded(
               child: _KpiTile(
-                value: detail.paymentHistory.length.toString(),
+                value: fin.totalTransactions.toString(),
                 label: 'Total transaksi',
               ),
             ),
@@ -439,16 +491,16 @@ class _KpiDivider extends StatelessWidget {
   }
 }
 
-// ── Enrollment card ────────────────────────────────────────────────
+// ── Enrollment ─────────────────────────────────────────────────────
 
 class _EnrollmentCard extends StatelessWidget {
-  final _StubMemberDetail detail;
+  final StudentDetailEnrollment? enrollment;
 
-  const _EnrollmentCard({required this.detail});
+  const _EnrollmentCard({required this.enrollment});
 
   @override
   Widget build(BuildContext context) {
-    if (detail.programName == null) {
+    if (enrollment == null) {
       return Container(
         padding: const EdgeInsets.all(AppDimensions.md),
         decoration: BoxDecoration(
@@ -459,8 +511,7 @@ class _EnrollmentCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.info_outline,
-                size: 18, color: AppColors.warningDark),
+            Icon(Icons.info_outline, size: 18, color: AppColors.warningDark),
             const SizedBox(width: AppDimensions.sm),
             Expanded(
               child: Text(
@@ -499,29 +550,21 @@ class _EnrollmentCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  detail.programName!,
+                  enrollment!.programName ?? '—',
                   style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  detail.levelName ?? 'Tanpa level',
+                  enrollment!.levelName ?? 'Tanpa level',
                   style: AppTypography.caption
                       .copyWith(color: AppColors.textSecondary),
                 ),
-                if (detail.assignedCoachName != null) ...[
+                if (enrollment!.enrolledAt != null) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'Diasuh oleh Coach ${detail.assignedCoachName!}',
-                    style: AppTypography.caption
-                        .copyWith(color: AppColors.textTertiary),
-                  ),
-                ],
-                if (detail.enrolledAt != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'Bergabung ${Formatters.formatDate(detail.enrolledAt!)}',
+                    'Bergabung ${Formatters.formatDate(enrollment!.enrolledAt!)}',
                     style: AppTypography.caption
                         .copyWith(color: AppColors.textTertiary),
                   ),
@@ -535,10 +578,10 @@ class _EnrollmentCard extends StatelessWidget {
   }
 }
 
-// ── Trend strip ────────────────────────────────────────────────────
+// ── Trend ──────────────────────────────────────────────────────────
 
 class _TrendStrip extends StatelessWidget {
-  final List<_StubTrend> trend;
+  final List<AssessmentTrendPoint> trend;
 
   const _TrendStrip({required this.trend});
 
@@ -547,11 +590,22 @@ class _TrendStrip extends StatelessWidget {
     if (trend.isEmpty) {
       return _EmptyCard(text: 'Belum ada penilaian tersimpan.');
     }
+    final pointsWithDelta = <(AssessmentTrendPoint, int?)>[];
+    int? prev;
+    for (final p in trend) {
+      pointsWithDelta.add((p, prev == null ? null : (p.score ?? 0) - prev));
+      prev = p.score;
+    }
     return Row(
       children: [
-        for (var i = 0; i < trend.length; i++) ...[
-          Expanded(child: _TrendCard(item: trend[i])),
-          if (i < trend.length - 1)
+        for (var i = 0; i < pointsWithDelta.length; i++) ...[
+          Expanded(
+            child: _TrendCard(
+              point: pointsWithDelta[i].$1,
+              delta: pointsWithDelta[i].$2,
+            ),
+          ),
+          if (i < pointsWithDelta.length - 1)
             const SizedBox(width: AppDimensions.sm),
         ],
       ],
@@ -560,26 +614,26 @@ class _TrendStrip extends StatelessWidget {
 }
 
 class _TrendCard extends StatelessWidget {
-  final _StubTrend item;
+  final AssessmentTrendPoint point;
+  final int? delta;
 
-  const _TrendCard({required this.item});
+  const _TrendCard({required this.point, required this.delta});
 
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor(item.status);
-    final delta = item.deltaFromPrev;
+    final color = _statusColor(point.status);
     final arrow = delta == null
         ? null
-        : delta > 0
+        : delta! > 0
             ? Icons.arrow_upward
-            : delta < 0
+            : delta! < 0
                 ? Icons.arrow_downward
                 : Icons.remove;
     final arrowColor = delta == null
         ? AppColors.textTertiary
-        : delta > 0
+        : delta! > 0
             ? AppColors.success
-            : delta < 0
+            : delta! < 0
                 ? AppColors.error
                 : AppColors.textTertiary;
     return Container(
@@ -594,7 +648,9 @@ class _TrendCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            Formatters.formatDateShort(item.date),
+            point.date != null
+                ? Formatters.formatDateShort(point.date!)
+                : '—',
             style: AppTypography.caption
                 .copyWith(color: AppColors.textTertiary),
           ),
@@ -603,14 +659,14 @@ class _TrendCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                item.score?.toString() ?? '—',
+                point.score?.toString() ?? '—',
                 style: AppTypography.headingMedium.copyWith(
                   color: color,
                   fontWeight: FontWeight.w700,
                   height: 1,
                 ),
               ),
-              if (item.score != null)
+              if (point.score != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 2, left: 2),
                   child: Text(
@@ -632,15 +688,12 @@ class _TrendCard extends StatelessWidget {
 // ── Skill breakdown ────────────────────────────────────────────────
 
 class _SkillBreakdown extends StatelessWidget {
-  final List<_StubSkillCategory> breakdown;
+  final List<SkillCategoryProgress> breakdown;
 
   const _SkillBreakdown({required this.breakdown});
 
   @override
   Widget build(BuildContext context) {
-    if (breakdown.isEmpty) {
-      return _EmptyCard(text: 'Belum ada data progres skill.');
-    }
     return Container(
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
@@ -662,7 +715,7 @@ class _SkillBreakdown extends StatelessWidget {
 }
 
 class _SkillCategoryRow extends StatelessWidget {
-  final _StubSkillCategory item;
+  final SkillCategoryProgress item;
 
   const _SkillCategoryRow({required this.item});
 
@@ -715,15 +768,12 @@ class _SkillCategoryRow extends StatelessWidget {
 // ── Payment history ────────────────────────────────────────────────
 
 class _PaymentHistoryList extends StatelessWidget {
-  final List<_StubPayment> payments;
+  final List<PaymentHistoryItem> payments;
 
   const _PaymentHistoryList({required this.payments});
 
   @override
   Widget build(BuildContext context) {
-    if (payments.isEmpty) {
-      return _EmptyCard(text: 'Belum ada transaksi tercatat.');
-    }
     return Container(
       decoration: BoxDecoration(
         color: AppSurfaces.surface,
@@ -750,7 +800,7 @@ class _PaymentHistoryList extends StatelessWidget {
 }
 
 class _PaymentRow extends StatelessWidget {
-  final _StubPayment payment;
+  final PaymentHistoryItem payment;
 
   const _PaymentRow({required this.payment});
 
@@ -758,57 +808,74 @@ class _PaymentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(AppDimensions.md),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: _paymentColor(payment.status).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-            child: Icon(
-              Icons.receipt_long,
-              size: 18,
-              color: _paymentColor(payment.status),
-            ),
-          ),
-          const SizedBox(width: AppDimensions.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  payment.description,
-                  style: AppTypography.bodySmall
-                      .copyWith(fontWeight: FontWeight.w600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  Formatters.formatDate(payment.date),
-                  style: AppTypography.caption
-                      .copyWith(color: AppColors.textTertiary),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
+          Row(
             children: [
-              Text(
-                Formatters.formatRupiah(payment.amount),
-                style: AppTypography.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w700,
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: _paymentColor(payment.status)
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                ),
+                child: Icon(
+                  Icons.receipt_long,
+                  size: 18,
+                  color: _paymentColor(payment.status),
                 ),
               ),
-              const SizedBox(height: 2),
-              _PaymentStatusPill(status: payment.status),
+              const SizedBox(width: AppDimensions.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      payment.description ?? 'Pembayaran',
+                      style: AppTypography.bodySmall
+                          .copyWith(fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (payment.date != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        Formatters.formatDate(payment.date!),
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.textTertiary),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    Formatters.formatRupiah(payment.amount),
+                    style: AppTypography.bodyMedium
+                        .copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 2),
+                  if (payment.status != null)
+                    _PaymentStatusPill(status: payment.status!),
+                ],
+              ),
             ],
           ),
+          if (payment.paymentProofUrl != null) ...[
+            const SizedBox(height: AppDimensions.sm),
+            ZoomableImage(
+              heroTag: 'proof-${payment.purchaseId}',
+              imageUrl: payment.paymentProofUrl!,
+              caption: payment.description,
+              thumbnailHeight: 100,
+            ),
+          ],
         ],
       ),
     );
@@ -823,7 +890,6 @@ class _PaymentStatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _paymentColor(status);
-    final label = _paymentLabel(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
@@ -831,7 +897,7 @@ class _PaymentStatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
       ),
       child: Text(
-        label,
+        _paymentLabel(status),
         style: AppTypography.caption.copyWith(
           color: color,
           fontWeight: FontWeight.w700,
@@ -845,7 +911,7 @@ class _PaymentStatusPill extends StatelessWidget {
 // ── Session history ────────────────────────────────────────────────
 
 class _SessionHistoryList extends StatelessWidget {
-  final List<_StubSession> history;
+  final List<SessionHistoryItem> history;
 
   const _SessionHistoryList({required this.history});
 
@@ -880,7 +946,7 @@ class _SessionHistoryList extends StatelessWidget {
 }
 
 class _SessionRow extends StatelessWidget {
-  final _StubSession session;
+  final SessionHistoryItem session;
 
   const _SessionRow({required this.session});
 
@@ -889,7 +955,7 @@ class _SessionRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () => SessionResultSheet.show(context, session),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Row(
@@ -900,7 +966,7 @@ class _SessionRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      session.startAt.day.toString(),
+                      session.startAt?.day.toString() ?? '—',
                       style: AppTypography.headingSmall.copyWith(
                         color: AppColors.primary900,
                         fontWeight: FontWeight.w700,
@@ -908,7 +974,9 @@ class _SessionRow extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      _shortMonth(session.startAt.month),
+                      session.startAt != null
+                          ? _shortMonth(session.startAt!.month)
+                          : '',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textTertiary,
                         letterSpacing: 1,
@@ -924,7 +992,7 @@ class _SessionRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      session.venueName,
+                      session.venueName ?? 'Sesi',
                       style: AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -937,8 +1005,8 @@ class _SessionRow extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         _AttendancePill(status: session.attendanceStatus),
-                        if (session.paymentStatus != null)
-                          _PaymentStatusPill(status: session.paymentStatus!),
+                        if (session.payment?.status != null)
+                          _PaymentStatusPill(status: session.payment!.status!),
                       ],
                     ),
                   ],
@@ -955,18 +1023,8 @@ class _SessionRow extends StatelessWidget {
 
   static String _shortMonth(int m) {
     const names = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
     ];
     return names[(m - 1).clamp(0, 11)].toUpperCase();
   }
@@ -1040,12 +1098,7 @@ Color _statusColor(String? status) {
   };
 }
 
-/// Maps `Purchase::marketplace_payment_status` (BE accessor at
-/// `app/Models/Purchase.php`) to a colour. The BE enum is:
-/// `pending_payment | pending_confirmation | confirmed_transfer |
-/// confirmed_credit | rejected`. No `paid` or `refunded` aliases —
-/// kept exhaustive here so a future enum change forces a compiler warning.
-Color _paymentColor(String status) {
+Color _paymentColor(String? status) {
   return switch (status) {
     'pending_payment' || 'pending_confirmation' => AppColors.warning,
     'confirmed_transfer' || 'confirmed_credit' => AppColors.success,
@@ -1064,217 +1117,3 @@ String _paymentLabel(String status) {
     _ => status,
   };
 }
-
-// ── Stub data ──────────────────────────────────────────────────────
-
-class _StubMemberDetail {
-  final int studentProfileId;
-  final String fullName;
-  final int? age;
-  final String? gender;
-  final String? photoUrl;
-  final String? programName;
-  final String? levelName;
-  final String? assignedCoachName;
-  final DateTime? enrolledAt;
-  final int totalSessions;
-  final double attendanceRate;
-  final int skillsMasteredCount;
-  final int skillsTotalCount;
-  final int paidThisMonth;
-  final int outstandingAmount;
-  final int outstandingCount;
-  final List<_StubTrend> recentTrend;
-  final List<_StubSkillCategory> skillBreakdown;
-  final List<_StubPayment> paymentHistory;
-  final List<_StubSession> sessionHistory;
-
-  const _StubMemberDetail({
-    required this.studentProfileId,
-    required this.fullName,
-    required this.age,
-    required this.gender,
-    required this.photoUrl,
-    required this.programName,
-    required this.levelName,
-    required this.assignedCoachName,
-    required this.enrolledAt,
-    required this.totalSessions,
-    required this.attendanceRate,
-    required this.skillsMasteredCount,
-    required this.skillsTotalCount,
-    required this.paidThisMonth,
-    required this.outstandingAmount,
-    required this.outstandingCount,
-    required this.recentTrend,
-    required this.skillBreakdown,
-    required this.paymentHistory,
-    required this.sessionHistory,
-  });
-}
-
-class _StubTrend {
-  final DateTime date;
-  final String? status;
-  final int? score;
-  final int? deltaFromPrev;
-
-  const _StubTrend({
-    required this.date,
-    required this.status,
-    required this.score,
-    required this.deltaFromPrev,
-  });
-}
-
-class _StubSkillCategory {
-  final String category;
-  final int achievedCount;
-  final int totalCount;
-
-  const _StubSkillCategory({
-    required this.category,
-    required this.achievedCount,
-    required this.totalCount,
-  });
-}
-
-class _StubPayment {
-  final int id;
-  final DateTime date;
-  final int amount;
-  final String description;
-  final String status;
-
-  const _StubPayment({
-    required this.id,
-    required this.date,
-    required this.amount,
-    required this.description,
-    required this.status,
-  });
-}
-
-class _StubSession {
-  final int sessionId;
-  final DateTime startAt;
-  final String venueName;
-  final String? attendanceStatus;
-  final String? paymentStatus;
-
-  const _StubSession({
-    required this.sessionId,
-    required this.startAt,
-    required this.venueName,
-    required this.attendanceStatus,
-    required this.paymentStatus,
-  });
-}
-
-final _StubMemberDetail _stubDetail = _StubMemberDetail(
-  studentProfileId: 72,
-  fullName: 'Alsac Wijaya',
-  age: 11,
-  gender: 'male',
-  photoUrl: null,
-  programName: 'Class Newbie to Beginner',
-  levelName: 'Newbie to Lower Beginner',
-  assignedCoachName: 'Haris',
-  enrolledAt: DateTime(2025, 11, 3),
-  totalSessions: 8,
-  attendanceRate: 0.75,
-  skillsMasteredCount: 3,
-  skillsTotalCount: 12,
-  paidThisMonth: 450000,
-  outstandingAmount: 150000,
-  outstandingCount: 1,
-  recentTrend: [
-    _StubTrend(
-      date: DateTime.now().subtract(const Duration(days: 14)),
-      status: 'progressing',
-      score: 5,
-      deltaFromPrev: null,
-    ),
-    _StubTrend(
-      date: DateTime.now().subtract(const Duration(days: 7)),
-      status: 'progressing',
-      score: 6,
-      deltaFromPrev: 1,
-    ),
-    _StubTrend(
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      status: 'good',
-      score: 7,
-      deltaFromPrev: 1,
-    ),
-  ],
-  skillBreakdown: const [
-    _StubSkillCategory(
-        category: 'Forehand', achievedCount: 2, totalCount: 4),
-    _StubSkillCategory(
-        category: 'Backhand', achievedCount: 1, totalCount: 4),
-    _StubSkillCategory(category: 'Serve', achievedCount: 0, totalCount: 2),
-    _StubSkillCategory(
-        category: 'Footwork', achievedCount: 0, totalCount: 2),
-  ],
-  paymentHistory: [
-    _StubPayment(
-      id: 412,
-      date: DateTime.now().subtract(const Duration(days: 14)),
-      amount: 150000,
-      description: 'Sesi Tenis 18 Apr — Court 2',
-      status: 'pending_payment',
-    ),
-    _StubPayment(
-      id: 411,
-      date: DateTime.now().subtract(const Duration(days: 21)),
-      amount: 150000,
-      description: 'Sesi Tenis 11 Apr — Court 1',
-      status: 'confirmed_transfer',
-    ),
-    _StubPayment(
-      id: 410,
-      date: DateTime.now().subtract(const Duration(days: 28)),
-      amount: 150000,
-      description: 'Sesi Tenis 4 Apr — Court 1',
-      status: 'confirmed_transfer',
-    ),
-    _StubPayment(
-      id: 409,
-      date: DateTime.now().subtract(const Duration(days: 35)),
-      amount: 150000,
-      description: 'Sesi Tenis 28 Mar — Court 1',
-      status: 'confirmed_credit',
-    ),
-  ],
-  sessionHistory: [
-    _StubSession(
-      sessionId: 88,
-      startAt: DateTime.now().subtract(const Duration(days: 1)),
-      venueName: 'Lapangan Petenis Kelana — Court 2',
-      attendanceStatus: 'present',
-      paymentStatus: 'pending_payment',
-    ),
-    _StubSession(
-      sessionId: 87,
-      startAt: DateTime.now().subtract(const Duration(days: 7)),
-      venueName: 'Lapangan Petenis Kelana — Court 1',
-      attendanceStatus: 'present',
-      paymentStatus: 'confirmed_transfer',
-    ),
-    _StubSession(
-      sessionId: 86,
-      startAt: DateTime.now().subtract(const Duration(days: 14)),
-      venueName: 'Lapangan Petenis Kelana — Court 1',
-      attendanceStatus: 'late',
-      paymentStatus: 'confirmed_transfer',
-    ),
-    _StubSession(
-      sessionId: 80,
-      startAt: DateTime.now().subtract(const Duration(days: 28)),
-      venueName: 'Lapangan Petenis Kelana — Court 2',
-      attendanceStatus: 'absent',
-      paymentStatus: 'confirmed_credit',
-    ),
-  ],
-);

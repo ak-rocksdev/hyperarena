@@ -7,14 +7,16 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/core/widgets/error_view.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/club/data/models/coach_student.dart';
+import 'package:hyperarena/features/club/providers/club_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
-/// Coach's roster — distinct students across all sessions where the
-/// authenticated coach was assigned. List uses status-coded left-edge accents
-/// for at-a-glance recency + performance scanning. Stub data for the
-/// scaffolding pass; will be wired to `GET /v1/coach/students` (BE Issue 19)
-/// once that endpoint ships.
+/// Coach roster — distinct students across all sessions where the auth
+/// coach was assigned. Wired to `GET /v1/coach/students` (BE Issue 19.1).
 class CoachStudentsScreen extends ConsumerStatefulWidget {
   const CoachStudentsScreen({super.key});
 
@@ -25,30 +27,33 @@ class CoachStudentsScreen extends ConsumerStatefulWidget {
 
 class _CoachStudentsScreenState
     extends ConsumerState<CoachStudentsScreen> {
-  String _query = '';
-  late final TextEditingController _searchController;
+  final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController();
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      ref.read(coachStudentsListProvider.notifier).loadMore();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final all = _stubStudents;
-    final filtered = _query.isEmpty
-        ? all
-        : all
-            .where((s) =>
-                s.fullName.toLowerCase().contains(_query.toLowerCase()))
-            .toList();
+    final state = ref.watch(coachStudentsListProvider);
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
@@ -57,41 +62,92 @@ class _CoachStudentsScreenState
         elevation: 0,
         backgroundColor: AppSurfaces.surface,
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: _buildHeaderStrip(all.length)),
-          SliverToBoxAdapter(child: _buildSearch()),
-          if (filtered.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: EmptyState(
-                icon: Icons.people_outline,
-                message: _query.isEmpty
-                    ? 'Belum ada murid yang sudah ikut sesi.'
-                    : 'Tidak ada murid yang cocok dengan "$_query".',
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.screenHorizontal,
-              ),
-              sliver: SliverList.builder(
-                itemCount: filtered.length,
-                itemBuilder: (_, i) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-                  child: _StudentRosterCard(student: filtered[i]),
-                ),
-              ),
-            ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppDimensions.lg)),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () => ref
+            .read(coachStudentsListProvider.notifier)
+            .loadInitial(search: _searchController.text.trim()),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverToBoxAdapter(child: _buildHeaderStrip(state)),
+            SliverToBoxAdapter(child: _buildSearch()),
+            ..._buildBody(state),
+            const SliverToBoxAdapter(
+                child: SizedBox(height: AppDimensions.lg)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeaderStrip(int count) {
+  List<Widget> _buildBody(CoachStudentsListState state) {
+    if (state.isLoading) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.screenHorizontal,
+          ),
+          sliver: SliverList.builder(
+            itemCount: 4,
+            itemBuilder: (_, _) => Padding(
+              padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+              child: ShimmerLoading.card(height: 110),
+            ),
+          ),
+        ),
+      ];
+    }
+    if (state.error != null) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimensions.lg),
+            child: ErrorView(
+              error: state.error!,
+              onRetry: () => ref
+                  .read(coachStudentsListProvider.notifier)
+                  .loadInitial(search: _searchController.text.trim()),
+            ),
+          ),
+        ),
+      ];
+    }
+    if (state.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.people_outline,
+            message: _searchController.text.isEmpty
+                ? 'Belum ada murid yang sudah ikut sesi.'
+                : 'Tidak ada murid yang cocok dengan "${_searchController.text}".',
+          ),
+        ),
+      ];
+    }
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.screenHorizontal,
+        ),
+        sliver: SliverList.builder(
+          itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+          itemBuilder: (_, i) {
+            if (i >= state.items.length) {
+              return const ListLoadingIndicator();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+              child: _StudentRosterCard(student: state.items[i]),
+            );
+          },
+        ),
+      ),
+    ];
+  }
+
+  Widget _buildHeaderStrip(CoachStudentsListState state) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(
@@ -109,9 +165,8 @@ class _CoachStudentsScreenState
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Big count, tabular feel.
           Text(
-            count.toString(),
+            state.items.length.toString(),
             style: AppTypography.headingLarge.copyWith(
               color: AppColors.primary900,
               fontWeight: FontWeight.w700,
@@ -135,7 +190,9 @@ class _CoachStudentsScreenState
                   ),
                 ),
                 Text(
-                  '8 minggu terakhir',
+                  state.hasMore
+                      ? 'Terus muat saat scroll'
+                      : 'Berdasarkan sesi yang Anda asuh',
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -159,7 +216,10 @@ class _CoachStudentsScreenState
       ),
       child: TextField(
         controller: _searchController,
-        onChanged: (v) => setState(() => _query = v.trim()),
+        onSubmitted: (v) => ref
+            .read(coachStudentsListProvider.notifier)
+            .loadInitial(search: v.trim()),
+        textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: 'Cari murid…',
           prefixIcon: const Icon(Icons.search,
@@ -184,21 +244,20 @@ class _CoachStudentsScreenState
 }
 
 class _StudentRosterCard extends StatelessWidget {
-  final _StubStudent student;
+  final CoachStudentRosterItem student;
 
   const _StudentRosterCard({required this.student});
 
   @override
   Widget build(BuildContext context) {
-    final accent = _statusColor(student.latestStatus);
+    final accent = _statusColor(student.latestProgress?.status);
     return Material(
       color: AppSurfaces.surface,
       borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        onTap: () => context.push(
-          AppRoutes.coachStudent(student.studentProfileId.toString()),
-        ),
+        onTap: () =>
+            context.push(AppRoutes.coachStudent(student.studentProfileId)),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
@@ -208,7 +267,6 @@ class _StudentRosterCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Status-colored accent bar — pre-attentive scanning.
                 Container(
                   width: 4,
                   decoration: BoxDecoration(
@@ -249,7 +307,7 @@ class _StudentRosterCard extends StatelessWidget {
       children: [
         ZoomableAvatar(
           heroTag: 'student-${student.studentProfileId}',
-          imageUrl: student.photoUrl,
+          imageUrl: student.photoUrls?['md'] ?? student.photoUrls?['sm'],
           fallbackInitials: Formatters.initials(student.fullName),
           radius: 22,
           caption: student.fullName,
@@ -288,7 +346,8 @@ class _StudentRosterCard extends StatelessWidget {
   }
 
   Widget _buildEnrollmentLine() {
-    if (student.programName == null) {
+    final program = student.enrollment?.programName;
+    if (program == null) {
       return Padding(
         padding: const EdgeInsets.only(left: 56),
         child: Text(
@@ -300,6 +359,7 @@ class _StudentRosterCard extends StatelessWidget {
         ),
       );
     }
+    final level = student.enrollment?.levelName;
     return Padding(
       padding: const EdgeInsets.only(left: 56),
       child: Row(
@@ -309,9 +369,7 @@ class _StudentRosterCard extends StatelessWidget {
           const SizedBox(width: 4),
           Expanded(
             child: Text(
-              student.levelName == null
-                  ? student.programName!
-                  : '${student.programName!} · ${student.levelName!}',
+              level == null ? program : '$program · $level',
               style: AppTypography.caption.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -332,7 +390,6 @@ class _StudentRosterCard extends StatelessWidget {
         runSpacing: 4,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          // Status pill — semantic, color-coded.
           Container(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppDimensions.xs, vertical: 2),
@@ -342,7 +399,7 @@ class _StudentRosterCard extends StatelessWidget {
                   BorderRadius.circular(AppDimensions.radiusFull),
             ),
             child: Text(
-              _statusLabel(student.latestStatus),
+              _statusLabel(student.latestProgress?.status),
               style: AppTypography.caption.copyWith(
                 color: accent,
                 fontWeight: FontWeight.w700,
@@ -360,7 +417,7 @@ class _StudentRosterCard extends StatelessWidget {
           ),
           _MetaDot(),
           Text(
-            '${student.totalSessions} sesi',
+            '${student.totalSessionsWithCoach} sesi',
             style: AppTypography.caption
                 .copyWith(color: AppColors.textSecondary),
           ),
@@ -418,96 +475,3 @@ class _MetaDot extends StatelessWidget {
     );
   }
 }
-
-// ── Stub data ───────────────────────────────────────────────────────
-//
-// Replace with `GET /v1/coach/students` once BE Issue 19 ships.
-
-class _StubStudent {
-  final int studentProfileId;
-  final String fullName;
-  final int? age;
-  final String? photoUrl;
-  final String? programName;
-  final String? levelName;
-  final DateTime? lastSessionAt;
-  final String? latestStatus;
-  final int totalSessions;
-  final double attendanceRate;
-
-  const _StubStudent({
-    required this.studentProfileId,
-    required this.fullName,
-    required this.age,
-    required this.photoUrl,
-    required this.programName,
-    required this.levelName,
-    required this.lastSessionAt,
-    required this.latestStatus,
-    required this.totalSessions,
-    required this.attendanceRate,
-  });
-}
-
-final List<_StubStudent> _stubStudents = [
-  _StubStudent(
-    studentProfileId: 71,
-    fullName: 'Fauziah Putri',
-    age: 14,
-    photoUrl: null,
-    programName: 'Class Newbie to Beginner',
-    levelName: 'Newbie to Lower Beginner',
-    lastSessionAt: DateTime.now().subtract(const Duration(days: 3)),
-    latestStatus: 'good',
-    totalSessions: 12,
-    attendanceRate: 0.92,
-  ),
-  _StubStudent(
-    studentProfileId: 72,
-    fullName: 'Alsac Wijaya',
-    age: 11,
-    photoUrl: null,
-    programName: 'Class Newbie to Beginner',
-    levelName: 'Newbie to Lower Beginner',
-    lastSessionAt: DateTime.now().subtract(const Duration(days: 1)),
-    latestStatus: 'progressing',
-    totalSessions: 8,
-    attendanceRate: 0.75,
-  ),
-  _StubStudent(
-    studentProfileId: 73,
-    fullName: 'Nabilla Hasanah',
-    age: null,
-    photoUrl: null,
-    programName: 'Class Intermediate',
-    levelName: 'Mid-Beginner to Intermediate',
-    lastSessionAt: DateTime.now().subtract(const Duration(days: 14)),
-    latestStatus: 'needs_work',
-    totalSessions: 5,
-    attendanceRate: 0.6,
-  ),
-  _StubStudent(
-    studentProfileId: 74,
-    fullName: 'Okta Pratama',
-    age: 16,
-    photoUrl: null,
-    programName: 'Class Newbie to Beginner',
-    levelName: 'Lower to Mid-Beginner',
-    lastSessionAt: DateTime.now().subtract(const Duration(days: 7)),
-    latestStatus: 'excellent',
-    totalSessions: 18,
-    attendanceRate: 0.96,
-  ),
-  _StubStudent(
-    studentProfileId: 75,
-    fullName: 'Bintang Maulana',
-    age: 9,
-    photoUrl: null,
-    programName: null,
-    levelName: null,
-    lastSessionAt: DateTime.now().subtract(const Duration(days: 30)),
-    latestStatus: null,
-    totalSessions: 2,
-    attendanceRate: 1.0,
-  ),
-];

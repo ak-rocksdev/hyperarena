@@ -5,12 +5,16 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/core/widgets/error_view.dart';
+import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/club/data/models/student_detail.dart';
+import 'package:hyperarena/features/club/providers/club_providers.dart';
+import 'package:hyperarena/shared/widgets/session_result_sheet.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
-/// Read-only student profile for the coach. Mirrors the visual language of
-/// the session detail screen (editorial small-caps section labels,
-/// status-coded color treatments). Stub data for the scaffolding pass — wires
-/// to `GET /v1/coach/students/{id}` (BE Issue 19) once that endpoint ships.
+/// Read-only student profile for the coach. Wired to `GET /v1/coach/students/{id}`
+/// (Issue 19.2). Session-history rows tap → shared [SessionResultSheet]
+/// modal with assessment + per-skill grades.
 class CoachStudentDetailScreen extends ConsumerWidget {
   final String studentId;
 
@@ -18,12 +22,63 @@ class CoachStudentDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final detail = _stubDetail;
+    final id = int.tryParse(studentId);
+    if (id == null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: const EmptyMessage('ID murid tidak valid.'),
+      );
+    }
+    final async = ref.watch(coachStudentDetailProvider(id));
+    return async.when(
+      loading: () => const _LoadingScaffold(),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(),
+        body: ErrorView(
+          error: e,
+          onRetry: () => ref.invalidate(coachStudentDetailProvider(id)),
+        ),
+      ),
+      data: (detail) => _Body(detail: detail),
+    );
+  }
+}
+
+class _LoadingScaffold extends StatelessWidget {
+  const _LoadingScaffold();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(elevation: 0, backgroundColor: AppColors.primary900),
+      body: ListView(
+        padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+        children: [
+          ShimmerLoading.card(height: 240),
+          const SizedBox(height: AppDimensions.lg),
+          ShimmerLoading.card(height: 90),
+          const SizedBox(height: AppDimensions.lg),
+          ShimmerLoading.card(height: 120),
+          const SizedBox(height: AppDimensions.lg),
+          ShimmerLoading.card(height: 240),
+        ],
+      ),
+    );
+  }
+}
+
+class _Body extends StatelessWidget {
+  final StudentDetail detail;
+
+  const _Body({required this.detail});
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.neutral50,
       body: CustomScrollView(
         slivers: [
-          _Hero(detail: detail),
+          _Hero(student: detail.student),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -35,19 +90,21 @@ class CoachStudentDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _KpiStrip(detail: detail),
+                  _KpiStrip(stats: detail.student.stats),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('ENROLLMENT'),
                   const SizedBox(height: AppDimensions.sm),
-                  _EnrollmentCard(detail: detail),
+                  _EnrollmentCard(enrollment: detail.student.enrollment),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('PERFORMA TERKINI'),
                   const SizedBox(height: AppDimensions.sm),
                   _TrendStrip(trend: detail.recentTrend),
-                  const SizedBox(height: AppDimensions.xl),
-                  _SectionLabel('PROGRES KEAHLIAN'),
-                  const SizedBox(height: AppDimensions.sm),
-                  _SkillBreakdown(breakdown: detail.skillBreakdown),
+                  if (detail.skillBreakdown.isNotEmpty) ...[
+                    const SizedBox(height: AppDimensions.xl),
+                    _SectionLabel('PROGRES KEAHLIAN'),
+                    const SizedBox(height: AppDimensions.sm),
+                    _SkillBreakdown(breakdown: detail.skillBreakdown),
+                  ],
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('RIWAYAT SESI'),
                   const SizedBox(height: AppDimensions.sm),
@@ -65,14 +122,14 @@ class CoachStudentDetailScreen extends ConsumerWidget {
 // ── Hero ────────────────────────────────────────────────────────────
 
 class _Hero extends StatelessWidget {
-  final _StubDetail detail;
+  final StudentProfileSummary student;
 
-  const _Hero({required this.detail});
+  const _Hero({required this.student});
 
   @override
   Widget build(BuildContext context) {
     final ageText =
-        detail.age != null ? '${detail.age} tahun' : 'Umur Not Set';
+        student.age != null ? '${student.age} tahun' : 'Umur Not Set';
     return SliverAppBar(
       expandedHeight: 280,
       pinned: true,
@@ -85,7 +142,7 @@ class _Hero extends StatelessWidget {
             opacity: collapsed ? 1 : 0,
             duration: const Duration(milliseconds: 150),
             child: Text(
-              detail.fullName,
+              student.fullName,
               style: AppTypography.bodyMedium.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -101,24 +158,21 @@ class _Hero extends StatelessWidget {
                 gradient: AppSurfaces.primaryGradient,
               ),
             ),
-            // Tappable centered avatar — Hero target syncs with the list
-            // row so the transition is shared.
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 60),
                 child: ZoomableAvatar(
-                  heroTag: 'student-${detail.studentProfileId}',
-                  imageUrl: detail.photoUrl,
-                  fallbackInitials: Formatters.initials(detail.fullName),
+                  heroTag: 'student-${student.id}',
+                  imageUrl:
+                      student.photoUrls?['lg'] ?? student.photoUrls?['md'],
+                  fallbackInitials: Formatters.initials(student.fullName),
                   radius: 56,
                   bgColor: Colors.white.withValues(alpha: 0.18),
                   fgColor: Colors.white,
-                  caption: detail.fullName,
+                  caption: student.fullName,
                 ),
               ),
             ),
-            // Bottom gradient for text legibility — must not eat taps so
-            // the centered avatar below it stays interactive.
             const IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -134,7 +188,6 @@ class _Hero extends StatelessWidget {
                 ),
               ),
             ),
-            // Name overlay — bottom-left aligned, player-card feel.
             Positioned(
               left: AppDimensions.screenHorizontal,
               right: AppDimensions.screenHorizontal,
@@ -149,23 +202,23 @@ class _Hero extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _HeroChip(label: ageText, icon: Icons.cake_outlined),
-                      if (detail.gender != null)
+                      if (student.gender != null)
                         _HeroChip(
-                          label: _genderLabel(detail.gender!),
-                          icon: detail.gender == 'female'
+                          label: _genderLabel(student.gender!),
+                          icon: student.gender == 'female'
                               ? Icons.female
                               : Icons.male,
                         ),
-                      if (detail.sport != null)
+                      if (student.sport != null)
                         _HeroChip(
-                          label: detail.sport!,
+                          label: student.sport!,
                           icon: Icons.sports_tennis,
                         ),
                     ],
                   ),
                   const SizedBox(height: AppDimensions.xs),
                   Text(
-                    detail.fullName,
+                    student.fullName,
                     style: AppTypography.headingLarge.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -194,8 +247,7 @@ class _HeroChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -254,9 +306,9 @@ class _SectionLabel extends StatelessWidget {
 // ── KPI strip ───────────────────────────────────────────────────────
 
 class _KpiStrip extends StatelessWidget {
-  final _StubDetail detail;
+  final StudentEngagementStats stats;
 
-  const _KpiStrip({required this.detail});
+  const _KpiStrip({required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -275,18 +327,18 @@ class _KpiStrip extends StatelessWidget {
           children: [
             Expanded(
               child: _KpiTile(
-                value: detail.totalSessions.toString(),
+                value: stats.totalSessions.toString(),
                 label: 'Sesi diikuti',
               ),
             ),
             const _KpiDivider(),
             Expanded(
               child: _KpiTile(
-                value: '${(detail.attendanceRate * 100).round()}%',
+                value: '${(stats.attendanceRate * 100).round()}%',
                 label: 'Tingkat hadir',
-                color: detail.attendanceRate >= 0.85
+                color: stats.attendanceRate >= 0.85
                     ? AppColors.success
-                    : detail.attendanceRate >= 0.7
+                    : stats.attendanceRate >= 0.7
                         ? AppColors.warning
                         : AppColors.error,
               ),
@@ -295,7 +347,7 @@ class _KpiStrip extends StatelessWidget {
             Expanded(
               child: _KpiTile(
                 value:
-                    '${detail.skillsMasteredCount}/${detail.skillsTotalCount}',
+                    '${stats.skillsMasteredCount}/${stats.skillsTotalCount}',
                 label: 'Skill dikuasai',
               ),
             ),
@@ -363,13 +415,13 @@ class _KpiDivider extends StatelessWidget {
 // ── Enrollment card ─────────────────────────────────────────────────
 
 class _EnrollmentCard extends StatelessWidget {
-  final _StubDetail detail;
+  final StudentDetailEnrollment? enrollment;
 
-  const _EnrollmentCard({required this.detail});
+  const _EnrollmentCard({required this.enrollment});
 
   @override
   Widget build(BuildContext context) {
-    if (detail.programName == null) {
+    if (enrollment == null) {
       return Container(
         padding: const EdgeInsets.all(AppDimensions.md),
         decoration: BoxDecoration(
@@ -380,8 +432,7 @@ class _EnrollmentCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.info_outline,
-                size: 18, color: AppColors.warningDark),
+            Icon(Icons.info_outline, size: 18, color: AppColors.warningDark),
             const SizedBox(width: AppDimensions.sm),
             Expanded(
               child: Text(
@@ -420,23 +471,21 @@ class _EnrollmentCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  detail.programName!,
+                  enrollment!.programName ?? '—',
                   style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  detail.levelName == null
-                      ? 'Tanpa level'
-                      : detail.levelName!,
+                  enrollment!.levelName ?? 'Tanpa level',
                   style: AppTypography.caption
                       .copyWith(color: AppColors.textSecondary),
                 ),
-                if (detail.enrolledAt != null) ...[
+                if (enrollment!.enrolledAt != null) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'Bergabung ${Formatters.formatDate(detail.enrolledAt!)}',
+                    'Bergabung ${Formatters.formatDate(enrollment!.enrolledAt!)}',
                     style: AppTypography.caption
                         .copyWith(color: AppColors.textTertiary),
                   ),
@@ -453,32 +502,32 @@ class _EnrollmentCard extends StatelessWidget {
 // ── Trend strip ─────────────────────────────────────────────────────
 
 class _TrendStrip extends StatelessWidget {
-  final List<_StubTrend> trend;
+  final List<AssessmentTrendPoint> trend;
 
   const _TrendStrip({required this.trend});
 
   @override
   Widget build(BuildContext context) {
     if (trend.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        decoration: BoxDecoration(
-          color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(color: AppColors.neutral200),
-        ),
-        child: Text(
-          'Belum ada penilaian tersimpan.',
-          style: AppTypography.bodySmall
-              .copyWith(color: AppColors.textTertiary),
-        ),
-      );
+      return _EmptyCard(text: 'Belum ada penilaian tersimpan.');
+    }
+    final pointsWithDelta = <(AssessmentTrendPoint, int?)>[];
+    int? prev;
+    for (final p in trend) {
+      pointsWithDelta.add((p, prev == null ? null : (p.score ?? 0) - prev));
+      prev = p.score;
     }
     return Row(
       children: [
-        for (var i = 0; i < trend.length; i++) ...[
-          Expanded(child: _TrendCard(item: trend[i])),
-          if (i < trend.length - 1) const SizedBox(width: AppDimensions.sm),
+        for (var i = 0; i < pointsWithDelta.length; i++) ...[
+          Expanded(
+            child: _TrendCard(
+              point: pointsWithDelta[i].$1,
+              delta: pointsWithDelta[i].$2,
+            ),
+          ),
+          if (i < pointsWithDelta.length - 1)
+            const SizedBox(width: AppDimensions.sm),
         ],
       ],
     );
@@ -486,26 +535,26 @@ class _TrendStrip extends StatelessWidget {
 }
 
 class _TrendCard extends StatelessWidget {
-  final _StubTrend item;
+  final AssessmentTrendPoint point;
+  final int? delta;
 
-  const _TrendCard({required this.item});
+  const _TrendCard({required this.point, required this.delta});
 
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor(item.status);
-    final delta = item.deltaFromPrev;
+    final color = _statusColor(point.status);
     final arrow = delta == null
         ? null
-        : delta > 0
+        : delta! > 0
             ? Icons.arrow_upward
-            : delta < 0
+            : delta! < 0
                 ? Icons.arrow_downward
                 : Icons.remove;
     final arrowColor = delta == null
         ? AppColors.textTertiary
-        : delta > 0
+        : delta! > 0
             ? AppColors.success
-            : delta < 0
+            : delta! < 0
                 ? AppColors.error
                 : AppColors.textTertiary;
     return Container(
@@ -520,7 +569,9 @@ class _TrendCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            Formatters.formatDateShort(item.date),
+            point.date != null
+                ? Formatters.formatDateShort(point.date!)
+                : '—',
             style: AppTypography.caption
                 .copyWith(color: AppColors.textTertiary),
           ),
@@ -529,14 +580,14 @@ class _TrendCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                item.score?.toString() ?? _statusShort(item.status),
+                point.score?.toString() ?? '—',
                 style: AppTypography.headingMedium.copyWith(
                   color: color,
                   fontWeight: FontWeight.w700,
                   height: 1,
                 ),
               ),
-              if (item.score != null)
+              if (point.score != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 2, left: 2),
                   child: Text(
@@ -546,8 +597,7 @@ class _TrendCard extends StatelessWidget {
                   ),
                 ),
               const Spacer(),
-              if (arrow != null)
-                Icon(arrow, size: 16, color: arrowColor),
+              if (arrow != null) Icon(arrow, size: 16, color: arrowColor),
             ],
           ),
         ],
@@ -559,27 +609,12 @@ class _TrendCard extends StatelessWidget {
 // ── Skill breakdown ────────────────────────────────────────────────
 
 class _SkillBreakdown extends StatelessWidget {
-  final List<_StubSkillCategory> breakdown;
+  final List<SkillCategoryProgress> breakdown;
 
   const _SkillBreakdown({required this.breakdown});
 
   @override
   Widget build(BuildContext context) {
-    if (breakdown.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        decoration: BoxDecoration(
-          color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(color: AppColors.neutral200),
-        ),
-        child: Text(
-          'Belum ada data progres skill.',
-          style: AppTypography.bodySmall
-              .copyWith(color: AppColors.textTertiary),
-        ),
-      );
-    }
     return Container(
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
@@ -601,13 +636,14 @@ class _SkillBreakdown extends StatelessWidget {
 }
 
 class _SkillCategoryRow extends StatelessWidget {
-  final _StubSkillCategory item;
+  final SkillCategoryProgress item;
 
   const _SkillCategoryRow({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final ratio = item.totalCount == 0 ? 0.0 : item.achievedCount / item.totalCount;
+    final ratio =
+        item.totalCount == 0 ? 0.0 : item.achievedCount / item.totalCount;
     final color = ratio >= 0.7
         ? AppColors.success
         : ratio >= 0.4
@@ -653,26 +689,14 @@ class _SkillCategoryRow extends StatelessWidget {
 // ── Session history ────────────────────────────────────────────────
 
 class _SessionHistoryList extends StatelessWidget {
-  final List<_StubSession> history;
+  final List<SessionHistoryItem> history;
 
   const _SessionHistoryList({required this.history});
 
   @override
   Widget build(BuildContext context) {
     if (history.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        decoration: BoxDecoration(
-          color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(color: AppColors.neutral200),
-        ),
-        child: Text(
-          'Belum ada sesi yang tercatat.',
-          style: AppTypography.bodySmall
-              .copyWith(color: AppColors.textTertiary),
-        ),
-      );
+      return _EmptyCard(text: 'Belum ada sesi yang tercatat.');
     }
     return Container(
       decoration: BoxDecoration(
@@ -700,7 +724,7 @@ class _SessionHistoryList extends StatelessWidget {
 }
 
 class _SessionRow extends StatelessWidget {
-  final _StubSession session;
+  final SessionHistoryItem session;
 
   const _SessionRow({required this.session});
 
@@ -709,19 +733,18 @@ class _SessionRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => _SessionResultSheet.show(context, session),
+        onTap: () => SessionResultSheet.show(context, session),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Row(
             children: [
-              // Date column — emphasis on day number, tabular feel.
               SizedBox(
                 width: 44,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      session.startAt.day.toString(),
+                      session.startAt?.day.toString() ?? '—',
                       style: AppTypography.headingSmall.copyWith(
                         color: AppColors.primary900,
                         fontWeight: FontWeight.w700,
@@ -729,7 +752,9 @@ class _SessionRow extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      _shortMonth(session.startAt.month),
+                      session.startAt != null
+                          ? _shortMonth(session.startAt!.month)
+                          : '',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.textTertiary,
                         letterSpacing: 1,
@@ -745,7 +770,7 @@ class _SessionRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      session.venueName,
+                      session.venueName ?? 'Sesi',
                       style: AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -753,16 +778,16 @@ class _SessionRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Row(
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
                       children: [
                         _AttendancePill(status: session.attendanceStatus),
-                        if (session.assessmentStatus != null) ...[
-                          const SizedBox(width: 4),
+                        if (session.assessment != null)
                           _AssessmentPill(
-                            status: session.assessmentStatus,
-                            score: session.assessmentScore,
+                            status: session.assessment!.status,
+                            score: session.assessment!.score,
                           ),
-                        ],
                       ],
                     ),
                   ],
@@ -797,8 +822,7 @@ class _AttendancePill extends StatelessWidget {
       _ => (AppColors.neutral300, 'Belum dicatat'),
     };
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -824,12 +848,9 @@ class _AssessmentPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _statusColor(status);
-    final text = score != null
-        ? '$score/10'
-        : _statusShort(status);
+    final text = score != null ? '$score/10' : _statusShort(status);
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -846,238 +867,40 @@ class _AssessmentPill extends StatelessWidget {
   }
 }
 
-// ── Read-only assessment modal ─────────────────────────────────────
+// ── Empty card helper ──────────────────────────────────────────────
 
-class _SessionResultSheet extends StatelessWidget {
-  final _StubSession session;
+class _EmptyCard extends StatelessWidget {
+  final String text;
 
-  const _SessionResultSheet({required this.session});
-
-  static void show(BuildContext context, _StubSession session) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.4,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (_, controller) => _SessionResultSheet(session: session),
-      ),
-    );
-  }
+  const _EmptyCard({required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDimensions.radiusXl),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppDimensions.lg,
-            AppDimensions.md,
-            AppDimensions.lg,
-            AppDimensions.xl,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.neutral300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppDimensions.md),
-              Text(
-                Formatters.formatDateLong(session.startAt),
-                style: AppTypography.caption
-                    .copyWith(color: AppColors.textTertiary),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                session.venueName,
-                style: AppTypography.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: AppDimensions.lg),
-              _OverallScore(session: session),
-              if (session.assessmentNotes != null &&
-                  session.assessmentNotes!.isNotEmpty) ...[
-                const SizedBox(height: AppDimensions.lg),
-                _SectionLabel('CATATAN PELATIH'),
-                const SizedBox(height: AppDimensions.sm),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(AppDimensions.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.neutral50,
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusMd),
-                  ),
-                  child: Text(
-                    session.assessmentNotes!,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-              if (session.skillResults.isNotEmpty) ...[
-                const SizedBox(height: AppDimensions.lg),
-                _SectionLabel('PROGRES PER-SKILL'),
-                const SizedBox(height: AppDimensions.sm),
-                ...session.skillResults.map(_buildSkillRow),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSkillRow(_StubSkillResult skill) {
-    final color = _skillStatusColor(skill.status);
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppDimensions.sm),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.md,
-        vertical: AppDimensions.sm,
-      ),
+      padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        color: AppSurfaces.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.neutral200),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (skill.category != null)
-                  Text(
-                    skill.category!.toUpperCase(),
-                    style: AppTypography.caption.copyWith(
-                      color: color.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 9,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                Text(
-                  skill.skillName,
-                  style: AppTypography.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (skill.score != null)
-            Padding(
-              padding: const EdgeInsets.only(right: AppDimensions.sm),
-              child: Text(
-                '${skill.score}',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.radiusFull),
-            ),
-            child: Text(
-              _skillStatusLabel(skill.status),
-              style: AppTypography.caption.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 10,
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
       ),
     );
   }
 }
 
-class _OverallScore extends StatelessWidget {
-  final _StubSession session;
-
-  const _OverallScore({required this.session});
+class EmptyMessage extends StatelessWidget {
+  final String text;
+  const EmptyMessage(this.text, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor(session.assessmentStatus);
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.md),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          if (session.assessmentScore != null) ...[
-            Text(
-              session.assessmentScore.toString(),
-              style: AppTypography.headingLarge.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-                fontSize: 48,
-                height: 1,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Text(
-                '/10',
-                style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.textTertiary),
-              ),
-            ),
-            const Spacer(),
-          ] else
-            const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.md, vertical: 6),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.radiusFull),
-            ),
-            child: Text(
-              _statusLabel(session.assessmentStatus),
-              style: AppTypography.labelSmall.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.lg),
+        child: Text(text, style: AppTypography.bodyMedium),
       ),
     );
   }
@@ -1095,16 +918,6 @@ Color _statusColor(String? status) {
   };
 }
 
-String _statusLabel(String? status) {
-  return switch (status) {
-    'needs_work' => 'Perlu Latihan',
-    'progressing' => 'Berkembang',
-    'good' => 'Baik',
-    'excellent' => 'Sangat Baik',
-    _ => 'Belum Dinilai',
-  };
-}
-
 String _statusShort(String? status) {
   return switch (status) {
     'needs_work' => 'Latihan',
@@ -1114,250 +927,3 @@ String _statusShort(String? status) {
     _ => '—',
   };
 }
-
-Color _skillStatusColor(String? s) {
-  return switch (s) {
-    'achieved' => AppColors.success,
-    'in_progress' => AppColors.warning,
-    'not_started' => AppColors.neutral500,
-    _ => AppColors.neutral500,
-  };
-}
-
-String _skillStatusLabel(String? s) {
-  return switch (s) {
-    'achieved' => 'Mahir',
-    'in_progress' => 'Berkembang',
-    'not_started' => 'Belum',
-    _ => '—',
-  };
-}
-
-// ── Stub data ───────────────────────────────────────────────────────
-
-class _StubDetail {
-  final int studentProfileId;
-  final String fullName;
-  final int? age;
-  final String? gender;
-  final String? sport;
-  final String? photoUrl;
-  final String? programName;
-  final String? levelName;
-  final DateTime? enrolledAt;
-  final int totalSessions;
-  final double attendanceRate;
-  final int skillsMasteredCount;
-  final int skillsTotalCount;
-  final List<_StubTrend> recentTrend;
-  final List<_StubSkillCategory> skillBreakdown;
-  final List<_StubSession> sessionHistory;
-
-  const _StubDetail({
-    required this.studentProfileId,
-    required this.fullName,
-    required this.age,
-    required this.gender,
-    required this.sport,
-    required this.photoUrl,
-    required this.programName,
-    required this.levelName,
-    required this.enrolledAt,
-    required this.totalSessions,
-    required this.attendanceRate,
-    required this.skillsMasteredCount,
-    required this.skillsTotalCount,
-    required this.recentTrend,
-    required this.skillBreakdown,
-    required this.sessionHistory,
-  });
-}
-
-class _StubTrend {
-  final DateTime date;
-  final String? status;
-  final int? score;
-  final int? deltaFromPrev;
-
-  const _StubTrend({
-    required this.date,
-    required this.status,
-    required this.score,
-    required this.deltaFromPrev,
-  });
-}
-
-class _StubSkillCategory {
-  final String category;
-  final int achievedCount;
-  final int totalCount;
-
-  const _StubSkillCategory({
-    required this.category,
-    required this.achievedCount,
-    required this.totalCount,
-  });
-}
-
-class _StubSession {
-  final int sessionId;
-  final DateTime startAt;
-  final String venueName;
-  final String? attendanceStatus;
-  final String? assessmentStatus;
-  final int? assessmentScore;
-  final String? assessmentNotes;
-  final List<_StubSkillResult> skillResults;
-
-  const _StubSession({
-    required this.sessionId,
-    required this.startAt,
-    required this.venueName,
-    required this.attendanceStatus,
-    required this.assessmentStatus,
-    required this.assessmentScore,
-    required this.assessmentNotes,
-    required this.skillResults,
-  });
-}
-
-class _StubSkillResult {
-  final String skillName;
-  final String? category;
-  final String? status;
-  final int? score;
-
-  const _StubSkillResult({
-    required this.skillName,
-    required this.category,
-    required this.status,
-    required this.score,
-  });
-}
-
-final _StubDetail _stubDetail = _StubDetail(
-  studentProfileId: 71,
-  fullName: 'Fauziah Putri',
-  age: 14,
-  gender: 'female',
-  sport: 'Tenis',
-  photoUrl: null,
-  programName: 'Class Newbie to Beginner',
-  levelName: 'Newbie to Lower Beginner',
-  enrolledAt: DateTime(2025, 8, 15),
-  totalSessions: 12,
-  attendanceRate: 0.92,
-  skillsMasteredCount: 5,
-  skillsTotalCount: 12,
-  recentTrend: [
-    _StubTrend(
-      date: DateTime.now().subtract(const Duration(days: 14)),
-      status: 'progressing',
-      score: 6,
-      deltaFromPrev: null,
-    ),
-    _StubTrend(
-      date: DateTime.now().subtract(const Duration(days: 7)),
-      status: 'good',
-      score: 7,
-      deltaFromPrev: 1,
-    ),
-    _StubTrend(
-      date: DateTime.now().subtract(const Duration(days: 3)),
-      status: 'good',
-      score: 8,
-      deltaFromPrev: 1,
-    ),
-  ],
-  skillBreakdown: const [
-    _StubSkillCategory(
-      category: 'Forehand',
-      achievedCount: 3,
-      totalCount: 4,
-    ),
-    _StubSkillCategory(
-      category: 'Backhand',
-      achievedCount: 1,
-      totalCount: 4,
-    ),
-    _StubSkillCategory(
-      category: 'Serve',
-      achievedCount: 1,
-      totalCount: 2,
-    ),
-    _StubSkillCategory(
-      category: 'Footwork',
-      achievedCount: 0,
-      totalCount: 2,
-    ),
-  ],
-  sessionHistory: [
-    _StubSession(
-      sessionId: 88,
-      startAt: DateTime.now().subtract(const Duration(days: 3)),
-      venueName: 'Lapangan Petenis Kelana — Court 2',
-      attendanceStatus: 'present',
-      assessmentStatus: 'good',
-      assessmentScore: 8,
-      assessmentNotes:
-          'Forehand semakin konsisten. Footwork perlu lebih cepat saat retreat.',
-      skillResults: const [
-        _StubSkillResult(
-          skillName: 'Forehand Consistency',
-          category: 'Forehand',
-          status: 'achieved',
-          score: 8,
-        ),
-        _StubSkillResult(
-          skillName: 'Forehand Volley',
-          category: 'Forehand',
-          status: 'in_progress',
-          score: 6,
-        ),
-        _StubSkillResult(
-          skillName: 'Ready Position & Footwork',
-          category: 'Footwork',
-          status: 'in_progress',
-          score: 5,
-        ),
-      ],
-    ),
-    _StubSession(
-      sessionId: 87,
-      startAt: DateTime.now().subtract(const Duration(days: 7)),
-      venueName: 'Lapangan Petenis Kelana — Court 1',
-      attendanceStatus: 'present',
-      assessmentStatus: 'good',
-      assessmentScore: 7,
-      assessmentNotes: 'Good progress on serve.',
-      skillResults: const [
-        _StubSkillResult(
-          skillName: 'Continental Serve Grip',
-          category: 'Serve',
-          status: 'achieved',
-          score: 7,
-        ),
-      ],
-    ),
-    _StubSession(
-      sessionId: 86,
-      startAt: DateTime.now().subtract(const Duration(days: 14)),
-      venueName: 'Lapangan Petenis Kelana — Court 1',
-      attendanceStatus: 'late',
-      assessmentStatus: 'progressing',
-      assessmentScore: 6,
-      assessmentNotes: null,
-      skillResults: const [],
-    ),
-    _StubSession(
-      sessionId: 80,
-      startAt: DateTime.now().subtract(const Duration(days: 21)),
-      venueName: 'Lapangan Petenis Kelana — Court 2',
-      attendanceStatus: 'absent',
-      assessmentStatus: null,
-      assessmentScore: null,
-      assessmentNotes: null,
-      skillResults: const [],
-    ),
-  ],
-);

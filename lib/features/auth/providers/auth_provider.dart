@@ -11,6 +11,7 @@ import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
 import 'package:hyperarena/features/auth/data/tenant_repository.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
+import 'package:hyperarena/features/booking/providers/marketplace_booking_providers.dart';
 import 'package:hyperarena/features/coach/providers/assessment_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_detail_provider.dart';
@@ -215,6 +216,7 @@ class AuthNotifier extends Notifier<User?> {
     // ── Sessions / Bookings ─────────────────────────────────────
     ref.invalidate(sessionListProvider);
     ref.invalidate(bookingListProvider);
+    ref.invalidate(myBookingsProvider);
     ref.invalidate(marketplaceSessionJoinProvider);
 
     // ── Reviews (Issue 13) ──────────────────────────────────────

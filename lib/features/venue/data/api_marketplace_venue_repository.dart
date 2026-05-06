@@ -14,6 +14,7 @@ class ApiMarketplaceVenueRepository {
     String? search,
     int? perPage,
     String? cursor,
+    String? prioritizeTenantSlug,
   }) async {
     try {
       final response = await _apiClient.get('/v1/marketplace/venues',
@@ -22,6 +23,8 @@ class ApiMarketplaceVenueRepository {
             if (search != null && search.isNotEmpty) 'search': search,
             'per_page': ?perPage,
             'cursor': ?cursor,
+            if (cursor == null)
+              'prioritize_tenant_slug': ?prioritizeTenantSlug,
           });
       return CursorPage.fromJson(
         response.data as Map<String, dynamic>,

@@ -185,19 +185,17 @@ class _DetailBody extends ConsumerWidget {
                     const SizedBox(height: AppDimensions.lg),
                   ],
 
-                  // Review banner — past sessions the user has booked.
-                  // Banner self-gates to its 4 states based on myReviewProvider;
-                  // attendance status isn't yet exposed by the marketplace
-                  // detail endpoint, so the disabled "absen belum tercatat"
-                  // state is the safe default until BE Issue 16 lands.
-                  if (userStatus.isBooked &&
-                      localEnd.isBefore(DateTime.now()) &&
-                      session.coaches.isNotEmpty) ...[
+                  // Review banner — server-driven via user_status.can_review
+                  // and review_blocked_reason (Issue 16). Show whenever the
+                  // user is booked and there's at least one coach to review.
+                  if (userStatus.isBooked && session.coaches.isNotEmpty) ...[
                     PostSessionReviewBanner(
                       sessionId: sessionId,
                       coachId: session.coaches.first.id,
                       coachName: session.coaches.first.user?.name ?? 'Coach',
                       sessionTitle: session.name,
+                      canReview: userStatus.canReview,
+                      blockedReason: userStatus.reviewBlockedReason,
                     ),
                     const SizedBox(height: AppDimensions.lg),
                   ],

@@ -58,10 +58,15 @@ _$SessionTenantImpl _$$SessionTenantImplFromJson(Map<String, dynamic> json) =>
     _$SessionTenantImpl(
       id: idFromJson(json['id']),
       name: json['name'] as String,
+      slug: json['slug'] as String?,
     );
 
 Map<String, dynamic> _$$SessionTenantImplToJson(_$SessionTenantImpl instance) =>
-    <String, dynamic>{'id': instance.id, 'name': instance.name};
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'slug': instance.slug,
+    };
 
 _$MarketplaceSessionVenueImpl _$$MarketplaceSessionVenueImplFromJson(
   Map<String, dynamic> json,

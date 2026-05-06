@@ -142,6 +142,7 @@ class MarketplaceVenueListNotifier
       final page = await repo.getVenues(
         sportId: sportId,
         search: _searchQuery,
+        prioritizeTenantSlug: ref.read(tenantSlugProvider),
       );
       state = MarketplaceListState(
         items: page.items,
@@ -201,6 +202,7 @@ class MarketplaceSessionListNotifier
       final page = await repo.getSessions(
         sportId: sportId,
         search: _searchQuery,
+        prioritizeTenantSlug: ref.read(tenantSlugProvider),
       );
       state = MarketplaceListState(
         items: page.items,
@@ -259,6 +261,7 @@ class MarketplaceCoachListNotifier
       final page = await repo.getCoaches(
         sportId: sportId,
         search: _searchQuery,
+        prioritizeTenantSlug: ref.read(tenantSlugProvider),
       );
       state = MarketplaceListState(
         items: page.items,

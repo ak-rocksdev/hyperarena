@@ -518,6 +518,7 @@ mixin _$SessionTenant {
   @JsonKey(fromJson: idFromJson)
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+  String? get slug => throw _privateConstructorUsedError;
 
   /// Serializes this SessionTenant to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -536,7 +537,11 @@ abstract class $SessionTenantCopyWith<$Res> {
     $Res Function(SessionTenant) then,
   ) = _$SessionTenantCopyWithImpl<$Res, SessionTenant>;
   @useResult
-  $Res call({@JsonKey(fromJson: idFromJson) String id, String name});
+  $Res call({
+    @JsonKey(fromJson: idFromJson) String id,
+    String name,
+    String? slug,
+  });
 }
 
 /// @nodoc
@@ -553,7 +558,7 @@ class _$SessionTenantCopyWithImpl<$Res, $Val extends SessionTenant>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? name = null}) {
+  $Res call({Object? id = null, Object? name = null, Object? slug = freezed}) {
     return _then(
       _value.copyWith(
             id: null == id
@@ -564,6 +569,10 @@ class _$SessionTenantCopyWithImpl<$Res, $Val extends SessionTenant>
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
                       as String,
+            slug: freezed == slug
+                ? _value.slug
+                : slug // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -579,7 +588,11 @@ abstract class _$$SessionTenantImplCopyWith<$Res>
   ) = __$$SessionTenantImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({@JsonKey(fromJson: idFromJson) String id, String name});
+  $Res call({
+    @JsonKey(fromJson: idFromJson) String id,
+    String name,
+    String? slug,
+  });
 }
 
 /// @nodoc
@@ -595,7 +608,7 @@ class __$$SessionTenantImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? name = null}) {
+  $Res call({Object? id = null, Object? name = null, Object? slug = freezed}) {
     return _then(
       _$SessionTenantImpl(
         id: null == id
@@ -606,6 +619,10 @@ class __$$SessionTenantImplCopyWithImpl<$Res>
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
                   as String,
+        slug: freezed == slug
+            ? _value.slug
+            : slug // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -617,6 +634,7 @@ class _$SessionTenantImpl implements _SessionTenant {
   const _$SessionTenantImpl({
     @JsonKey(fromJson: idFromJson) required this.id,
     required this.name,
+    this.slug,
   });
 
   factory _$SessionTenantImpl.fromJson(Map<String, dynamic> json) =>
@@ -627,10 +645,12 @@ class _$SessionTenantImpl implements _SessionTenant {
   final String id;
   @override
   final String name;
+  @override
+  final String? slug;
 
   @override
   String toString() {
-    return 'SessionTenant(id: $id, name: $name)';
+    return 'SessionTenant(id: $id, name: $name, slug: $slug)';
   }
 
   @override
@@ -639,12 +659,13 @@ class _$SessionTenantImpl implements _SessionTenant {
         (other.runtimeType == runtimeType &&
             other is _$SessionTenantImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name));
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.slug, slug) || other.slug == slug));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name);
+  int get hashCode => Object.hash(runtimeType, id, name, slug);
 
   /// Create a copy of SessionTenant
   /// with the given fields replaced by the non-null parameter values.
@@ -664,6 +685,7 @@ abstract class _SessionTenant implements SessionTenant {
   const factory _SessionTenant({
     @JsonKey(fromJson: idFromJson) required final String id,
     required final String name,
+    final String? slug,
   }) = _$SessionTenantImpl;
 
   factory _SessionTenant.fromJson(Map<String, dynamic> json) =
@@ -674,6 +696,8 @@ abstract class _SessionTenant implements SessionTenant {
   String get id;
   @override
   String get name;
+  @override
+  String? get slug;
 
   /// Create a copy of SessionTenant
   /// with the given fields replaced by the non-null parameter values.

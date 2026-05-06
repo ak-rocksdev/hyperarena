@@ -85,15 +85,19 @@ class ApiCoachSessionRepository {
 
   /// Save session-level progress (assessment) for a single student.
   ///
-  /// Sends both [score] (0-10) and a derived [status] so the request passes
-  /// either tenant scoring config (numeric or categorical). Per-skill
-  /// `skill_progress` is intentionally omitted — that requires fetching the
-  /// curriculum (`GET /v1/coach/levels/{levelId}/skills`) and the scoring
-  /// config (Issue 15, BE-pending) before it can be rendered correctly.
+  /// Caller picks one mode:
+  /// - Pass [score] (0-10) for numeric tenants. Status derived server-side.
+  /// - Pass [status] for status tenants (`needs_work | progressing | good | excellent`).
+  ///
+  /// Both can be sent together; the request will pass either validation rule.
+  /// Per-skill `skill_progress` is intentionally omitted — that requires
+  /// fetching the curriculum (`GET /v1/coach/levels/{levelId}/skills`) which
+  /// the FE doesn't yet wire up.
   Future<void> saveSessionProgress({
     required int sessionId,
     required int studentProfileId,
-    required int score,
+    int? score,
+    String? status,
     String? notes,
   }) async {
     try {
@@ -101,20 +105,13 @@ class ApiCoachSessionRepository {
         '/v1/coach/sessions/$sessionId/progress',
         data: {
           'student_profile_id': studentProfileId,
-          'score': score,
-          'status': _statusFromScore(score),
+          'score': ?score,
+          'status': ?status,
           'notes': ?notes,
         },
       );
     } on DioException catch (e) {
       rethrowDio(e);
     }
-  }
-
-  static String _statusFromScore(int score) {
-    if (score <= 3) return 'needs_work';
-    if (score <= 6) return 'progressing';
-    if (score <= 8) return 'good';
-    return 'excellent';
   }
 }

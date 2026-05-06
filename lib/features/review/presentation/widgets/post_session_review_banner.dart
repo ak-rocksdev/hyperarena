@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
-import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/review/presentation/widgets/rating_stars.dart';
 import 'package:hyperarena/features/review/presentation/widgets/review_summary_card.dart';
@@ -11,22 +10,20 @@ import 'package:hyperarena/features/review/providers/review_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 /// Post-session review entry point — shown on the session detail screen for
-/// past sessions. Renders one of four states:
+/// past sessions. State is server-driven via [canReview] + [blockedReason]
+/// from `GET /v1/marketplace/sessions/{id}` `user_status` block (Issue 16):
 ///
-/// 1. **Has existing review** → [ReviewSummaryCard] (read-only).
-/// 2. **No review + attended (`present`/`late`)** → enabled "Beri Ulasan" CTA.
-/// 3. **No review + attendance not yet recorded** → disabled CTA + helper note
-///    "Ulasan tersedia setelah absen tercatat di sesi ini."
-/// 4. **No review + recorded `absent`** → hidden.
-///
-/// Pass [studentAttendanceStatus] from the parent (session detail) which has
-/// the `attendances` array. `null` means status unknown (treated as state 3).
+/// - `already_reviewed` → [ReviewSummaryCard] (read-only).
+/// - `null` (canReview=true) → enabled "Beri Ulasan" CTA.
+/// - `session_not_ended` → disabled CTA + "Ulasan tersedia setelah sesi selesai".
+/// - `not_attended` → disabled CTA + "Hanya peserta yang hadir dapat memberi ulasan".
 class PostSessionReviewBanner extends ConsumerWidget {
   final String sessionId;
   final String coachId;
   final String coachName;
   final String sessionTitle;
-  final AttendanceStatus? studentAttendanceStatus;
+  final bool canReview;
+  final String? blockedReason;
 
   const PostSessionReviewBanner({
     super.key,
@@ -34,33 +31,37 @@ class PostSessionReviewBanner extends ConsumerWidget {
     required this.coachId,
     required this.coachName,
     required this.sessionTitle,
-    this.studentAttendanceStatus,
+    this.canReview = false,
+    this.blockedReason,
   });
-
-  bool get _attended =>
-      studentAttendanceStatus == AttendanceStatus.present ||
-      studentAttendanceStatus == AttendanceStatus.late;
-
-  bool get _markedAbsent => studentAttendanceStatus == AttendanceStatus.absent;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final myReviewAsync = ref.watch(myReviewProvider(sessionId));
+    if (blockedReason == 'already_reviewed') {
+      final myReviewAsync = ref.watch(myReviewProvider(sessionId));
+      return myReviewAsync.when(
+        loading: () => const SizedBox.shrink(),
+        error: (_, _) => const SizedBox.shrink(),
+        data: (review) => review != null
+            ? ReviewSummaryCard(review: review)
+            : const SizedBox.shrink(),
+      );
+    }
 
-    return myReviewAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
-      data: (review) {
-        if (review != null) return ReviewSummaryCard(review: review);
-        if (_markedAbsent) return const SizedBox.shrink();
-        return _CtaBanner(
-          coachName: coachName,
-          enabled: _attended,
-          onTap: _attended ? () => _navigateToReview(context) : null,
-        );
-      },
+    return _CtaBanner(
+      coachName: coachName,
+      enabled: canReview,
+      blockedNote: _blockedNote(),
+      onTap: canReview ? () => _navigateToReview(context) : null,
     );
   }
+
+  String? _blockedNote() => switch (blockedReason) {
+        'session_not_ended' => 'Ulasan tersedia setelah sesi selesai.',
+        'not_attended' =>
+          'Hanya peserta yang hadir dapat memberi ulasan.',
+        _ => null,
+      };
 
   void _navigateToReview(BuildContext context) {
     final path = AppRoutes.submitReview(sessionId);
@@ -73,12 +74,14 @@ class PostSessionReviewBanner extends ConsumerWidget {
 class _CtaBanner extends StatelessWidget {
   final String coachName;
   final bool enabled;
+  final String? blockedNote;
   final VoidCallback? onTap;
 
   const _CtaBanner({
     required this.coachName,
     required this.enabled,
     required this.onTap,
+    this.blockedNote,
   });
 
   @override
@@ -161,7 +164,7 @@ class _CtaBanner extends StatelessWidget {
               ),
             ],
           ),
-          if (!enabled) ...[
+          if (!enabled && blockedNote != null) ...[
             const SizedBox(height: AppDimensions.sm),
             Row(
               children: [
@@ -173,7 +176,7 @@ class _CtaBanner extends StatelessWidget {
                 const SizedBox(width: AppDimensions.xs),
                 Expanded(
                   child: Text(
-                    'Ulasan tersedia setelah absen tercatat di sesi ini.',
+                    blockedNote!,
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textTertiary,
                     ),

@@ -51,8 +51,11 @@ class ApiMarketplaceSessionRepository {
     String? dateTo,
     int? perPage,
     String? cursor,
+    String? prioritizeTenantSlug,
   }) async {
     try {
+      // BE constraint (Issue 17): prioritize_tenant_slug mutually exclusive
+      // with cursor. Only send the slug on the first page.
       final response = await _apiClient.get('/v1/marketplace/sessions',
           queryParameters: {
             'sport_id': ?sportId,
@@ -61,6 +64,8 @@ class ApiMarketplaceSessionRepository {
             'date_to': ?dateTo,
             'per_page': ?perPage,
             'cursor': ?cursor,
+            if (cursor == null)
+              'prioritize_tenant_slug': ?prioritizeTenantSlug,
           });
       return CursorPage.fromJson(
         response.data as Map<String, dynamic>,

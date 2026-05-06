@@ -135,11 +135,11 @@ class _MarketplaceSessionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final userTenantId = ref.watch(authNotifierProvider)?.tenantId;
-    final sessionTenantId = int.tryParse(session.tenant?.id ?? '');
-    final isOtherTenant = userTenantId != null &&
-        sessionTenantId != null &&
-        sessionTenantId != userTenantId;
+    final userTenantSlug = ref.watch(authNotifierProvider)?.tenantSlug;
+    final sessionTenantSlug = session.tenant?.slug;
+    final isOtherTenant = userTenantSlug != null &&
+        sessionTenantSlug != null &&
+        sessionTenantSlug != userTenantSlug;
 
     return Card(
       clipBehavior: Clip.antiAlias,

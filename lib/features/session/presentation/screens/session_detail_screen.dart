@@ -159,14 +159,15 @@ class SessionDetailScreen extends ConsumerWidget {
                       ),
 
                       // Review banner (completed sessions with host).
-                      // OLD mock screen — no attendance data available, banner
-                      // renders the "menunggu absen tercatat" disabled state.
+                      // OLD mock screen — no server-side can_review flag, so
+                      // banner renders the disabled state with no note.
                       if (session.status == OpenSessionStatus.completed)
                         PostSessionReviewBanner(
                           sessionId: session.id,
                           coachId: session.hostId,
                           coachName: session.hostName,
                           sessionTitle: session.title,
+                          blockedReason: 'session_not_ended',
                         ),
 
                       // Participants section

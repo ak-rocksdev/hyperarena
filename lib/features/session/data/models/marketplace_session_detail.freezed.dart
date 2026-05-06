@@ -562,6 +562,10 @@ mixin _$UserSessionStatus {
   String? get bookingId => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_status')
   String? get paymentStatus => throw _privateConstructorUsedError;
+  @JsonKey(name: 'can_review')
+  bool get canReview => throw _privateConstructorUsedError;
+  @JsonKey(name: 'review_blocked_reason')
+  String? get reviewBlockedReason => throw _privateConstructorUsedError;
 
   /// Serializes this UserSessionStatus to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -586,6 +590,8 @@ abstract class $UserSessionStatusCopyWith<$Res> {
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
     String? bookingId,
     @JsonKey(name: 'payment_status') String? paymentStatus,
+    @JsonKey(name: 'can_review') bool canReview,
+    @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
   });
 }
 
@@ -608,6 +614,8 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
     Object? isBooked = null,
     Object? bookingId = freezed,
     Object? paymentStatus = freezed,
+    Object? canReview = null,
+    Object? reviewBlockedReason = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -626,6 +634,14 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
             paymentStatus: freezed == paymentStatus
                 ? _value.paymentStatus
                 : paymentStatus // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            canReview: null == canReview
+                ? _value.canReview
+                : canReview // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            reviewBlockedReason: freezed == reviewBlockedReason
+                ? _value.reviewBlockedReason
+                : reviewBlockedReason // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -648,6 +664,8 @@ abstract class _$$UserSessionStatusImplCopyWith<$Res>
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
     String? bookingId,
     @JsonKey(name: 'payment_status') String? paymentStatus,
+    @JsonKey(name: 'can_review') bool canReview,
+    @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
   });
 }
 
@@ -669,6 +687,8 @@ class __$$UserSessionStatusImplCopyWithImpl<$Res>
     Object? isBooked = null,
     Object? bookingId = freezed,
     Object? paymentStatus = freezed,
+    Object? canReview = null,
+    Object? reviewBlockedReason = freezed,
   }) {
     return _then(
       _$UserSessionStatusImpl(
@@ -688,6 +708,14 @@ class __$$UserSessionStatusImplCopyWithImpl<$Res>
             ? _value.paymentStatus
             : paymentStatus // ignore: cast_nullable_to_non_nullable
                   as String?,
+        canReview: null == canReview
+            ? _value.canReview
+            : canReview // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        reviewBlockedReason: freezed == reviewBlockedReason
+            ? _value.reviewBlockedReason
+            : reviewBlockedReason // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -701,6 +729,8 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
     @JsonKey(name: 'is_booked') this.isBooked = false,
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson) this.bookingId,
     @JsonKey(name: 'payment_status') this.paymentStatus,
+    @JsonKey(name: 'can_review') this.canReview = false,
+    @JsonKey(name: 'review_blocked_reason') this.reviewBlockedReason,
   });
 
   factory _$UserSessionStatusImpl.fromJson(Map<String, dynamic> json) =>
@@ -718,10 +748,16 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
   @override
   @JsonKey(name: 'payment_status')
   final String? paymentStatus;
+  @override
+  @JsonKey(name: 'can_review')
+  final bool canReview;
+  @override
+  @JsonKey(name: 'review_blocked_reason')
+  final String? reviewBlockedReason;
 
   @override
   String toString() {
-    return 'UserSessionStatus(creditBalance: $creditBalance, isBooked: $isBooked, bookingId: $bookingId, paymentStatus: $paymentStatus)';
+    return 'UserSessionStatus(creditBalance: $creditBalance, isBooked: $isBooked, bookingId: $bookingId, paymentStatus: $paymentStatus, canReview: $canReview, reviewBlockedReason: $reviewBlockedReason)';
   }
 
   @override
@@ -736,7 +772,11 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
             (identical(other.bookingId, bookingId) ||
                 other.bookingId == bookingId) &&
             (identical(other.paymentStatus, paymentStatus) ||
-                other.paymentStatus == paymentStatus));
+                other.paymentStatus == paymentStatus) &&
+            (identical(other.canReview, canReview) ||
+                other.canReview == canReview) &&
+            (identical(other.reviewBlockedReason, reviewBlockedReason) ||
+                other.reviewBlockedReason == reviewBlockedReason));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -747,6 +787,8 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
     isBooked,
     bookingId,
     paymentStatus,
+    canReview,
+    reviewBlockedReason,
   );
 
   /// Create a copy of UserSessionStatus
@@ -773,6 +815,8 @@ abstract class _UserSessionStatus implements UserSessionStatus {
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson)
     final String? bookingId,
     @JsonKey(name: 'payment_status') final String? paymentStatus,
+    @JsonKey(name: 'can_review') final bool canReview,
+    @JsonKey(name: 'review_blocked_reason') final String? reviewBlockedReason,
   }) = _$UserSessionStatusImpl;
 
   factory _UserSessionStatus.fromJson(Map<String, dynamic> json) =
@@ -790,6 +834,12 @@ abstract class _UserSessionStatus implements UserSessionStatus {
   @override
   @JsonKey(name: 'payment_status')
   String? get paymentStatus;
+  @override
+  @JsonKey(name: 'can_review')
+  bool get canReview;
+  @override
+  @JsonKey(name: 'review_blocked_reason')
+  String? get reviewBlockedReason;
 
   /// Create a copy of UserSessionStatus
   /// with the given fields replaced by the non-null parameter values.

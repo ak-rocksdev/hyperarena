@@ -52,6 +52,8 @@ _$UserSessionStatusImpl _$$UserSessionStatusImplFromJson(
   isBooked: json['is_booked'] as bool? ?? false,
   bookingId: nullableIdFromJson(json['booking_id']),
   paymentStatus: json['payment_status'] as String?,
+  canReview: json['can_review'] as bool? ?? false,
+  reviewBlockedReason: json['review_blocked_reason'] as String?,
 );
 
 Map<String, dynamic> _$$UserSessionStatusImplToJson(
@@ -61,4 +63,6 @@ Map<String, dynamic> _$$UserSessionStatusImplToJson(
   'is_booked': instance.isBooked,
   'booking_id': instance.bookingId,
   'payment_status': instance.paymentStatus,
+  'can_review': instance.canReview,
+  'review_blocked_reason': instance.reviewBlockedReason,
 };

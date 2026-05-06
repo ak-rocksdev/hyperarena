@@ -40,6 +40,8 @@ class UserSessionStatus with _$UserSessionStatus {
     @JsonKey(name: 'is_booked') @Default(false) bool isBooked,
     @JsonKey(name: 'booking_id', fromJson: nullableIdFromJson) String? bookingId,
     @JsonKey(name: 'payment_status') String? paymentStatus,
+    @JsonKey(name: 'can_review') @Default(false) bool canReview,
+    @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
   }) = _UserSessionStatus;
 
   factory UserSessionStatus.fromJson(Map<String, dynamic> json) =>

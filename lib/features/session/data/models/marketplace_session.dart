@@ -35,6 +35,7 @@ class SessionTenant with _$SessionTenant {
   const factory SessionTenant({
     @JsonKey(fromJson: idFromJson) required String id,
     required String name,
+    String? slug,
   }) = _SessionTenant;
 
   factory SessionTenant.fromJson(Map<String, dynamic> json) =>

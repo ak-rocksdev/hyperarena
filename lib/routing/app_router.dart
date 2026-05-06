@@ -32,6 +32,7 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_students_sc
 import 'package:hyperarena/features/coach/presentation/screens/student_detail_screen.dart';
 import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
+import 'package:hyperarena/features/organizer/presentation/screens/organizer_member_detail_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_members_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_earnings_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_session_detail_screen.dart';
@@ -519,6 +520,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.organizerClub,
                 builder: (_, _) => const OrganizerMembersScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'members/:id',
+                    builder: (_, state) => OrganizerMemberDetailScreen(
+                      memberId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

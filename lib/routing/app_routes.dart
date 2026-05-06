@@ -75,6 +75,7 @@ abstract final class AppRoutes {
   static const organizerDashboard = '/organizer/dashboard';
   static const organizerSessions = '/organizer/sessions';
   static const organizerClub = '/organizer/club';
+  static String organizerMember(String id) => '/organizer/club/members/$id';
   static const organizerProfile = '/organizer/profile';
   static const organizerCreateSession = '/organizer/session/create';
   static String organizerSessionDetail(String id) => '/organizer/session/$id';

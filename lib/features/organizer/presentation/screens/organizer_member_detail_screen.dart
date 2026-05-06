@@ -7,14 +7,24 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
-/// Read-only student profile for the coach. Mirrors the visual language of
-/// the session detail screen (editorial small-caps section labels,
-/// status-coded color treatments). Stub data for the scaffolding pass — wires
-/// to `GET /v1/coach/students/{id}` (BE Issue 19) once that endpoint ships.
-class CoachStudentDetailScreen extends ConsumerWidget {
-  final String studentId;
+/// Organizer-side member profile. Same hero/KPI/enrollment/performance/skills
+/// layout as the coach's read-only detail, plus two financial sections that
+/// only the organizer needs:
+///
+/// - **RINGKASAN KEUANGAN** — 3 KPIs (bayar bulan ini, tagihan pending,
+///   total transaksi) sit between the engagement KPI strip and the
+///   enrollment card.
+/// - **RIWAYAT PEMBAYARAN** — chronological list of recent purchases with
+///   amount, status pill, and tap-to-view-proof.
+/// - Session history rows pick up a payment chip alongside the attendance
+///   pill.
+///
+/// Stub data; wires to `GET /v1/admin/students/{id}/detail` (BE Issue 19.3)
+/// when that ships.
+class OrganizerMemberDetailScreen extends ConsumerWidget {
+  final String memberId;
 
-  const CoachStudentDetailScreen({super.key, required this.studentId});
+  const OrganizerMemberDetailScreen({super.key, required this.memberId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,7 +45,11 @@ class CoachStudentDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _KpiStrip(detail: detail),
+                  _EngagementKpiStrip(detail: detail),
+                  const SizedBox(height: AppDimensions.xl),
+                  _SectionLabel('RINGKASAN KEUANGAN'),
+                  const SizedBox(height: AppDimensions.sm),
+                  _FinancialKpiStrip(detail: detail),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('ENROLLMENT'),
                   const SizedBox(height: AppDimensions.sm),
@@ -48,6 +62,10 @@ class CoachStudentDetailScreen extends ConsumerWidget {
                   _SectionLabel('PROGRES KEAHLIAN'),
                   const SizedBox(height: AppDimensions.sm),
                   _SkillBreakdown(breakdown: detail.skillBreakdown),
+                  const SizedBox(height: AppDimensions.xl),
+                  _SectionLabel('RIWAYAT PEMBAYARAN'),
+                  const SizedBox(height: AppDimensions.sm),
+                  _PaymentHistoryList(payments: detail.paymentHistory),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('RIWAYAT SESI'),
                   const SizedBox(height: AppDimensions.sm),
@@ -65,7 +83,7 @@ class CoachStudentDetailScreen extends ConsumerWidget {
 // ── Hero ────────────────────────────────────────────────────────────
 
 class _Hero extends StatelessWidget {
-  final _StubDetail detail;
+  final _StubMemberDetail detail;
 
   const _Hero({required this.detail});
 
@@ -107,7 +125,7 @@ class _Hero extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 60),
                 child: ZoomableAvatar(
-                  heroTag: 'student-${detail.studentProfileId}',
+                  heroTag: 'member-${detail.studentProfileId}',
                   imageUrl: detail.photoUrl,
                   fallbackInitials: Formatters.initials(detail.fullName),
                   radius: 56,
@@ -117,7 +135,6 @@ class _Hero extends StatelessWidget {
                 ),
               ),
             ),
-            // Bottom gradient for text legibility.
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -131,7 +148,6 @@ class _Hero extends StatelessWidget {
                 ),
               ),
             ),
-            // Name overlay — bottom-left aligned, player-card feel.
             Positioned(
               left: AppDimensions.screenHorizontal,
               right: AppDimensions.screenHorizontal,
@@ -145,7 +161,8 @@ class _Hero extends StatelessWidget {
                     runSpacing: 4,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      _HeroChip(label: ageText, icon: Icons.cake_outlined),
+                      _HeroChip(
+                          label: ageText, icon: Icons.cake_outlined),
                       if (detail.gender != null)
                         _HeroChip(
                           label: _genderLabel(detail.gender!),
@@ -153,10 +170,10 @@ class _Hero extends StatelessWidget {
                               ? Icons.female
                               : Icons.male,
                         ),
-                      if (detail.sport != null)
+                      if (detail.assignedCoachName != null)
                         _HeroChip(
-                          label: detail.sport!,
-                          icon: Icons.sports_tennis,
+                          label: 'Coach ${detail.assignedCoachName!}',
+                          icon: Icons.sports,
                         ),
                     ],
                   ),
@@ -191,8 +208,7 @@ class _HeroChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -248,12 +264,12 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-// ── KPI strip ───────────────────────────────────────────────────────
+// ── Engagement KPI strip ───────────────────────────────────────────
 
-class _KpiStrip extends StatelessWidget {
-  final _StubDetail detail;
+class _EngagementKpiStrip extends StatelessWidget {
+  final _StubMemberDetail detail;
 
-  const _KpiStrip({required this.detail});
+  const _EngagementKpiStrip({required this.detail});
 
   @override
   Widget build(BuildContext context) {
@@ -303,6 +319,67 @@ class _KpiStrip extends StatelessWidget {
   }
 }
 
+// ── Financial KPI strip (organizer-only) ───────────────────────────
+
+class _FinancialKpiStrip extends StatelessWidget {
+  final _StubMemberDetail detail;
+
+  const _FinancialKpiStrip({required this.detail});
+
+  @override
+  Widget build(BuildContext context) {
+    final outstanding = detail.outstandingAmount;
+    final hasOutstanding = outstanding > 0;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: AppDimensions.lg,
+        horizontal: AppDimensions.md,
+      ),
+      decoration: BoxDecoration(
+        color: AppSurfaces.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(
+          color: hasOutstanding
+              ? AppColors.error.withValues(alpha: 0.3)
+              : AppColors.neutral200,
+        ),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: _KpiTile(
+                value: Formatters.formatRupiahCompact(detail.paidThisMonth),
+                label: 'Bayar bulan ini',
+                color: AppColors.success,
+              ),
+            ),
+            const _KpiDivider(),
+            Expanded(
+              child: _KpiTile(
+                value: hasOutstanding
+                    ? Formatters.formatRupiahCompact(outstanding)
+                    : '—',
+                label: hasOutstanding
+                    ? '${detail.outstandingCount} tagihan'
+                    : 'Tidak ada tagihan',
+                color: hasOutstanding ? AppColors.error : AppColors.success,
+              ),
+            ),
+            const _KpiDivider(),
+            Expanded(
+              child: _KpiTile(
+                value: detail.paymentHistory.length.toString(),
+                label: 'Total transaksi',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _KpiTile extends StatelessWidget {
   final String value;
   final String label;
@@ -321,11 +398,13 @@ class _KpiTile extends StatelessWidget {
       children: [
         Text(
           value,
-          style: AppTypography.headingMedium.copyWith(
+          style: AppTypography.titleMedium.copyWith(
             color: color ?? AppColors.primary900,
             fontWeight: FontWeight.w700,
             height: 1,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
         Text(
@@ -336,6 +415,7 @@ class _KpiTile extends StatelessWidget {
             letterSpacing: 0.4,
           ),
           textAlign: TextAlign.center,
+          maxLines: 2,
         ),
       ],
     );
@@ -357,10 +437,10 @@ class _KpiDivider extends StatelessWidget {
   }
 }
 
-// ── Enrollment card ─────────────────────────────────────────────────
+// ── Enrollment card ────────────────────────────────────────────────
 
 class _EnrollmentCard extends StatelessWidget {
-  final _StubDetail detail;
+  final _StubMemberDetail detail;
 
   const _EnrollmentCard({required this.detail});
 
@@ -424,12 +504,18 @@ class _EnrollmentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  detail.levelName == null
-                      ? 'Tanpa level'
-                      : detail.levelName!,
+                  detail.levelName ?? 'Tanpa level',
                   style: AppTypography.caption
                       .copyWith(color: AppColors.textSecondary),
                 ),
+                if (detail.assignedCoachName != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Diasuh oleh Coach ${detail.assignedCoachName!}',
+                    style: AppTypography.caption
+                        .copyWith(color: AppColors.textTertiary),
+                  ),
+                ],
                 if (detail.enrolledAt != null) ...[
                   const SizedBox(height: 2),
                   Text(
@@ -447,7 +533,7 @@ class _EnrollmentCard extends StatelessWidget {
   }
 }
 
-// ── Trend strip ─────────────────────────────────────────────────────
+// ── Trend strip ────────────────────────────────────────────────────
 
 class _TrendStrip extends StatelessWidget {
   final List<_StubTrend> trend;
@@ -457,25 +543,14 @@ class _TrendStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (trend.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        decoration: BoxDecoration(
-          color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(color: AppColors.neutral200),
-        ),
-        child: Text(
-          'Belum ada penilaian tersimpan.',
-          style: AppTypography.bodySmall
-              .copyWith(color: AppColors.textTertiary),
-        ),
-      );
+      return _EmptyCard(text: 'Belum ada penilaian tersimpan.');
     }
     return Row(
       children: [
         for (var i = 0; i < trend.length; i++) ...[
           Expanded(child: _TrendCard(item: trend[i])),
-          if (i < trend.length - 1) const SizedBox(width: AppDimensions.sm),
+          if (i < trend.length - 1)
+            const SizedBox(width: AppDimensions.sm),
         ],
       ],
     );
@@ -526,7 +601,7 @@ class _TrendCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                item.score?.toString() ?? _statusShort(item.status),
+                item.score?.toString() ?? '—',
                 style: AppTypography.headingMedium.copyWith(
                   color: color,
                   fontWeight: FontWeight.w700,
@@ -543,8 +618,7 @@ class _TrendCard extends StatelessWidget {
                   ),
                 ),
               const Spacer(),
-              if (arrow != null)
-                Icon(arrow, size: 16, color: arrowColor),
+              if (arrow != null) Icon(arrow, size: 16, color: arrowColor),
             ],
           ),
         ],
@@ -563,19 +637,7 @@ class _SkillBreakdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (breakdown.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        decoration: BoxDecoration(
-          color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(color: AppColors.neutral200),
-        ),
-        child: Text(
-          'Belum ada data progres skill.',
-          style: AppTypography.bodySmall
-              .copyWith(color: AppColors.textTertiary),
-        ),
-      );
+      return _EmptyCard(text: 'Belum ada data progres skill.');
     }
     return Container(
       padding: const EdgeInsets.all(AppDimensions.md),
@@ -604,7 +666,8 @@ class _SkillCategoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ratio = item.totalCount == 0 ? 0.0 : item.achievedCount / item.totalCount;
+    final ratio =
+        item.totalCount == 0 ? 0.0 : item.achievedCount / item.totalCount;
     final color = ratio >= 0.7
         ? AppColors.success
         : ratio >= 0.4
@@ -647,6 +710,136 @@ class _SkillCategoryRow extends StatelessWidget {
   }
 }
 
+// ── Payment history ────────────────────────────────────────────────
+
+class _PaymentHistoryList extends StatelessWidget {
+  final List<_StubPayment> payments;
+
+  const _PaymentHistoryList({required this.payments});
+
+  @override
+  Widget build(BuildContext context) {
+    if (payments.isEmpty) {
+      return _EmptyCard(text: 'Belum ada transaksi tercatat.');
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: AppSurfaces.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.neutral200),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < payments.length; i++) ...[
+            _PaymentRow(payment: payments[i]),
+            if (i < payments.length - 1)
+              const Divider(
+                height: 1,
+                thickness: 1,
+                color: AppColors.neutral100,
+                indent: AppDimensions.md,
+                endIndent: AppDimensions.md,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentRow extends StatelessWidget {
+  final _StubPayment payment;
+
+  const _PaymentRow({required this.payment});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppDimensions.md),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: _paymentColor(payment.status).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            ),
+            child: Icon(
+              Icons.receipt_long,
+              size: 18,
+              color: _paymentColor(payment.status),
+            ),
+          ),
+          const SizedBox(width: AppDimensions.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  payment.description,
+                  style: AppTypography.bodySmall
+                      .copyWith(fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  Formatters.formatDate(payment.date),
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.textTertiary),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                Formatters.formatRupiah(payment.amount),
+                style: AppTypography.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              _PaymentStatusPill(status: payment.status),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentStatusPill extends StatelessWidget {
+  final String status;
+
+  const _PaymentStatusPill({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _paymentColor(status);
+    final label = _paymentLabel(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
+
 // ── Session history ────────────────────────────────────────────────
 
 class _SessionHistoryList extends StatelessWidget {
@@ -657,19 +850,7 @@ class _SessionHistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (history.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(AppDimensions.md),
-        decoration: BoxDecoration(
-          color: AppSurfaces.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(color: AppColors.neutral200),
-        ),
-        child: Text(
-          'Belum ada sesi yang tercatat.',
-          style: AppTypography.bodySmall
-              .copyWith(color: AppColors.textTertiary),
-        ),
-      );
+      return _EmptyCard(text: 'Belum ada sesi yang tercatat.');
     }
     return Container(
       decoration: BoxDecoration(
@@ -706,12 +887,11 @@ class _SessionRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => _SessionResultSheet.show(context, session),
+        onTap: () {},
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Row(
             children: [
-              // Date column — emphasis on day number, tabular feel.
               SizedBox(
                 width: 44,
                 child: Column(
@@ -749,17 +929,14 @@ class _SessionRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    Row(
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
                       children: [
                         _AttendancePill(status: session.attendanceStatus),
-                        if (session.assessmentStatus != null) ...[
-                          const SizedBox(width: 4),
-                          _AssessmentPill(
-                            status: session.assessmentStatus,
-                            score: session.assessmentScore,
-                          ),
-                        ],
+                        if (session.paymentStatus != null)
+                          _PaymentStatusPill(status: session.paymentStatus!),
                       ],
                     ),
                   ],
@@ -775,7 +952,20 @@ class _SessionRow extends StatelessWidget {
   }
 
   static String _shortMonth(int m) {
-    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const names = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
     return names[(m - 1).clamp(0, 11)].toUpperCase();
   }
 }
@@ -794,8 +984,7 @@ class _AttendancePill extends StatelessWidget {
       _ => (AppColors.neutral300, 'Belum dicatat'),
     };
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -812,275 +1001,32 @@ class _AttendancePill extends StatelessWidget {
   }
 }
 
-class _AssessmentPill extends StatelessWidget {
-  final String? status;
-  final int? score;
+// ── Empty card helper ──────────────────────────────────────────────
 
-  const _AssessmentPill({required this.status, required this.score});
+class _EmptyCard extends StatelessWidget {
+  final String text;
 
-  @override
-  Widget build(BuildContext context) {
-    final color = _statusColor(status);
-    final text = score != null
-        ? '$score/10'
-        : _statusShort(status);
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-      ),
-      child: Text(
-        text,
-        style: AppTypography.caption.copyWith(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 10,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Read-only assessment modal ─────────────────────────────────────
-
-class _SessionResultSheet extends StatelessWidget {
-  final _StubSession session;
-
-  const _SessionResultSheet({required this.session});
-
-  static void show(BuildContext context, _StubSession session) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.4,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (_, controller) => _SessionResultSheet(session: session),
-      ),
-    );
-  }
+  const _EmptyCard({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDimensions.radiusXl),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppDimensions.lg,
-            AppDimensions.md,
-            AppDimensions.lg,
-            AppDimensions.xl,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.neutral300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppDimensions.md),
-              Text(
-                Formatters.formatDateLong(session.startAt),
-                style: AppTypography.caption
-                    .copyWith(color: AppColors.textTertiary),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                session.venueName,
-                style: AppTypography.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: AppDimensions.lg),
-              _OverallScore(session: session),
-              if (session.assessmentNotes != null &&
-                  session.assessmentNotes!.isNotEmpty) ...[
-                const SizedBox(height: AppDimensions.lg),
-                _SectionLabel('CATATAN PELATIH'),
-                const SizedBox(height: AppDimensions.sm),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(AppDimensions.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.neutral50,
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusMd),
-                  ),
-                  child: Text(
-                    session.assessmentNotes!,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-              if (session.skillResults.isNotEmpty) ...[
-                const SizedBox(height: AppDimensions.lg),
-                _SectionLabel('PROGRES PER-SKILL'),
-                const SizedBox(height: AppDimensions.sm),
-                ...session.skillResults.map(_buildSkillRow),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSkillRow(_StubSkillResult skill) {
-    final color = _skillStatusColor(skill.status);
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppDimensions.sm),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.md,
-        vertical: AppDimensions.sm,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (skill.category != null)
-                  Text(
-                    skill.category!.toUpperCase(),
-                    style: AppTypography.caption.copyWith(
-                      color: color.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 9,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                Text(
-                  skill.skillName,
-                  style: AppTypography.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (skill.score != null)
-            Padding(
-              padding: const EdgeInsets.only(right: AppDimensions.sm),
-              child: Text(
-                '${skill.score}',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.radiusFull),
-            ),
-            child: Text(
-              _skillStatusLabel(skill.status),
-              style: AppTypography.caption.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 10,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OverallScore extends StatelessWidget {
-  final _StubSession session;
-
-  const _OverallScore({required this.session});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _statusColor(session.assessmentStatus);
     return Container(
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: AppSurfaces.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.neutral200),
       ),
-      child: Row(
-        children: [
-          if (session.assessmentScore != null) ...[
-            Text(
-              session.assessmentScore.toString(),
-              style: AppTypography.headingLarge.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-                fontSize: 48,
-                height: 1,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Text(
-                '/10',
-                style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.textTertiary),
-              ),
-            ),
-            const Spacer(),
-          ] else
-            const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.md, vertical: 6),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.radiusFull),
-            ),
-            child: Text(
-              _statusLabel(session.assessmentStatus),
-              style: AppTypography.labelSmall.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        style: AppTypography.bodySmall
+            .copyWith(color: AppColors.textTertiary),
       ),
     );
   }
 }
 
-// ── Color helpers ───────────────────────────────────────────────────
+// ── Color helpers ──────────────────────────────────────────────────
 
 Color _statusColor(String? status) {
   return switch (status) {
@@ -1092,80 +1038,72 @@ Color _statusColor(String? status) {
   };
 }
 
-String _statusLabel(String? status) {
+Color _paymentColor(String status) {
   return switch (status) {
-    'needs_work' => 'Perlu Latihan',
-    'progressing' => 'Berkembang',
-    'good' => 'Baik',
-    'excellent' => 'Sangat Baik',
-    _ => 'Belum Dinilai',
+    'pending_payment' || 'pending_confirmation' => AppColors.warning,
+    'confirmed_transfer' || 'confirmed_credit' || 'paid' => AppColors.success,
+    'rejected' || 'refunded' => AppColors.error,
+    _ => AppColors.textSecondary,
   };
 }
 
-String _statusShort(String? status) {
+String _paymentLabel(String status) {
   return switch (status) {
-    'needs_work' => 'Latihan',
-    'progressing' => 'Tumbuh',
-    'good' => 'Baik',
-    'excellent' => 'Top',
-    _ => '—',
+    'pending_payment' => 'Menunggu Bayar',
+    'pending_confirmation' => 'Cek Bukti',
+    'confirmed_transfer' => 'Lunas',
+    'confirmed_credit' => 'Lunas (Kredit)',
+    'paid' => 'Lunas',
+    'rejected' => 'Ditolak',
+    'refunded' => 'Refund',
+    _ => status,
   };
 }
 
-Color _skillStatusColor(String? s) {
-  return switch (s) {
-    'achieved' => AppColors.success,
-    'in_progress' => AppColors.warning,
-    'not_started' => AppColors.neutral500,
-    _ => AppColors.neutral500,
-  };
-}
+// ── Stub data ──────────────────────────────────────────────────────
 
-String _skillStatusLabel(String? s) {
-  return switch (s) {
-    'achieved' => 'Mahir',
-    'in_progress' => 'Berkembang',
-    'not_started' => 'Belum',
-    _ => '—',
-  };
-}
-
-// ── Stub data ───────────────────────────────────────────────────────
-
-class _StubDetail {
+class _StubMemberDetail {
   final int studentProfileId;
   final String fullName;
   final int? age;
   final String? gender;
-  final String? sport;
   final String? photoUrl;
   final String? programName;
   final String? levelName;
+  final String? assignedCoachName;
   final DateTime? enrolledAt;
   final int totalSessions;
   final double attendanceRate;
   final int skillsMasteredCount;
   final int skillsTotalCount;
+  final int paidThisMonth;
+  final int outstandingAmount;
+  final int outstandingCount;
   final List<_StubTrend> recentTrend;
   final List<_StubSkillCategory> skillBreakdown;
+  final List<_StubPayment> paymentHistory;
   final List<_StubSession> sessionHistory;
 
-  const _StubDetail({
+  const _StubMemberDetail({
     required this.studentProfileId,
     required this.fullName,
     required this.age,
     required this.gender,
-    required this.sport,
     required this.photoUrl,
     required this.programName,
     required this.levelName,
+    required this.assignedCoachName,
     required this.enrolledAt,
     required this.totalSessions,
     required this.attendanceRate,
     required this.skillsMasteredCount,
     required this.skillsTotalCount,
+    required this.paidThisMonth,
+    required this.outstandingAmount,
+    required this.outstandingCount,
     required this.recentTrend,
     required this.skillBreakdown,
+    required this.paymentHistory,
     required this.sessionHistory,
   });
 }
@@ -1196,165 +1134,142 @@ class _StubSkillCategory {
   });
 }
 
+class _StubPayment {
+  final int id;
+  final DateTime date;
+  final int amount;
+  final String description;
+  final String status;
+
+  const _StubPayment({
+    required this.id,
+    required this.date,
+    required this.amount,
+    required this.description,
+    required this.status,
+  });
+}
+
 class _StubSession {
   final int sessionId;
   final DateTime startAt;
   final String venueName;
   final String? attendanceStatus;
-  final String? assessmentStatus;
-  final int? assessmentScore;
-  final String? assessmentNotes;
-  final List<_StubSkillResult> skillResults;
+  final String? paymentStatus;
 
   const _StubSession({
     required this.sessionId,
     required this.startAt,
     required this.venueName,
     required this.attendanceStatus,
-    required this.assessmentStatus,
-    required this.assessmentScore,
-    required this.assessmentNotes,
-    required this.skillResults,
+    required this.paymentStatus,
   });
 }
 
-class _StubSkillResult {
-  final String skillName;
-  final String? category;
-  final String? status;
-  final int? score;
-
-  const _StubSkillResult({
-    required this.skillName,
-    required this.category,
-    required this.status,
-    required this.score,
-  });
-}
-
-final _StubDetail _stubDetail = _StubDetail(
-  studentProfileId: 71,
-  fullName: 'Fauziah Putri',
-  age: 14,
-  gender: 'female',
-  sport: 'Tenis',
+final _StubMemberDetail _stubDetail = _StubMemberDetail(
+  studentProfileId: 72,
+  fullName: 'Alsac Wijaya',
+  age: 11,
+  gender: 'male',
   photoUrl: null,
   programName: 'Class Newbie to Beginner',
   levelName: 'Newbie to Lower Beginner',
-  enrolledAt: DateTime(2025, 8, 15),
-  totalSessions: 12,
-  attendanceRate: 0.92,
-  skillsMasteredCount: 5,
+  assignedCoachName: 'Haris',
+  enrolledAt: DateTime(2025, 11, 3),
+  totalSessions: 8,
+  attendanceRate: 0.75,
+  skillsMasteredCount: 3,
   skillsTotalCount: 12,
+  paidThisMonth: 450000,
+  outstandingAmount: 150000,
+  outstandingCount: 1,
   recentTrend: [
     _StubTrend(
       date: DateTime.now().subtract(const Duration(days: 14)),
       status: 'progressing',
-      score: 6,
+      score: 5,
       deltaFromPrev: null,
     ),
     _StubTrend(
       date: DateTime.now().subtract(const Duration(days: 7)),
-      status: 'good',
-      score: 7,
+      status: 'progressing',
+      score: 6,
       deltaFromPrev: 1,
     ),
     _StubTrend(
-      date: DateTime.now().subtract(const Duration(days: 3)),
+      date: DateTime.now().subtract(const Duration(days: 1)),
       status: 'good',
-      score: 8,
+      score: 7,
       deltaFromPrev: 1,
     ),
   ],
   skillBreakdown: const [
     _StubSkillCategory(
-      category: 'Forehand',
-      achievedCount: 3,
-      totalCount: 4,
-    ),
+        category: 'Forehand', achievedCount: 2, totalCount: 4),
     _StubSkillCategory(
-      category: 'Backhand',
-      achievedCount: 1,
-      totalCount: 4,
-    ),
+        category: 'Backhand', achievedCount: 1, totalCount: 4),
+    _StubSkillCategory(category: 'Serve', achievedCount: 0, totalCount: 2),
     _StubSkillCategory(
-      category: 'Serve',
-      achievedCount: 1,
-      totalCount: 2,
+        category: 'Footwork', achievedCount: 0, totalCount: 2),
+  ],
+  paymentHistory: [
+    _StubPayment(
+      id: 412,
+      date: DateTime.now().subtract(const Duration(days: 14)),
+      amount: 150000,
+      description: 'Sesi Tenis 18 Apr — Court 2',
+      status: 'pending_payment',
     ),
-    _StubSkillCategory(
-      category: 'Footwork',
-      achievedCount: 0,
-      totalCount: 2,
+    _StubPayment(
+      id: 411,
+      date: DateTime.now().subtract(const Duration(days: 21)),
+      amount: 150000,
+      description: 'Sesi Tenis 11 Apr — Court 1',
+      status: 'confirmed_transfer',
+    ),
+    _StubPayment(
+      id: 410,
+      date: DateTime.now().subtract(const Duration(days: 28)),
+      amount: 150000,
+      description: 'Sesi Tenis 4 Apr — Court 1',
+      status: 'confirmed_transfer',
+    ),
+    _StubPayment(
+      id: 409,
+      date: DateTime.now().subtract(const Duration(days: 35)),
+      amount: 150000,
+      description: 'Sesi Tenis 28 Mar — Court 1',
+      status: 'confirmed_credit',
     ),
   ],
   sessionHistory: [
     _StubSession(
       sessionId: 88,
-      startAt: DateTime.now().subtract(const Duration(days: 3)),
+      startAt: DateTime.now().subtract(const Duration(days: 1)),
       venueName: 'Lapangan Petenis Kelana — Court 2',
       attendanceStatus: 'present',
-      assessmentStatus: 'good',
-      assessmentScore: 8,
-      assessmentNotes:
-          'Forehand semakin konsisten. Footwork perlu lebih cepat saat retreat.',
-      skillResults: const [
-        _StubSkillResult(
-          skillName: 'Forehand Consistency',
-          category: 'Forehand',
-          status: 'achieved',
-          score: 8,
-        ),
-        _StubSkillResult(
-          skillName: 'Forehand Volley',
-          category: 'Forehand',
-          status: 'in_progress',
-          score: 6,
-        ),
-        _StubSkillResult(
-          skillName: 'Ready Position & Footwork',
-          category: 'Footwork',
-          status: 'in_progress',
-          score: 5,
-        ),
-      ],
+      paymentStatus: 'pending_payment',
     ),
     _StubSession(
       sessionId: 87,
       startAt: DateTime.now().subtract(const Duration(days: 7)),
       venueName: 'Lapangan Petenis Kelana — Court 1',
       attendanceStatus: 'present',
-      assessmentStatus: 'good',
-      assessmentScore: 7,
-      assessmentNotes: 'Good progress on serve.',
-      skillResults: const [
-        _StubSkillResult(
-          skillName: 'Continental Serve Grip',
-          category: 'Serve',
-          status: 'achieved',
-          score: 7,
-        ),
-      ],
+      paymentStatus: 'confirmed_transfer',
     ),
     _StubSession(
       sessionId: 86,
       startAt: DateTime.now().subtract(const Duration(days: 14)),
       venueName: 'Lapangan Petenis Kelana — Court 1',
       attendanceStatus: 'late',
-      assessmentStatus: 'progressing',
-      assessmentScore: 6,
-      assessmentNotes: null,
-      skillResults: const [],
+      paymentStatus: 'confirmed_transfer',
     ),
     _StubSession(
       sessionId: 80,
-      startAt: DateTime.now().subtract(const Duration(days: 21)),
+      startAt: DateTime.now().subtract(const Duration(days: 28)),
       venueName: 'Lapangan Petenis Kelana — Court 2',
       attendanceStatus: 'absent',
-      assessmentStatus: null,
-      assessmentScore: null,
-      assessmentNotes: null,
-      skillResults: const [],
+      paymentStatus: 'confirmed_credit',
     ),
   ],
 );

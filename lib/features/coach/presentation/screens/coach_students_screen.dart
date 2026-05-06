@@ -8,6 +8,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
 /// Coach's roster — distinct students across all sessions where the
 /// authenticated coach was assigned. List uses status-coded left-edge accents
@@ -246,21 +247,12 @@ class _StudentRosterCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        CircleAvatar(
+        ZoomableAvatar(
+          heroTag: 'student-${student.studentProfileId}',
+          imageUrl: student.photoUrl,
+          fallbackInitials: Formatters.initials(student.fullName),
           radius: 22,
-          backgroundColor: AppColors.primary50,
-          backgroundImage: student.photoUrl != null
-              ? NetworkImage(student.photoUrl!)
-              : null,
-          child: student.photoUrl == null
-              ? Text(
-                  Formatters.initials(student.fullName),
-                  style: AppTypography.labelMedium.copyWith(
-                    color: AppColors.primary700,
-                    fontWeight: FontWeight.w700,
-                  ),
-                )
-              : null,
+          caption: student.fullName,
         ),
         const SizedBox(width: AppDimensions.md),
         Expanded(

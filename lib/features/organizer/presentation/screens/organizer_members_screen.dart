@@ -7,7 +7,9 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/club_hero.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
 /// Anggota Klub — tenant-wide member roster for the organizer. Shares the
 /// "Athletic Field Notebook" visual language with the coach side, but the
@@ -108,20 +110,64 @@ class _OrganizerMembersScreenState
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
-      appBar: AppBar(
-        title: const Text('Anggota Klub'),
-        elevation: 0,
-        backgroundColor: AppSurfaces.surface,
-      ),
+      // Hero handles its own dark background; no AppBar so the gradient
+      // bleeds to the status bar for a more dashboard-y feel.
+      extendBodyBehindAppBar: true,
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
-            child: _FinancialTicker(
-              activeCount: activeCount,
-              outstandingTotal: outstandingTotal,
-              outstandingCount: outstandingCount,
+          // Layer 1 — club identity
+          const SliverToBoxAdapter(
+            child: ClubHero(
+              name: 'Petenis Kelana',
+              sport: 'Tenis',
+              subtitle: 'Jakarta',
             ),
           ),
+          // Layer 2 — vital stats ticker (overlaps the hero by 24px so the
+          // card "lifts out" of the dark band — gives the screen depth).
+          SliverToBoxAdapter(
+            child: Transform.translate(
+              offset: const Offset(0, -AppDimensions.lg),
+              child: ClubStatsStrip(
+                activeMembers: activeCount,
+                activeCoaches: 4,
+                sessionsThisMonth: 18,
+                outstandingTotal: outstandingTotal,
+                outstandingCount: outstandingCount,
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenHorizontal,
+                AppDimensions.lg,
+                AppDimensions.screenHorizontal,
+                AppDimensions.sm,
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'ANGGOTA',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textTertiary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 10,
+                      letterSpacing: 1.6,
+                    ),
+                  ),
+                  const SizedBox(width: AppDimensions.sm),
+                  const Expanded(
+                    child: ColoredBox(
+                      color: AppColors.neutral200,
+                      child: SizedBox(height: 1),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Layer 3 — roster (filter + search + cards)
           SliverToBoxAdapter(
             child: _FilterRow(
               filter: _filter,
@@ -204,132 +250,6 @@ class _OrganizerMembersScreenState
             borderSide: const BorderSide(color: AppColors.neutral200),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Financial-ticker style header. Two stat columns with editorial labels;
-/// the rupiah figure renders large and tabular so it reads like a daily
-/// number on a dashboard, not like decoration.
-class _FinancialTicker extends StatelessWidget {
-  final int activeCount;
-  final int outstandingTotal;
-  final int outstandingCount;
-
-  const _FinancialTicker({
-    required this.activeCount,
-    required this.outstandingTotal,
-    required this.outstandingCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final hasOutstanding = outstandingTotal > 0;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-        AppDimensions.screenHorizontal,
-        AppDimensions.md,
-        AppDimensions.screenHorizontal,
-        AppDimensions.md,
-      ),
-      decoration: const BoxDecoration(
-        color: AppSurfaces.surface,
-        border: Border(
-          bottom: BorderSide(color: AppColors.neutral100, width: 1),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: _TickerStat(
-              label: 'ANGGOTA AKTIF',
-              value: activeCount.toString(),
-              color: AppColors.primary900,
-              hint: '30 hari terakhir',
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 40,
-            color: AppColors.neutral100,
-          ),
-          Expanded(
-            child: _TickerStat(
-              label: 'TAGIHAN PENDING',
-              value: hasOutstanding
-                  ? Formatters.formatRupiahCompact(outstandingTotal)
-                  : '—',
-              color: hasOutstanding
-                  ? AppColors.error
-                  : AppColors.success,
-              hint: hasOutstanding
-                  ? '$outstandingCount anggota'
-                  : 'Semua lunas',
-              alignEnd: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TickerStat extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  final String hint;
-  final bool alignEnd;
-
-  const _TickerStat({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.hint,
-    this.alignEnd = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: alignEnd ? AppDimensions.md : 0,
-        right: alignEnd ? 0 : AppDimensions.md,
-      ),
-      child: Column(
-        crossAxisAlignment:
-            alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textTertiary,
-              fontWeight: FontWeight.w700,
-              fontSize: 10,
-              letterSpacing: 1.6,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: AppTypography.headingMedium.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            hint,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -494,7 +414,7 @@ class _MemberCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         onTap: () => context.push(
-          AppRoutes.coachStudent(member.studentProfileId.toString()),
+          AppRoutes.organizerMember(member.studentProfileId.toString()),
         ),
         child: Container(
           decoration: BoxDecoration(
@@ -560,21 +480,12 @@ class _MemberCard extends StatelessWidget {
   Widget _buildHeaderRow() {
     return Row(
       children: [
-        CircleAvatar(
+        ZoomableAvatar(
+          heroTag: 'member-${member.studentProfileId}',
+          imageUrl: member.photoUrl,
+          fallbackInitials: Formatters.initials(member.fullName),
           radius: 22,
-          backgroundColor: AppColors.primary50,
-          backgroundImage: member.photoUrl != null
-              ? NetworkImage(member.photoUrl!)
-              : null,
-          child: member.photoUrl == null
-              ? Text(
-                  Formatters.initials(member.fullName),
-                  style: AppTypography.labelMedium.copyWith(
-                    color: AppColors.primary700,
-                    fontWeight: FontWeight.w700,
-                  ),
-                )
-              : null,
+          caption: member.fullName,
         ),
         const SizedBox(width: AppDimensions.md),
         Expanded(

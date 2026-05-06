@@ -70,25 +70,49 @@ class ApiClubRepository {
     }
   }
 
-  /// Existing thin admin students list — used as the organizer Klub roster
-  /// fallback until 19.5 ships with the richer aggregate shape.
-  Future<List<AdminStudentSummary>> getAdminStudents({
+  /// Existing thin admin students list — page-based Laravel pagination.
+  /// Used as the organizer Klub roster fallback until 19.5 ships.
+  Future<AdminStudentsPage> getAdminStudents({
     String? search,
+    int? page,
     int? perPage,
   }) async {
     try {
       final res = await _apiClient.get(
         '/v1/admin/students',
         queryParameters: {
+          'page': ?page,
           'per_page': ?perPage,
           if (search != null && search.isNotEmpty) 'search': search,
         },
       );
       final data = res.data as Map<String, dynamic>;
       final list = (data['data'] as List).cast<Map<String, dynamic>>();
-      return list.map(AdminStudentSummary.fromJson).toList();
+      return AdminStudentsPage(
+        items: list.map(AdminStudentSummary.fromJson).toList(),
+        currentPage: data['current_page'] as int? ?? 1,
+        lastPage: data['last_page'] as int? ?? 1,
+        total: data['total'] as int? ?? list.length,
+      );
     } on DioException catch (e) {
       rethrowDio(e);
     }
   }
+}
+
+/// Page-based response wrapper for `/admin/students` (Laravel paginate()).
+class AdminStudentsPage {
+  final List<AdminStudentSummary> items;
+  final int currentPage;
+  final int lastPage;
+  final int total;
+
+  const AdminStudentsPage({
+    required this.items,
+    required this.currentPage,
+    required this.lastPage,
+    required this.total,
+  });
+
+  bool get hasMore => currentPage < lastPage;
 }

@@ -32,6 +32,8 @@ mixin _$AdminStudentSummary {
   String? get gender => throw _privateConstructorUsedError;
   @JsonKey(name: 'photo_urls')
   Map<String, String>? get photoUrls => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this AdminStudentSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -57,6 +59,7 @@ abstract class $AdminStudentSummaryCopyWith<$Res> {
     @JsonKey(name: 'date_of_birth') DateTime? dateOfBirth,
     String? gender,
     @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
   });
 }
 
@@ -81,6 +84,7 @@ class _$AdminStudentSummaryCopyWithImpl<$Res, $Val extends AdminStudentSummary>
     Object? dateOfBirth = freezed,
     Object? gender = freezed,
     Object? photoUrls = freezed,
+    Object? createdAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -108,6 +112,10 @@ class _$AdminStudentSummaryCopyWithImpl<$Res, $Val extends AdminStudentSummary>
                 ? _value.photoUrls
                 : photoUrls // ignore: cast_nullable_to_non_nullable
                       as Map<String, String>?,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -130,6 +138,7 @@ abstract class _$$AdminStudentSummaryImplCopyWith<$Res>
     @JsonKey(name: 'date_of_birth') DateTime? dateOfBirth,
     String? gender,
     @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
   });
 }
 
@@ -153,6 +162,7 @@ class __$$AdminStudentSummaryImplCopyWithImpl<$Res>
     Object? dateOfBirth = freezed,
     Object? gender = freezed,
     Object? photoUrls = freezed,
+    Object? createdAt = freezed,
   }) {
     return _then(
       _$AdminStudentSummaryImpl(
@@ -180,6 +190,10 @@ class __$$AdminStudentSummaryImplCopyWithImpl<$Res>
             ? _value._photoUrls
             : photoUrls // ignore: cast_nullable_to_non_nullable
                   as Map<String, String>?,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -195,6 +209,7 @@ class _$AdminStudentSummaryImpl implements _AdminStudentSummary {
     @JsonKey(name: 'date_of_birth') this.dateOfBirth,
     this.gender,
     @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
+    @JsonKey(name: 'created_at') this.createdAt,
   }) : _photoUrls = photoUrls;
 
   factory _$AdminStudentSummaryImpl.fromJson(Map<String, dynamic> json) =>
@@ -226,8 +241,12 @@ class _$AdminStudentSummaryImpl implements _AdminStudentSummary {
   }
 
   @override
+  @JsonKey(name: 'created_at')
+  final DateTime? createdAt;
+
+  @override
   String toString() {
-    return 'AdminStudentSummary(id: $id, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, gender: $gender, photoUrls: $photoUrls)';
+    return 'AdminStudentSummary(id: $id, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, gender: $gender, photoUrls: $photoUrls, createdAt: $createdAt)';
   }
 
   @override
@@ -246,7 +265,9 @@ class _$AdminStudentSummaryImpl implements _AdminStudentSummary {
             const DeepCollectionEquality().equals(
               other._photoUrls,
               _photoUrls,
-            ));
+            ) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -259,6 +280,7 @@ class _$AdminStudentSummaryImpl implements _AdminStudentSummary {
     dateOfBirth,
     gender,
     const DeepCollectionEquality().hash(_photoUrls),
+    createdAt,
   );
 
   /// Create a copy of AdminStudentSummary
@@ -286,6 +308,7 @@ abstract class _AdminStudentSummary implements AdminStudentSummary {
     @JsonKey(name: 'date_of_birth') final DateTime? dateOfBirth,
     final String? gender,
     @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
+    @JsonKey(name: 'created_at') final DateTime? createdAt,
   }) = _$AdminStudentSummaryImpl;
 
   factory _AdminStudentSummary.fromJson(Map<String, dynamic> json) =
@@ -308,6 +331,9 @@ abstract class _AdminStudentSummary implements AdminStudentSummary {
   @override
   @JsonKey(name: 'photo_urls')
   Map<String, String>? get photoUrls;
+  @override
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt;
 
   /// Create a copy of AdminStudentSummary
   /// with the given fields replaced by the non-null parameter values.

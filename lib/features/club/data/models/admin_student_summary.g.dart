@@ -19,6 +19,9 @@ _$AdminStudentSummaryImpl _$$AdminStudentSummaryImplFromJson(
   photoUrls: (json['photo_urls'] as Map<String, dynamic>?)?.map(
     (k, e) => MapEntry(k, e as String),
   ),
+  createdAt: json['created_at'] == null
+      ? null
+      : DateTime.parse(json['created_at'] as String),
 );
 
 Map<String, dynamic> _$$AdminStudentSummaryImplToJson(
@@ -30,4 +33,5 @@ Map<String, dynamic> _$$AdminStudentSummaryImplToJson(
   'date_of_birth': instance.dateOfBirth?.toIso8601String(),
   'gender': instance.gender,
   'photo_urls': instance.photoUrls,
+  'created_at': instance.createdAt?.toIso8601String(),
 };

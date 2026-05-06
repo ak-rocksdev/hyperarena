@@ -17,6 +17,7 @@ class AdminStudentSummary with _$AdminStudentSummary {
     @JsonKey(name: 'date_of_birth') DateTime? dateOfBirth,
     String? gender,
     @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _AdminStudentSummary;
 
   factory AdminStudentSummary.fromJson(Map<String, dynamic> json) =>

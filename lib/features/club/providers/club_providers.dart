@@ -117,14 +117,107 @@ final adminStudentDetailProvider =
       .getAdminStudentDetail(studentProfileId);
 });
 
-/// Organizer roster fallback until BE Issue 19.5 ships. Returns the thin
-/// `/admin/students` shape; FE renders simpler cards while waiting.
-final adminStudentsListProvider = FutureProvider.autoDispose
-    .family<List<AdminStudentSummary>, String>((ref, search) async {
-  return ref
-      .read(clubRepositoryProvider)
-      .getAdminStudents(search: search.isEmpty ? null : search);
-});
+/// Organizer roster fallback until BE Issue 19.5 ships. Page-based
+/// pagination (Laravel `paginate()`) over the existing `/admin/students`
+/// endpoint. Search lives in state so `loadMore()` continues the query
+/// the user is currently filtering with.
+class AdminStudentsListState {
+  final List<AdminStudentSummary> items;
+  final int currentPage;
+  final int lastPage;
+  final int total;
+  final bool isLoading;
+  final bool isLoadingMore;
+  final String? error;
+  final String search;
+
+  const AdminStudentsListState({
+    this.items = const [],
+    this.currentPage = 0,
+    this.lastPage = 1,
+    this.total = 0,
+    this.isLoading = false,
+    this.isLoadingMore = false,
+    this.error,
+    this.search = '',
+  });
+
+  bool get hasMore => currentPage < lastPage;
+  bool get isEmpty => items.isEmpty && !isLoading;
+
+  AdminStudentsListState copyWith({
+    List<AdminStudentSummary>? items,
+    int? currentPage,
+    int? lastPage,
+    int? total,
+    bool? isLoading,
+    bool? isLoadingMore,
+    String? Function()? error,
+    String? search,
+  }) {
+    return AdminStudentsListState(
+      items: items ?? this.items,
+      currentPage: currentPage ?? this.currentPage,
+      lastPage: lastPage ?? this.lastPage,
+      total: total ?? this.total,
+      isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      error: error != null ? error() : this.error,
+      search: search ?? this.search,
+    );
+  }
+}
+
+final adminStudentsListProvider =
+    NotifierProvider<AdminStudentsListNotifier, AdminStudentsListState>(
+  AdminStudentsListNotifier.new,
+);
+
+class AdminStudentsListNotifier extends Notifier<AdminStudentsListState> {
+  @override
+  AdminStudentsListState build() {
+    Future.microtask(loadInitial);
+    return const AdminStudentsListState(isLoading: true);
+  }
+
+  Future<void> loadInitial({String? search}) async {
+    final query = search ?? state.search;
+    state = AdminStudentsListState(isLoading: true, search: query);
+    try {
+      final page = await ref
+          .read(clubRepositoryProvider)
+          .getAdminStudents(search: query.isEmpty ? null : query, page: 1);
+      state = AdminStudentsListState(
+        items: page.items,
+        currentPage: page.currentPage,
+        lastPage: page.lastPage,
+        total: page.total,
+        search: query,
+      );
+    } catch (e) {
+      state = AdminStudentsListState(error: e.toString(), search: query);
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoadingMore || !state.hasMore) return;
+    state = state.copyWith(isLoadingMore: true);
+    try {
+      final page = await ref.read(clubRepositoryProvider).getAdminStudents(
+            search: state.search.isEmpty ? null : state.search,
+            page: state.currentPage + 1,
+          );
+      state = state.copyWith(
+        items: [...state.items, ...page.items],
+        currentPage: page.currentPage,
+        lastPage: page.lastPage,
+        isLoadingMore: false,
+      );
+    } catch (_) {
+      state = state.copyWith(isLoadingMore: false);
+    }
+  }
+}
 
 /// CursorPage typedef alias used by callers if they want to expose page info.
 typedef CoachStudentsPage = CursorPage<CoachStudentRosterItem>;

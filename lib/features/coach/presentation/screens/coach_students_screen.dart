@@ -12,6 +12,7 @@ import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/club/data/models/coach_student.dart';
 import 'package:hyperarena/features/club/providers/club_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/utils/debouncer.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
@@ -29,6 +30,7 @@ class _CoachStudentsScreenState
     extends ConsumerState<CoachStudentsScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
+  final _debouncer = Debouncer();
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _CoachStudentsScreenState
     _searchController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 
@@ -49,6 +52,14 @@ class _CoachStudentsScreenState
         _scrollController.position.maxScrollExtent - 200) {
       ref.read(coachStudentsListProvider.notifier).loadMore();
     }
+  }
+
+  void _onSearchChanged(String value) {
+    _debouncer.run(() {
+      ref
+          .read(coachStudentsListProvider.notifier)
+          .loadInitial(search: value.trim());
+    });
   }
 
   @override
@@ -214,30 +225,45 @@ class _CoachStudentsScreenState
         AppDimensions.screenHorizontal,
         AppDimensions.md,
       ),
-      child: TextField(
-        controller: _searchController,
-        onSubmitted: (v) => ref
-            .read(coachStudentsListProvider.notifier)
-            .loadInitial(search: v.trim()),
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          hintText: 'Cari murid…',
-          prefixIcon: const Icon(Icons.search,
-              color: AppColors.textTertiary, size: 18),
-          isDense: true,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-          filled: true,
-          fillColor: AppColors.neutral50,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            borderSide: const BorderSide(color: AppColors.neutral200),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            borderSide: const BorderSide(color: AppColors.neutral200),
-          ),
-        ),
+      child: ValueListenableBuilder<TextEditingValue>(
+        valueListenable: _searchController,
+        builder: (_, value, _) {
+          return TextField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Cari murid…',
+              prefixIcon: const Icon(Icons.search,
+                  color: AppColors.textTertiary, size: 18),
+              suffixIcon: value.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.close,
+                          size: 16, color: AppColors.textTertiary),
+                      onPressed: () {
+                        _searchController.clear();
+                        _onSearchChanged('');
+                      },
+                      tooltip: 'Hapus pencarian',
+                      visualDensity: VisualDensity.compact,
+                    ),
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.md),
+              filled: true,
+              fillColor: AppColors.neutral50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                borderSide: const BorderSide(color: AppColors.neutral200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                borderSide: const BorderSide(color: AppColors.neutral200),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

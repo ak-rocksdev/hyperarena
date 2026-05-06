@@ -14,6 +14,8 @@ import 'package:hyperarena/features/club/data/models/club_summary.dart';
 import 'package:hyperarena/features/club/providers/club_providers.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/club_hero.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/utils/debouncer.dart';
+import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
 /// Anggota Klub — tenant-wide roster for the organizer. 3-layer dashboard:
@@ -34,18 +36,43 @@ class OrganizerMembersScreen extends ConsumerStatefulWidget {
 class _OrganizerMembersScreenState
     extends ConsumerState<OrganizerMembersScreen> {
   final _searchController = TextEditingController();
-  String _appliedQuery = '';
+  final _scrollController = ScrollController();
+  final _debouncer = Debouncer();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _debouncer.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      ref.read(adminStudentsListProvider.notifier).loadMore();
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    _debouncer.run(() {
+      ref
+          .read(adminStudentsListProvider.notifier)
+          .loadInitial(search: value.trim());
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final summaryAsync = ref.watch(clubSummaryProvider);
-    final listAsync = ref.watch(adminStudentsListProvider(_appliedQuery));
+    final listState = ref.watch(adminStudentsListProvider);
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
@@ -53,9 +80,10 @@ class _OrganizerMembersScreenState
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(clubSummaryProvider);
-          ref.invalidate(adminStudentsListProvider);
+          await ref.read(adminStudentsListProvider.notifier).loadInitial();
         },
         child: CustomScrollView(
+          controller: _scrollController,
           slivers: [
             // Hero
             SliverToBoxAdapter(
@@ -82,10 +110,10 @@ class _OrganizerMembersScreenState
               ),
             ),
             // Editorial section break
-            SliverToBoxAdapter(child: _buildSectionLabel()),
+            SliverToBoxAdapter(child: _buildSectionLabel(listState)),
             SliverToBoxAdapter(child: _buildSearch()),
             // Member list
-            ..._buildList(listAsync),
+            ..._buildList(listState),
             const SliverToBoxAdapter(
                 child: SizedBox(height: AppDimensions.lg)),
           ],
@@ -156,7 +184,7 @@ class _OrganizerMembersScreenState
     );
   }
 
-  Widget _buildSectionLabel() {
+  Widget _buildSectionLabel(AdminStudentsListState state) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppDimensions.screenHorizontal,
@@ -175,6 +203,14 @@ class _OrganizerMembersScreenState
               letterSpacing: 1.6,
             ),
           ),
+          if (state.total > 0) ...[
+            const SizedBox(width: AppDimensions.xs),
+            Text(
+              '· ${state.total} total',
+              style: AppTypography.caption
+                  .copyWith(color: AppColors.textTertiary, fontSize: 10),
+            ),
+          ],
           const SizedBox(width: AppDimensions.sm),
           const Expanded(
             child: ColoredBox(
@@ -195,35 +231,52 @@ class _OrganizerMembersScreenState
         AppDimensions.screenHorizontal,
         AppDimensions.md,
       ),
-      child: TextField(
-        controller: _searchController,
-        onSubmitted: (v) => setState(() => _appliedQuery = v.trim()),
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          hintText: 'Cari anggota…',
-          prefixIcon: const Icon(Icons.search,
-              color: AppColors.textTertiary, size: 18),
-          isDense: true,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-          filled: true,
-          fillColor: AppSurfaces.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            borderSide: const BorderSide(color: AppColors.neutral200),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            borderSide: const BorderSide(color: AppColors.neutral200),
-          ),
-        ),
+      child: ValueListenableBuilder<TextEditingValue>(
+        valueListenable: _searchController,
+        builder: (_, value, _) {
+          return TextField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Cari anggota…',
+              prefixIcon: const Icon(Icons.search,
+                  color: AppColors.textTertiary, size: 18),
+              suffixIcon: value.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.close,
+                          size: 16, color: AppColors.textTertiary),
+                      onPressed: () {
+                        _searchController.clear();
+                        _onSearchChanged('');
+                      },
+                      tooltip: 'Hapus pencarian',
+                      visualDensity: VisualDensity.compact,
+                    ),
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.md),
+              filled: true,
+              fillColor: AppSurfaces.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                borderSide: const BorderSide(color: AppColors.neutral200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                borderSide: const BorderSide(color: AppColors.neutral200),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  List<Widget> _buildList(AsyncValue<List<AdminStudentSummary>> async) {
-    return async.when(
-      loading: () => [
+  List<Widget> _buildList(AdminStudentsListState state) {
+    if (state.isLoading) {
+      return [
         SliverPadding(
           padding: const EdgeInsets.symmetric(
               horizontal: AppDimensions.screenHorizontal),
@@ -231,52 +284,58 @@ class _OrganizerMembersScreenState
             itemCount: 4,
             itemBuilder: (_, _) => Padding(
               padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-              child: ShimmerLoading.card(height: 80),
+              child: ShimmerLoading.card(height: 90),
             ),
           ),
         ),
-      ],
-      error: (e, _) => [
+      ];
+    }
+    if (state.error != null) {
+      return [
         SliverFillRemaining(
           hasScrollBody: false,
           child: Padding(
             padding: const EdgeInsets.all(AppDimensions.lg),
             child: ErrorView(
-              error: e,
-              onRetry: () => ref.invalidate(adminStudentsListProvider),
+              error: state.error!,
+              onRetry: () =>
+                  ref.read(adminStudentsListProvider.notifier).loadInitial(),
             ),
           ),
         ),
-      ],
-      data: (items) {
-        if (items.isEmpty) {
-          return [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: EmptyState(
-                icon: Icons.groups_outlined,
-                message: _appliedQuery.isEmpty
-                    ? 'Belum ada anggota terdaftar.'
-                    : 'Tidak ada anggota yang cocok dengan "$_appliedQuery".',
-              ),
-            ),
-          ];
-        }
-        return [
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.screenHorizontal),
-            sliver: SliverList.builder(
-              itemCount: items.length,
-              itemBuilder: (_, i) => Padding(
-                padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-                child: _MemberCard(member: items[i]),
-              ),
-            ),
+      ];
+    }
+    if (state.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.groups_outlined,
+            message: state.search.isEmpty
+                ? 'Belum ada anggota terdaftar.'
+                : 'Tidak ada anggota yang cocok dengan "${state.search}".',
           ),
-        ];
-      },
-    );
+        ),
+      ];
+    }
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.screenHorizontal),
+        sliver: SliverList.builder(
+          itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+          itemBuilder: (_, i) {
+            if (i >= state.items.length) {
+              return const ListLoadingIndicator();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+              child: _MemberCard(member: state.items[i]),
+            );
+          },
+        ),
+      ),
+    ];
   }
 }
 
@@ -435,8 +494,9 @@ class _Divider extends StatelessWidget {
   }
 }
 
-/// Compact card for the organizer roster while 19.5 is pending. When the
-/// richer endpoint ships, a `_RichMemberCard` will replace this with status
+/// Compact card for the organizer roster while 19.5 is pending. Displays
+/// the data `/admin/students` actually returns (identity + gender + joined
+/// date). Once 19.5 ships, this will swap to a richer card with status
 /// pill, attendance %, and outstanding ribbon — see `coach_students_screen`
 /// for the full pattern.
 class _MemberCard extends StatelessWidget {
@@ -476,24 +536,47 @@ class _MemberCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      fullName,
-                      style: AppTypography.titleSmall.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            fullName,
+                            style: AppTypography.titleSmall.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (member.gender != null) ...[
+                          const SizedBox(width: AppDimensions.xs),
+                          _GenderChip(gender: member.gender!),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      age != null ? '$age tahun' : 'Umur Not Set',
-                      style: AppTypography.caption.copyWith(
-                        color: age != null
-                            ? AppColors.textSecondary
-                            : AppColors.textTertiary,
-                        fontStyle:
-                            age == null ? FontStyle.italic : null,
-                      ),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          age != null ? '$age tahun' : 'Umur Not Set',
+                          style: AppTypography.caption.copyWith(
+                            color: age != null
+                                ? AppColors.textSecondary
+                                : AppColors.textTertiary,
+                            fontStyle:
+                                age == null ? FontStyle.italic : null,
+                          ),
+                        ),
+                        if (member.createdAt != null) ...[
+                          const _MetaDot(),
+                          Text(
+                            'Anggota sejak ${Formatters.formatDateShort(member.createdAt!)}',
+                            style: AppTypography.caption
+                                .copyWith(color: AppColors.textTertiary),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -502,6 +585,53 @@ class _MemberCard extends StatelessWidget {
                   size: 18, color: AppColors.textTertiary),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GenderChip extends StatelessWidget {
+  final String gender;
+  const _GenderChip({required this.gender});
+
+  @override
+  Widget build(BuildContext context) {
+    final isFemale = gender == 'female';
+    final color = isFemale ? const Color(0xFFEC4899) : AppColors.primary700;
+    final label = isFemale ? 'Wanita' : (gender == 'male' ? 'Pria' : gender);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaDot extends StatelessWidget {
+  const _MetaDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Container(
+        width: 3,
+        height: 3,
+        decoration: BoxDecoration(
+          color: AppColors.neutral300,
+          shape: BoxShape.circle,
         ),
       ),
     );

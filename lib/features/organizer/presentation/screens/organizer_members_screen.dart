@@ -173,12 +173,17 @@ class _OrganizerMembersScreenState
 
   Widget _buildStatsLoading() {
     return Container(
-      margin: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.screenHorizontal),
+      margin: const EdgeInsets.fromLTRB(
+        AppDimensions.screenHorizontal,
+        0,
+        AppDimensions.screenHorizontal,
+        AppDimensions.sm,
+      ),
       padding: const EdgeInsets.all(AppDimensions.lg),
       decoration: BoxDecoration(
         color: AppSurfaces.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.neutral100, width: 1),
       ),
       child: ShimmerLoading.card(height: 60),
     );
@@ -349,8 +354,12 @@ class _ClubStatsCard extends StatelessWidget {
     final hasOutstanding = stats.outstandingTotal > 0;
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.screenHorizontal),
+      margin: const EdgeInsets.fromLTRB(
+        AppDimensions.screenHorizontal,
+        0,
+        AppDimensions.screenHorizontal,
+        AppDimensions.sm,
+      ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.md,
         vertical: AppDimensions.lg,
@@ -358,11 +367,12 @@ class _ClubStatsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppSurfaces.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.neutral100, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),

@@ -88,6 +88,14 @@ abstract final class Formatters {
     return name.trim().split(_whitespace).first;
   }
 
+  /// Joins a first/last name pair, tolerating nulls + empty parts. Returns
+  /// [fallback] when the joined value is empty.
+  static String fullName(String? first, String? last,
+      {String fallback = 'Siswa'}) {
+    final joined = '${first ?? ''} ${last ?? ''}'.trim();
+    return joined.isEmpty ? fallback : joined;
+  }
+
   /// Returns `null` when the input is empty, else the input itself. Useful
   /// for clearing nullable backend fields when a user wipes a form input —
   /// `'bio': nullIfEmpty(_bio.text.trim())` sends `null` (clears column)

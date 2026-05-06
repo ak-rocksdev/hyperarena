@@ -357,7 +357,10 @@ class _CoachSessionDetailScreenState
 
                     // ── Recommendations panel ─────────────
                     if (canEdit && activeStudents.isNotEmpty)
-                      _RecommendationsCard(sessionId: widget.sessionId),
+                      _RecommendationsCard(
+                        sessionId: widget.sessionId,
+                        students: activeStudents,
+                      ),
 
                     // ── Grading section (past sessions only) ─
                     if (canEdit && activeStudents.isNotEmpty) ...[
@@ -626,9 +629,11 @@ class _StudentAttendanceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profile = student.studentProfile;
-    final name = profile != null
-        ? '${profile.firstName ?? ''} ${profile.lastName ?? ''}'.trim()
-        : 'Peserta';
+    final name = Formatters.fullName(
+      profile?.firstName,
+      profile?.lastName,
+      fallback: 'Peserta',
+    );
     final photoUrl = profile?.photoUrls?['sm'];
 
     return Padding(
@@ -748,9 +753,11 @@ class _GradingCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = student.studentProfile;
-    final name = profile != null
-        ? '${profile.firstName ?? ''} ${profile.lastName ?? ''}'.trim()
-        : 'Peserta';
+    final name = Formatters.fullName(
+      profile?.firstName,
+      profile?.lastName,
+      fallback: 'Peserta',
+    );
     final photoUrl = profile?.photoUrls?['sm'];
     final id = int.parse(student.studentProfileId);
     final enrollmentAsync = ref.watch(coachStudentEnrollmentProvider(id));
@@ -1060,52 +1067,57 @@ class _AttendanceSegmented extends StatelessWidget {
 }
 
 
-class _RecommendationBullet extends StatelessWidget {
-  final SessionRecommendation item;
+/// "Fokus yang Disarankan" — per-student curriculum recommendations grouped
+/// into 3 buckets: needs work (`focus`), new skills (`introduce`), review.
+/// Outer collapsible card; each student card collapses independently inside.
+/// Mirrors the web `SessionRecommendations.vue` structure.
+class _RecommendationsCard extends ConsumerStatefulWidget {
+  final String sessionId;
+  final List<CoachSessionStudent> students;
 
-  const _RecommendationBullet({required this.item});
+  const _RecommendationsCard({
+    required this.sessionId,
+    required this.students,
+  });
+
+  @override
+  ConsumerState<_RecommendationsCard> createState() =>
+      _RecommendationsCardState();
+}
+
+class _RecommendationsCardState extends ConsumerState<_RecommendationsCard> {
+  bool _open = false;
+  final Set<String> _expanded = {};
+  late Map<String, String> _nameById;
+
+  @override
+  void initState() {
+    super.initState();
+    _rebuildNameIndex();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RecommendationsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.students, widget.students)) {
+      _rebuildNameIndex();
+    }
+  }
+
+  void _rebuildNameIndex() {
+    _nameById = {
+      for (final s in widget.students)
+        s.studentProfileId: Formatters.fullName(
+          s.studentProfile?.firstName,
+          s.studentProfile?.lastName,
+        ),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    final parts = <String>[
-      if (item.studentName != null && item.studentName!.isNotEmpty)
-        item.studentName!,
-      if (item.title != null && item.title!.isNotEmpty) item.title!,
-      if (item.skills.isNotEmpty) item.skills.join(', '),
-    ];
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimensions.xs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Icon(Icons.fiber_manual_record,
-                size: 8, color: AppColors.accent700),
-          ),
-          const SizedBox(width: AppDimensions.sm),
-          Expanded(
-            child: Text(
-              parts.join(' — '),
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.accent900,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecommendationsCard extends ConsumerWidget {
-  final String sessionId;
-
-  const _RecommendationsCard({required this.sessionId});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(coachSessionRecommendationsProvider(sessionId));
+    final async =
+        ref.watch(coachSessionRecommendationsProvider(widget.sessionId));
     return async.when(
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
@@ -1113,55 +1125,440 @@ class _RecommendationsCard extends ConsumerWidget {
         if (items.isEmpty) return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.only(top: AppDimensions.lg),
-          child: Container(
-            padding: const EdgeInsets.all(AppDimensions.md),
-            decoration: BoxDecoration(
-              color: AppColors.accent50,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-              border: Border.all(
-                  color: AppColors.accent200.withValues(alpha: 0.6)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.lightbulb_outline,
-                        size: 18, color: AppColors.accent700),
-                    const SizedBox(width: AppDimensions.xs),
-                    Text(
-                      "Fokus yang Disarankan",
-                      style: AppTypography.titleSmall.copyWith(
-                        color: AppColors.accent700,
-                      ),
-                    ),
-                    const SizedBox(width: AppDimensions.xs),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: AppColors.accent200,
-                        borderRadius: BorderRadius.circular(
-                            AppDimensions.radiusFull),
-                      ),
-                      child: Text(
-                        items.length.toString(),
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.accent900,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(items.length),
+              if (_open) ...[
                 const SizedBox(height: AppDimensions.sm),
-                ...items.take(3).map((r) => _RecommendationBullet(item: r)),
+                ...items.map((rec) => _StudentRecommendation(
+                      key: ValueKey('rec-${rec.studentProfileId}'),
+                      rec: rec,
+                      studentName: _nameById[rec.studentProfileId] ??
+                          'Siswa #${rec.studentProfileId}',
+                      expanded: _expanded.contains(rec.studentProfileId),
+                      onToggle: () => setState(() {
+                        if (_expanded.contains(rec.studentProfileId)) {
+                          _expanded.remove(rec.studentProfileId);
+                        } else {
+                          _expanded.add(rec.studentProfileId);
+                        }
+                      }),
+                    )),
               ],
-            ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildHeader(int count) {
+    return InkWell(
+      onTap: () => setState(() => _open = !_open),
+      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md,
+          vertical: AppDimensions.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.accent50,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          border: Border.all(
+              color: AppColors.accent200.withValues(alpha: 0.6)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.lightbulb_outline,
+                size: 18, color: AppColors.accent700),
+            const SizedBox(width: AppDimensions.sm),
+            Text(
+              'Fokus yang Disarankan',
+              style: AppTypography.titleSmall.copyWith(
+                color: AppColors.accent900,
+              ),
+            ),
+            const SizedBox(width: AppDimensions.xs),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: AppColors.accent200,
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.radiusFull),
+              ),
+              child: Text(
+                count.toString(),
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.accent900,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+            const Spacer(),
+            AnimatedRotation(
+              turns: _open ? 0.5 : 0,
+              duration: const Duration(milliseconds: 180),
+              child:
+                  Icon(Icons.expand_more, size: 16, color: AppColors.accent700),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Single source of truth for the three recommendation buckets — collapsed
+/// pill label, expanded section label, theme color, accessor, and whether
+/// to show score on chips. Drives both `_CountPill`s in the collapsed row
+/// and `_SkillBucket`s in the expanded body.
+class _Bucket {
+  final String pillLabel;
+  final String sectionLabel;
+  final Color color;
+  final List<RecommendationSkill> Function(SessionRecommendation) skills;
+  final bool showScore;
+
+  const _Bucket({
+    required this.pillLabel,
+    required this.sectionLabel,
+    required this.color,
+    required this.skills,
+    this.showScore = false,
+  });
+}
+
+final List<_Bucket> _recommendationBuckets = [
+  _Bucket(
+    pillLabel: 'fokus',
+    sectionLabel: 'PERLU LATIHAN',
+    color: AppColors.warning,
+    skills: (r) => r.focus,
+    showScore: true,
+  ),
+  _Bucket(
+    pillLabel: 'baru',
+    sectionLabel: 'SKILL BARU',
+    color: AppColors.primary,
+    skills: (r) => r.introduce,
+  ),
+  _Bucket(
+    pillLabel: 'review',
+    sectionLabel: 'REVIEW',
+    color: AppColors.success,
+    skills: (r) => r.review,
+  ),
+];
+
+class _StudentRecommendation extends StatelessWidget {
+  final SessionRecommendation rec;
+  final String studentName;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  const _StudentRecommendation({
+    super.key,
+    required this.rec,
+    required this.studentName,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppDimensions.sm),
+      decoration: BoxDecoration(
+        color: AppSurfaces.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        border: Border.all(color: AppColors.neutral200),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: onToggle,
+            child: Padding(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          studentName,
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (rec.hasEnrollment &&
+                            (rec.programName != null ||
+                                rec.levelName != null))
+                          Text(
+                            [rec.programName, rec.levelName]
+                                .whereType<String>()
+                                .where((s) => s.isNotEmpty)
+                                .join(' · '),
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        else if (!rec.hasEnrollment)
+                          Text(
+                            'Belum terdaftar di program',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.warning,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (!expanded && rec.hasAny)
+                    ..._recommendationBuckets.expand((b) {
+                      final list = b.skills(rec);
+                      if (list.isEmpty) return const <Widget>[];
+                      return [
+                        const SizedBox(width: 4),
+                        _CountPill(
+                          count: list.length,
+                          label: b.pillLabel,
+                          color: b.color,
+                        ),
+                      ];
+                    }),
+                  const SizedBox(width: AppDimensions.xs),
+                  AnimatedRotation(
+                    turns: expanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    child: Icon(Icons.expand_more,
+                        size: 16, color: AppColors.textTertiary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (expanded) _buildExpandedBody(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpandedBody() {
+    if (!rec.hasEnrollment) {
+      return Container(
+        padding: const EdgeInsets.all(AppDimensions.md),
+        margin: const EdgeInsets.fromLTRB(
+          AppDimensions.md,
+          0,
+          AppDimensions.md,
+          AppDimensions.md,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.warningLight,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline,
+                size: 14, color: AppColors.warningDark),
+            const SizedBox(width: AppDimensions.xs),
+            Expanded(
+              child: Text(
+                'Daftarkan ke program untuk melihat rekomendasi.',
+                style: AppTypography.caption
+                    .copyWith(color: AppColors.warningDark),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    if (!rec.hasAny) {
+      return Container(
+        padding: const EdgeInsets.all(AppDimensions.md),
+        margin: const EdgeInsets.fromLTRB(
+          AppDimensions.md,
+          0,
+          AppDimensions.md,
+          AppDimensions.md,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.success.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle_outline,
+                size: 14, color: AppColors.success),
+            const SizedBox(width: AppDimensions.xs),
+            Expanded(
+              child: Text(
+                'Sudah menguasai semua skill di level ini.',
+                style: AppTypography.caption
+                    .copyWith(color: AppColors.success),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        0,
+        AppDimensions.md,
+        AppDimensions.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final b in _recommendationBuckets)
+            if (b.skills(rec).isNotEmpty)
+              _SkillBucket(
+                label: b.sectionLabel,
+                color: b.color,
+                skills: b.skills(rec),
+                showScore: b.showScore,
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CountPill extends StatelessWidget {
+  final int count;
+  final String label;
+  final Color color;
+
+  const _CountPill({
+    required this.count,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+      ),
+      child: Text(
+        '$count $label',
+        style: AppTypography.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
+
+class _SkillBucket extends StatelessWidget {
+  final String label;
+  final Color color;
+  final List<RecommendationSkill> skills;
+  final bool showScore;
+
+  const _SkillBucket({
+    required this.label,
+    required this.color,
+    required this.skills,
+    this.showScore = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Cache shaded colors so we don't allocate 5 Color objects per chip.
+    final bg = color.withValues(alpha: 0.08);
+    final borderColor = color.withValues(alpha: 0.3);
+    final muted = color.withValues(alpha: 0.7);
+    final faint = color.withValues(alpha: 0.5);
+    return Padding(
+      padding: const EdgeInsets.only(top: AppDimensions.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 10,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: skills.map((s) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.sm,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusFull),
+                  border: Border.all(color: borderColor, width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (s.category != null && s.category!.isNotEmpty) ...[
+                      Text(
+                        s.category!,
+                        style: AppTypography.caption.copyWith(
+                          color: muted,
+                          fontSize: 11,
+                        ),
+                      ),
+                      Text(
+                        ' · ',
+                        style: AppTypography.caption.copyWith(
+                          color: faint,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                    Text(
+                      s.skillName,
+                      style: AppTypography.caption.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                      ),
+                    ),
+                    if (showScore && s.score != null) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '${s.score}/10',
+                        style: AppTypography.caption.copyWith(
+                          color: muted,
+                          fontSize: 9,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 }

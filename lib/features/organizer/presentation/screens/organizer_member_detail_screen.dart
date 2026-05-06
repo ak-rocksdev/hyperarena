@@ -135,16 +135,18 @@ class _Hero extends StatelessWidget {
                 ),
               ),
             ),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Color(0xCC000000),
-                  ],
-                  stops: [0.5, 1.0],
+            const IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Color(0xCC000000),
+                    ],
+                    stops: [0.5, 1.0],
+                  ),
                 ),
               ),
             ),
@@ -1038,11 +1040,16 @@ Color _statusColor(String? status) {
   };
 }
 
+/// Maps `Purchase::marketplace_payment_status` (BE accessor at
+/// `app/Models/Purchase.php`) to a colour. The BE enum is:
+/// `pending_payment | pending_confirmation | confirmed_transfer |
+/// confirmed_credit | rejected`. No `paid` or `refunded` aliases —
+/// kept exhaustive here so a future enum change forces a compiler warning.
 Color _paymentColor(String status) {
   return switch (status) {
     'pending_payment' || 'pending_confirmation' => AppColors.warning,
-    'confirmed_transfer' || 'confirmed_credit' || 'paid' => AppColors.success,
-    'rejected' || 'refunded' => AppColors.error,
+    'confirmed_transfer' || 'confirmed_credit' => AppColors.success,
+    'rejected' => AppColors.error,
     _ => AppColors.textSecondary,
   };
 }
@@ -1053,9 +1060,7 @@ String _paymentLabel(String status) {
     'pending_confirmation' => 'Cek Bukti',
     'confirmed_transfer' => 'Lunas',
     'confirmed_credit' => 'Lunas (Kredit)',
-    'paid' => 'Lunas',
     'rejected' => 'Ditolak',
-    'refunded' => 'Refund',
     _ => status,
   };
 }

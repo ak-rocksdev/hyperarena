@@ -117,17 +117,20 @@ class _Hero extends StatelessWidget {
                 ),
               ),
             ),
-            // Bottom gradient for text legibility.
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Color(0xCC000000),
-                  ],
-                  stops: [0.5, 1.0],
+            // Bottom gradient for text legibility — must not eat taps so
+            // the centered avatar below it stays interactive.
+            const IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Color(0xCC000000),
+                    ],
+                    stops: [0.5, 1.0],
+                  ),
                 ),
               ),
             ),

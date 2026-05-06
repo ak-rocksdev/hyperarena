@@ -177,17 +177,13 @@ class _CareerScreenState extends ConsumerState<CareerScreen>
   }
 
   Widget _buildReviewsTab() {
-    final reviewsAsync = ref.watch(
-      playerWrittenReviewsProvider(CareerScreen._currentPlayerId),
-    );
+    final reviewsAsync = ref.watch(playerWrittenReviewsProvider);
 
     return AsyncValueWidget(
       value: reviewsAsync,
       error: (e, _) => ErrorView(
         error: e,
-        onRetry: () => ref.invalidate(
-          playerWrittenReviewsProvider(CareerScreen._currentPlayerId),
-        ),
+        onRetry: () => ref.invalidate(playerWrittenReviewsProvider),
       ),
       data: (reviews) {
         if (reviews.isEmpty) {
@@ -434,14 +430,14 @@ class _CareerScreenState extends ConsumerState<CareerScreen>
             children: [
               Expanded(
                 child: Text(
-                  r.coachName,
+                  r.coachName ?? 'Coach',
                   style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               Text(
-                Formatters.formatDate(r.date),
+                Formatters.formatDate(r.createdAt),
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.neutral400,
                 ),
@@ -450,7 +446,7 @@ class _CareerScreenState extends ConsumerState<CareerScreen>
           ),
           const SizedBox(height: AppDimensions.xs),
           Text(
-            r.sessionTitle,
+            r.sessionTitle ?? '',
             style: AppTypography.labelSmall.copyWith(
               color: AppColors.neutral500,
             ),

@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/coach/data/models/marketplace_coach.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
+import 'package:hyperarena/shared/widgets/other_tenant_caption.dart';
 
 class CoachListScreen extends ConsumerStatefulWidget {
   final String searchQuery;
@@ -121,13 +123,17 @@ class _CoachListScreenState extends ConsumerState<CoachListScreen> {
 }
 
 /// Lightweight card for API marketplace coaches.
-class _MarketplaceCoachCard extends StatelessWidget {
+class _MarketplaceCoachCard extends ConsumerWidget {
   final MarketplaceCoach coach;
   const _MarketplaceCoachCard({required this.coach});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final userTenantId = ref.watch(authNotifierProvider)?.tenantId;
+    final isOtherTenant = userTenantId != null &&
+        coach.tenantId != null &&
+        coach.tenantId != userTenantId;
 
     return Card(
       child: InkWell(
@@ -155,9 +161,20 @@ class _MarketplaceCoachCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    coach.user?.name ?? 'Coach',
-                    style: theme.textTheme.titleMedium,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          coach.user?.name ?? 'Coach',
+                          style: theme.textTheme.titleMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isOtherTenant) ...[
+                        const SizedBox(width: AppDimensions.xs),
+                        const OtherTenantCaption(),
+                      ],
+                    ],
                   ),
                   if (coach.sport != null) ...[
                     const SizedBox(height: AppDimensions.xs),

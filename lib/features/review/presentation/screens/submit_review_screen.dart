@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hyperarena/core/network/api_exceptions.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
@@ -51,9 +52,12 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
         coachId: widget.coachId,
         sessionId: widget.sessionId,
         rating: _rating,
-        comment:
-            _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
+        comment: Formatters.nullIfEmpty(_commentController.text.trim()),
       );
+
+      // Refresh the per-session provider so the calling screen renders the
+      // read-only summary card on return.
+      ref.invalidate(myReviewProvider(widget.sessionId));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -63,16 +67,36 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
         ),
       );
       context.pop();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isSubmitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal mengirim ulasan: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    } on ConflictException catch (e) {
+      _showError(e.message.isNotEmpty
+          ? e.message
+          : 'Anda sudah memberi ulasan untuk sesi ini.');
+    } on ForbiddenException catch (e) {
+      _showError(e.message.isNotEmpty
+          ? e.message
+          : 'Hanya peserta sesi yang dapat memberi ulasan.');
+    } on ValidationException catch (e) {
+      _showError(e.message.isNotEmpty
+          ? e.message
+          : 'Periksa kembali rating atau komentar Anda.');
+    } on NotFoundException catch (_) {
+      _showError('Sesi tidak ditemukan.');
+    } on ApiException catch (e) {
+      _showError(e.message.isNotEmpty ? e.message : 'Gagal mengirim ulasan.');
+    } catch (_) {
+      _showError('Gagal mengirim ulasan. Coba lagi.');
     }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -206,7 +230,8 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
                   const SizedBox(width: AppDimensions.sm),
                   Expanded(
                     child: Text(
-                      'Ulasan ini hanya dapat dilihat oleh Anda dan coach.',
+                      'Ulasan ini hanya dapat dilihat oleh Anda dan admin. '
+                      'Coach tidak melihat ulasan secara langsung.',
                       style: AppTypography.labelSmall.copyWith(
                         color: AppColors.neutral500,
                       ),

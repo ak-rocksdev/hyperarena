@@ -19,6 +19,7 @@ _$MarketplaceCoachImpl _$$MarketplaceCoachImplFromJson(
       : SportInfo.fromJson(json['sport'] as Map<String, dynamic>),
   ratePerSession: (json['rate_per_session'] as num?)?.toInt(),
   currency: json['currency'] as String?,
+  tenantId: (json['tenant_id'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$$MarketplaceCoachImplToJson(
@@ -30,6 +31,7 @@ Map<String, dynamic> _$$MarketplaceCoachImplToJson(
   'sport': instance.sport,
   'rate_per_session': instance.ratePerSession,
   'currency': instance.currency,
+  'tenant_id': instance.tenantId,
 };
 
 _$CoachUserImpl _$$CoachUserImplFromJson(Map<String, dynamic> json) =>

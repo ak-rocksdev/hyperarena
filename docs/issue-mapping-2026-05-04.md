@@ -20,6 +20,7 @@ Investigation of 12 reported issues across the Flutter app (this repo) and the L
 | 2026-05-05 | BE `09a9843` (Laravel `flutter-issue-mapping-2`) | Backend doc enhanced against FE feedback — adds Response Contract Conventions, `completion_state` enum for Issue 1, per-field response contract for Issue 2, explicit response shapes for Issue 4c, event-type table for Issue 11. No code changes. |
 | 2026-05-05 | BE `a535d3f` (Laravel `feature/flutter-mobile-backend-fixes`) | New **Issue 13 — Coach review system** spec. Locks design (integer 1-5, no anonymous, no edit, no delete, coach=zero visibility, admin=full). Schema + 5 endpoints + permission matrix. Resolves Issue 2 conflict by removing `Rating` + `Ulasan Terbaru` from coach dashboard fields. Resolves Issue 4c reviews-endpoint data source. |
 | 2026-05-05 | Issue 3 BE parked + FE copy update | Backend Issue 3 (coach availability) parked indefinitely — admin handles scheduling manually. FE `coach_availability_screen.dart` placeholder reframed from "Feature in Progress" to informational "Penjadwalan diatur oleh admin." See Issue 3 entry below. |
+| 2026-05-05 | **Round 2 handoff** (this update) | Captures additional FE feedback after live testing as `arya@peteniskelana.com` (student) and `haris@peteniskelana.id` (coach + admin). Adds **Issues 14–18** to the BE handoff doc + multiple FE-only wire-ups against existing BE endpoints. See **§ Round 2 — additional FE feedback** below. Mirrored with full BE detail in `C:\laragon\www\hypercoach\docs\superpowers\flutter-issue-mapping-2026-05-04.md`. |
 
 ### Trust-pass 2026-05-05 — what changed
 
@@ -408,6 +409,155 @@ New shared widget: `lib/shared/widgets/feature_in_progress_view.dart`. Net 9 fil
 | 12.6 | Backend `average_rating: 0.0` hardcoded TODO in dashboard payload — Flutter renders 0 stars | (Laravel) `OrganizerSessionParticipantController.php:513` | Low (silent zero) |
 | 12.7 | Confirm/reject participant guard method named `userIsCoachForPurchase()` even though the caller is an organizer/admin | (Laravel) `OrganizerSessionParticipantController.php:639-647` | Low (clarity) |
 | 12.8 | `_invalidateAllFeatureProviders()` references club providers that throw `UnimplementedError` — invalidating these is a no-op now but creates noise | `lib/features/auth/providers/auth_provider.dart:185-186` | Low |
+
+---
+
+## Round 2 — additional FE feedback (2026-05-05, after live testing)
+
+After Issue 13 + first-round audit landed, two test-user runs surfaced more gaps. **All findings preserved verbatim from product feedback before being decomposed into FE actions.**
+
+### Verbatim feedback (Bahasa Indonesia)
+
+> **Login dengan `arya@peteniskelana.com` (student):**
+> - Dalam menu **Explore** → **Sesi**, belum ada list yang muncul. Seharusnya ini adalah coaching sessions terkait sekolah arya (peteniskelana). Saat ini sudah ada session yang dibuat admin di backend.
+> - Menu **Bookings** adalah berisi sesi yang diikuti `arya`. Aturan:
+>   - Sesi `coaching_session` (yg dibuat admin di backend) pasti masuk dalam list ini.
+>   - Aktifkan **2 tabs**: **"Mendatang"** (sesi belum tiba) dan **"Selesai"** (sesi sudah lewat). Pure time-based.
+>   - Harus **data asli**, bukan dummy.
+> - **Booking detail** (tap salah satu booking): perlu **maps**, **alamat clickable**, **nama coach**, dan **CTA "Beri Ulasan ke Coach"** untuk sesi yang eligible.
+> - Profile **Aktivitas Terbaru** masih mock — wire ke real data.
+> - **Cancel Booking — defer dulu.** Bukan prioritas saat ini.
+>
+> **Login dengan `haris@peteniskelana.id` sebagai Coach:**
+> - **Belum bisa ubah kehadiran** — UI nya perlu ada. BE endpoint sudah ada.
+> - **Harus bisa review per-skill** seperti web — pelajari dari `resources/js/Pages/Coach/CoachSessionDetail.vue`.
+>
+> **Login dengan `haris@peteniskelana.id` sebagai Admin:**
+> - Admin **harus bisa absensi**.
+> - Admin **harus bisa tandai pembayaran lunas**.
+> - **Reuse web API** kalau backend sudah punya.
+
+---
+
+### Round 2 — FE action plan
+
+#### Issue 14 — Bookings tab — wire to new BE endpoint
+
+**FE work:**
+- New `Booking` model (or extend the existing one) matching the response shape from `GET /v1/marketplace/me/bookings` (BE Issue 14). Fields: `bookingId`, `bookedAt`, `paymentStatus`, `session` (id, name, type, startAt, durationMinutes, tenant, venue with location, coaches), `canReview`.
+- New `BookingRepository` interface + `ApiBookingRepository` implementation.
+- New providers: `bookingListProvider(tab)` family — keys: `BookingTab.upcoming`, `BookingTab.past`. Add to `_invalidateAllFeatureProviders` in `auth_provider.dart`.
+- Replace `bookings_screen.dart` mock with TabBar + 2 tabs sourced from the family provider. Tab switch flips the cursor pagination.
+- Sort within tab: upcoming = `start_at` asc; past = `start_at` desc.
+
+**Blocker:** BE Issue 14 (`GET /v1/marketplace/me/bookings?tab=upcoming|past`) must ship first.
+
+#### Issue 15 — Coach scoring config — fetch + render conditional form
+
+**FE work:**
+- New `ApiCoachScoringConfigRepository.getConfig()` calling `GET /v1/coach/settings/scoring`.
+- New `coachScoringConfigProvider` (FutureProvider, scoped to current tenant).
+- In `assessment_form_screen.dart` (replace placeholder): branch on `config.mode`:
+  - `numeric`: render numeric input/slider per skill, `min_score`–`max_score` range.
+  - `categorical`: render `ChoiceChip` row per skill with `categorical_levels` enum.
+- Skills list comes from `GET /v1/coach/levels/{levelId}/skills` (already wired or trivial to wire — check before duplicating).
+- Submit calls `POST /v1/coach/sessions/{sessionId}/progress` with `skill_progress[]` array.
+
+**Blocker:** BE Issue 15 (`GET /v1/coach/settings/scoring`) must ship first.
+
+#### Issue 16 — `can_review` flag — drop client-side derivation
+
+**FE work:**
+- Update `MarketplaceSessionDetail` model: add `userStatus.canReview: bool` and `userStatus.reviewBlockedReason: String?` (enum string).
+- In `submit_review_screen.dart` and `post_session_review_banner.dart`, replace the current "is past + attended + my-review null" derivation with the server-provided `can_review`.
+- Render `review_blocked_reason` as a friendly Indonesian sub-label:
+  - `session_not_ended` → "Ulasan tersedia setelah sesi selesai."
+  - `not_attended` → "Hanya peserta yang hadir yang dapat memberi ulasan."
+  - `already_reviewed` → existing `ReviewSummaryCard` already covers this; no banner needed.
+
+**Blocker:** BE Issue 16 (additive fields). Until then, keep the current client-side derivation as a fallback.
+
+#### Issue 17 — Marketplace tenant-aware sort + "Sekolah lain" caption
+
+**FE work (no BE blocker for the caption — only for the sort):**
+
+1. **Caption (FE-only):** Add a subtle "Sekolah lain" badge/caption on `SessionCard`, `CoachCard`, `VenueCard` when the item's `tenant.slug` differs from the auth user's tenant slug.
+   - Read `currentUserTenantSlug` from `authNotifierProvider`'s user.
+   - Compare against `session.tenant.slug` (or `coach.tenant.slug`, `venue.tenant.slug`).
+   - Style: small grey label inline with the venue/sport meta row. Not a prominent chip.
+2. **Sort (BE blocker):** Once BE Issue 17 ships, pass `prioritize_tenant_slug=<currentUserTenantSlug>` on:
+   - `ApiMarketplaceSessionRepository.getSessions()`
+   - `ApiMarketplaceCoachRepository.getCoaches()`
+   - `ApiMarketplaceVenueRepository.getVenues()`
+   - When user has no tenant slug, omit the param.
+
+The caption can land independently of the sort — they're additive and complementary.
+
+#### Issue 18 — Booking detail enrichment
+
+**FE work (no BE blocker — endpoint already returns the data):**
+
+Edit `lib/features/booking/presentation/screens/booking_detail_screen.dart`:
+
+- **Map preview:** add a static map widget (recommend `flutter_map` with OpenStreetMap tiles, or a `Image.network` of a static maps API). Center on `venue.location.lat`/`lng`.
+- **Tappable address:** wrap `venue.location.address` in a `GestureDetector` that calls `url_launcher` with `geo:lat,lng?q=<encoded address>`. Fallback to `https://www.google.com/maps/search/?api=1&query=lat,lng` if the geo intent isn't supported.
+- **Coach name:** render `session.coaches.first.user.name` in a meta row near the venue. Use `session.coaches.first.user.photoUrls['sm']` for a small avatar.
+- **"Beri Ulasan ke Coach" CTA:** show only when `userStatus.canReview === true` (Issue 16). Tapping navigates to `SubmitReviewScreen` with the `sessionId` + `coachId` from the booking.
+
+Once Issue 14's `Booking` model includes `canReview` directly, the booking detail screen can use either the booking-level flag or refetch session detail — pick whichever is freshest. Recommend using the booking-level flag (less round-trips).
+
+#### Coach attendance UI — drop the 24h grace window
+
+**FE work (no BE blocker):**
+
+- Remove or relax `_isWithinGraceWindow` in `coach_session_detail_screen.dart:76-82`. The 24h cutoff silently blocks coaches from filling attendance on older sessions, which is the whole point of the feedback ("belum bisa ubah kehadiran").
+- Keep the bulk-save button enabled for any session where the coach has access, regardless of how long ago it was.
+- Optional: add a confirmation dialog for sessions older than X days ("Sesi ini sudah selesai 7 hari yang lalu. Yakin ingin mengubah absensi?") — but don't outright block.
+
+#### Coach per-skill grading — mount the orphaned widget
+
+**FE work (BE Issue 15 + existing endpoints):**
+
+- Mount `SessionPlayerAssessmentList` inside `CoachSessionDetailScreen` for past/completed sessions (today it's defined but never imported).
+- Replace the placeholder `assessment_form_screen.dart` with a config-driven form (see Issue 15 above).
+
+#### Admin attendance + admin payment confirm — wire existing endpoints
+
+**FE work (no BE blocker):**
+
+- **Admin attendance:** in the organizer/admin participant management screen, add a per-participant attendance toggle. Wire to `PATCH /v1/admin/session-students/{id}/attendance`.
+- **Admin payment confirm:** add a "Tandai Lunas" CTA on unpaid participant rows. Wire to `PATCH /v1/admin/purchases/{id}/confirm` (or reuse the existing `PATCH /marketplace/organizer/purchases/{id}/confirm` if it works for the same case — likely yes since the FE organizer flow already calls it elsewhere; verify and avoid duplicate code paths).
+- Both go in the existing organizer/admin screens (don't create separate "admin" screens — the role is already the same persona on mobile).
+
+#### Activity feed — wire to existing `/v1/me/activity`
+
+**FE work (no BE blocker):**
+
+- New `ActivityItem` model matching `Issue 11` response shape. Fields: `id`, `type` (enum), `description`, `subject` (nullable), `occurredAt`.
+- New `ApiActivityRepository.getActivity({cursor})` calling `GET /v1/me/activity`.
+- New `activityListProvider` — replace the `MockData.bookings`-based list in `profile_screen.dart:400-430`.
+- Map `type` enum to icon + label in Indonesian.
+- Pagination via `next_cursor` — load more on scroll.
+
+Add `activityListProvider` to `_invalidateAllFeatureProviders` in `auth_provider.dart`.
+
+#### Cancel Booking — DEFERRED
+
+Per product: not in current scope. No FE work this round. The placeholder Cancel Booking UI (if any exists) should be removed or hidden, not left dangling — verify during the booking detail wire-up.
+
+---
+
+### Round 2 — Suggested FE work order
+
+1. **Tenant-aware caption** (Issue 17 part 1) — pure FE, fast win, ships independently of any BE work.
+2. **Coach attendance grace window removal** — pure FE, unblocks coach role entirely.
+3. **Booking detail enrichment** (Issue 18) — pure FE, uses existing rich endpoint.
+4. **Activity feed wire-up** — pure FE, BE endpoint already shipped.
+5. **Admin attendance + payment wire-up** — pure FE, BE endpoints already shipped.
+6. **Bookings tab** (Issue 14) — blocked on BE; once `GET /marketplace/me/bookings` lands, biggest student-side visibility win.
+7. **Coach per-skill grading** (Issues 10, 15) — blocked on BE Issue 15; mount + render config-driven form once scoring config endpoint ships.
+8. **`can_review` flag adoption** (Issue 16) — blocked on BE; clean swap from client-side derivation to server-side flag.
+9. **Marketplace tenant-prioritized sort** (Issue 17 part 2) — blocked on BE; one-line param add per repository call.
 
 ---
 

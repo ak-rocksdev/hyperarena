@@ -16,6 +16,7 @@ class MarketplaceCoach with _$MarketplaceCoach {
     SportInfo? sport,
     @JsonKey(name: 'rate_per_session') int? ratePerSession,
     String? currency,
+    @JsonKey(name: 'tenant_id') int? tenantId,
   }) = _MarketplaceCoach;
 
   factory MarketplaceCoach.fromJson(Map<String, dynamic> json) =>

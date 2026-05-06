@@ -87,4 +87,10 @@ abstract final class Formatters {
     if (name == null || name.trim().isEmpty) return fallback;
     return name.trim().split(_whitespace).first;
   }
+
+  /// Returns `null` when the input is empty, else the input itself. Useful
+  /// for clearing nullable backend fields when a user wipes a form input —
+  /// `'bio': nullIfEmpty(_bio.text.trim())` sends `null` (clears column)
+  /// instead of an empty string.
+  static String? nullIfEmpty(String value) => value.isEmpty ? null : value;
 }

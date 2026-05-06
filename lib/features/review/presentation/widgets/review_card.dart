@@ -4,14 +4,20 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
-import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/review/data/models/review.dart';
 import 'package:hyperarena/features/review/presentation/widgets/rating_stars.dart';
 
+/// Renders a single [Review] in list contexts (admin coach detail or student
+/// review history). Relies on list-endpoint responses to populate
+/// `coachName`/`sessionTitle`/`sessionDate`.
 class ReviewCard extends StatefulWidget {
   final Review review;
 
-  const ReviewCard({super.key, required this.review});
+  /// Optional student-side label for admin context. When provided, renders
+  /// alongside the coach label so admins can attribute the review.
+  final String? studentName;
+
+  const ReviewCard({super.key, required this.review, this.studentName});
 
   @override
   State<ReviewCard> createState() => _ReviewCardState();
@@ -23,6 +29,7 @@ class _ReviewCardState extends State<ReviewCard> {
   @override
   Widget build(BuildContext context) {
     final r = widget.review;
+    final headerLabel = widget.studentName ?? r.coachName ?? 'Ulasan';
     return Container(
       margin: const EdgeInsets.only(bottom: AppDimensions.md),
       padding: const EdgeInsets.all(AppDimensions.base),
@@ -34,14 +41,15 @@ class _ReviewCardState extends State<ReviewCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: reviewer + date
           Row(
             children: [
               CircleAvatar(
                 radius: AppDimensions.avatarSm / 2,
                 backgroundColor: AppColors.primary50,
                 child: Text(
-                  r.isAnonymous ? 'A' : r.reviewerName[0].toUpperCase(),
+                  headerLabel.isNotEmpty
+                      ? headerLabel[0].toUpperCase()
+                      : '?',
                   style: AppTypography.labelMedium.copyWith(
                     color: AppColors.primary700,
                   ),
@@ -50,14 +58,14 @@ class _ReviewCardState extends State<ReviewCard> {
               const SizedBox(width: AppDimensions.sm),
               Expanded(
                 child: Text(
-                  r.isAnonymous ? 'Anonim' : r.reviewerName,
+                  headerLabel,
                   style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               Text(
-                Formatters.formatDate(r.date),
+                Formatters.formatDate(r.createdAt),
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.neutral400,
                 ),
@@ -66,45 +74,42 @@ class _ReviewCardState extends State<ReviewCard> {
           ),
 
           const SizedBox(height: AppDimensions.sm),
-
-          // Stars
           RatingStars(rating: r.rating, size: 18),
 
-          const SizedBox(height: AppDimensions.sm),
-
-          // Session chip
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.sm,
-              vertical: AppDimensions.xs,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.neutral50,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.sports_tennis,
-                  size: AppDimensions.iconXs,
-                  color: AppColors.neutral500,
-                ),
-                const SizedBox(width: AppDimensions.xs),
-                Flexible(
-                  child: Text(
-                    '${r.sessionTitle} · ${SportChipSelector.sportLabel(r.sport)}',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.neutral500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+          if (r.sessionTitle != null) ...[
+            const SizedBox(height: AppDimensions.sm),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.sm,
+                vertical: AppDimensions.xs,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.neutral50,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.event_outlined,
+                    size: AppDimensions.iconXs,
+                    color: AppColors.neutral500,
                   ),
-                ),
-              ],
+                  const SizedBox(width: AppDimensions.xs),
+                  Flexible(
+                    child: Text(
+                      r.sessionTitle!,
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.neutral500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
 
-          // Comment
           if (r.comment != null && r.comment!.isNotEmpty) ...[
             const SizedBox(height: AppDimensions.md),
             GestureDetector(

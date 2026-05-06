@@ -7,6 +7,7 @@ import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
@@ -83,14 +84,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     try {
       final apiClient = ref.read(apiClientProvider);
       final phone = _phoneController.text.trim();
-      final bio = _bioController.text.trim();
-      final city = _cityController.text.trim();
       final response = await apiClient.put('/v1/auth/profile', data: {
         'name': _nameController.text.trim(),
         if (phone.isNotEmpty) 'phone': phone,
-        // Send empty string as null so the BE column clears when user wipes the field.
-        'bio': bio.isEmpty ? null : bio,
-        'city': city.isEmpty ? null : city,
+        // null clears the column on the BE; empty string would not.
+        'bio': Formatters.nullIfEmpty(_bioController.text.trim()),
+        'city': Formatters.nullIfEmpty(_cityController.text.trim()),
       });
       // Update auth state from PUT response (avoids extra GET /me call)
       final data = response.data as Map<String, dynamic>?;

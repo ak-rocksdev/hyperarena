@@ -35,7 +35,8 @@ mixin _$CoachSession {
 
   /// Backend-derived quality flag — independent of `status`.
   /// Values: `not_yet | needs_attendance | needs_grading | complete`.
-  /// `not_yet` = future session; the other three drive Issue 1 warning chips.
+  /// `not_yet` = future session; the other three surface warning chips on
+  /// the coach dashboard (e.g. "Kehadiran Belum Lengkap").
   @JsonKey(name: 'completion_state')
   String get completionState => throw _privateConstructorUsedError;
   @JsonKey(name: 'booked_students_count')
@@ -368,7 +369,8 @@ class _$CoachSessionImpl implements _CoachSession {
 
   /// Backend-derived quality flag — independent of `status`.
   /// Values: `not_yet | needs_attendance | needs_grading | complete`.
-  /// `not_yet` = future session; the other three drive Issue 1 warning chips.
+  /// `not_yet` = future session; the other three surface warning chips on
+  /// the coach dashboard (e.g. "Kehadiran Belum Lengkap").
   @override
   @JsonKey(name: 'completion_state')
   final String completionState;
@@ -520,7 +522,8 @@ abstract class _CoachSession implements CoachSession {
 
   /// Backend-derived quality flag — independent of `status`.
   /// Values: `not_yet | needs_attendance | needs_grading | complete`.
-  /// `not_yet` = future session; the other three drive Issue 1 warning chips.
+  /// `not_yet` = future session; the other three surface warning chips on
+  /// the coach dashboard (e.g. "Kehadiran Belum Lengkap").
   @override
   @JsonKey(name: 'completion_state')
   String get completionState;

@@ -29,6 +29,8 @@ mixin _$MarketplaceCoach {
   @JsonKey(name: 'rate_per_session')
   int? get ratePerSession => throw _privateConstructorUsedError;
   String? get currency => throw _privateConstructorUsedError;
+  @JsonKey(name: 'tenant_id')
+  int? get tenantId => throw _privateConstructorUsedError;
 
   /// Serializes this MarketplaceCoach to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -54,6 +56,7 @@ abstract class $MarketplaceCoachCopyWith<$Res> {
     SportInfo? sport,
     @JsonKey(name: 'rate_per_session') int? ratePerSession,
     String? currency,
+    @JsonKey(name: 'tenant_id') int? tenantId,
   });
 
   $CoachUserCopyWith<$Res>? get user;
@@ -81,6 +84,7 @@ class _$MarketplaceCoachCopyWithImpl<$Res, $Val extends MarketplaceCoach>
     Object? sport = freezed,
     Object? ratePerSession = freezed,
     Object? currency = freezed,
+    Object? tenantId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -108,6 +112,10 @@ class _$MarketplaceCoachCopyWithImpl<$Res, $Val extends MarketplaceCoach>
                 ? _value.currency
                 : currency // ignore: cast_nullable_to_non_nullable
                       as String?,
+            tenantId: freezed == tenantId
+                ? _value.tenantId
+                : tenantId // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -158,6 +166,7 @@ abstract class _$$MarketplaceCoachImplCopyWith<$Res>
     SportInfo? sport,
     @JsonKey(name: 'rate_per_session') int? ratePerSession,
     String? currency,
+    @JsonKey(name: 'tenant_id') int? tenantId,
   });
 
   @override
@@ -186,6 +195,7 @@ class __$$MarketplaceCoachImplCopyWithImpl<$Res>
     Object? sport = freezed,
     Object? ratePerSession = freezed,
     Object? currency = freezed,
+    Object? tenantId = freezed,
   }) {
     return _then(
       _$MarketplaceCoachImpl(
@@ -213,6 +223,10 @@ class __$$MarketplaceCoachImplCopyWithImpl<$Res>
             ? _value.currency
             : currency // ignore: cast_nullable_to_non_nullable
                   as String?,
+        tenantId: freezed == tenantId
+            ? _value.tenantId
+            : tenantId // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -228,6 +242,7 @@ class _$MarketplaceCoachImpl implements _MarketplaceCoach {
     this.sport,
     @JsonKey(name: 'rate_per_session') this.ratePerSession,
     this.currency,
+    @JsonKey(name: 'tenant_id') this.tenantId,
   });
 
   factory _$MarketplaceCoachImpl.fromJson(Map<String, dynamic> json) =>
@@ -247,10 +262,13 @@ class _$MarketplaceCoachImpl implements _MarketplaceCoach {
   final int? ratePerSession;
   @override
   final String? currency;
+  @override
+  @JsonKey(name: 'tenant_id')
+  final int? tenantId;
 
   @override
   String toString() {
-    return 'MarketplaceCoach(id: $id, bio: $bio, user: $user, sport: $sport, ratePerSession: $ratePerSession, currency: $currency)';
+    return 'MarketplaceCoach(id: $id, bio: $bio, user: $user, sport: $sport, ratePerSession: $ratePerSession, currency: $currency, tenantId: $tenantId)';
   }
 
   @override
@@ -265,13 +283,23 @@ class _$MarketplaceCoachImpl implements _MarketplaceCoach {
             (identical(other.ratePerSession, ratePerSession) ||
                 other.ratePerSession == ratePerSession) &&
             (identical(other.currency, currency) ||
-                other.currency == currency));
+                other.currency == currency) &&
+            (identical(other.tenantId, tenantId) ||
+                other.tenantId == tenantId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, bio, user, sport, ratePerSession, currency);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    bio,
+    user,
+    sport,
+    ratePerSession,
+    currency,
+    tenantId,
+  );
 
   /// Create a copy of MarketplaceCoach
   /// with the given fields replaced by the non-null parameter values.
@@ -298,6 +326,7 @@ abstract class _MarketplaceCoach implements MarketplaceCoach {
     final SportInfo? sport,
     @JsonKey(name: 'rate_per_session') final int? ratePerSession,
     final String? currency,
+    @JsonKey(name: 'tenant_id') final int? tenantId,
   }) = _$MarketplaceCoachImpl;
 
   factory _MarketplaceCoach.fromJson(Map<String, dynamic> json) =
@@ -317,6 +346,9 @@ abstract class _MarketplaceCoach implements MarketplaceCoach {
   int? get ratePerSession;
   @override
   String? get currency;
+  @override
+  @JsonKey(name: 'tenant_id')
+  int? get tenantId;
 
   /// Create a copy of MarketplaceCoach
   /// with the given fields replaced by the non-null parameter values.

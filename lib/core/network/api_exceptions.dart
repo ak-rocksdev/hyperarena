@@ -20,6 +20,10 @@ class NotFoundException extends ApiException {
   const NotFoundException(super.message) : super(statusCode: 404);
 }
 
+class ConflictException extends ApiException {
+  const ConflictException(super.message) : super(statusCode: 409);
+}
+
 class ValidationException extends ApiException {
   final Map<String, List<dynamic>> errors;
 

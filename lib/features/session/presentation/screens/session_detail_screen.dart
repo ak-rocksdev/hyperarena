@@ -158,14 +158,15 @@ class SessionDetailScreen extends ConsumerWidget {
                         lng: venue?.longitude,
                       ),
 
-                      // Review banner (completed sessions with host)
+                      // Review banner (completed sessions with host).
+                      // OLD mock screen — no attendance data available, banner
+                      // renders the "menunggu absen tercatat" disabled state.
                       if (session.status == OpenSessionStatus.completed)
                         PostSessionReviewBanner(
                           sessionId: session.id,
                           coachId: session.hostId,
                           coachName: session.hostName,
                           sessionTitle: session.title,
-                          currentPlayerId: 'user-001',
                         ),
 
                       // Participants section

@@ -21,18 +21,19 @@ Review _$ReviewFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Review {
+  @JsonKey(fromJson: idFromJson)
   String get id => throw _privateConstructorUsedError;
-  String get reviewerId => throw _privateConstructorUsedError;
-  String get reviewerName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'coach_id', fromJson: idFromJson)
   String get coachId => throw _privateConstructorUsedError;
-  String get coachName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'session_id', fromJson: idFromJson)
   String get sessionId => throw _privateConstructorUsedError;
-  String get sessionTitle => throw _privateConstructorUsedError;
-  Sport get sport => throw _privateConstructorUsedError;
-  DateTime get date => throw _privateConstructorUsedError;
   int get rating => throw _privateConstructorUsedError;
   String? get comment => throw _privateConstructorUsedError;
-  bool get isAnonymous => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  DateTime get createdAt => throw _privateConstructorUsedError; // Populated only by [Review.fromListJson]; null on submit/my-review.
+  String? get coachName => throw _privateConstructorUsedError;
+  String? get sessionTitle => throw _privateConstructorUsedError;
+  DateTime? get sessionDate => throw _privateConstructorUsedError;
 
   /// Serializes this Review to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,18 +50,15 @@ abstract class $ReviewCopyWith<$Res> {
       _$ReviewCopyWithImpl<$Res, Review>;
   @useResult
   $Res call({
-    String id,
-    String reviewerId,
-    String reviewerName,
-    String coachId,
-    String coachName,
-    String sessionId,
-    String sessionTitle,
-    Sport sport,
-    DateTime date,
+    @JsonKey(fromJson: idFromJson) String id,
+    @JsonKey(name: 'coach_id', fromJson: idFromJson) String coachId,
+    @JsonKey(name: 'session_id', fromJson: idFromJson) String sessionId,
     int rating,
     String? comment,
-    bool isAnonymous,
+    @JsonKey(name: 'created_at') DateTime createdAt,
+    String? coachName,
+    String? sessionTitle,
+    DateTime? sessionDate,
   });
 }
 
@@ -80,17 +78,14 @@ class _$ReviewCopyWithImpl<$Res, $Val extends Review>
   @override
   $Res call({
     Object? id = null,
-    Object? reviewerId = null,
-    Object? reviewerName = null,
     Object? coachId = null,
-    Object? coachName = null,
     Object? sessionId = null,
-    Object? sessionTitle = null,
-    Object? sport = null,
-    Object? date = null,
     Object? rating = null,
     Object? comment = freezed,
-    Object? isAnonymous = null,
+    Object? createdAt = null,
+    Object? coachName = freezed,
+    Object? sessionTitle = freezed,
+    Object? sessionDate = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -98,38 +93,14 @@ class _$ReviewCopyWithImpl<$Res, $Val extends Review>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            reviewerId: null == reviewerId
-                ? _value.reviewerId
-                : reviewerId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            reviewerName: null == reviewerName
-                ? _value.reviewerName
-                : reviewerName // ignore: cast_nullable_to_non_nullable
-                      as String,
             coachId: null == coachId
                 ? _value.coachId
                 : coachId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            coachName: null == coachName
-                ? _value.coachName
-                : coachName // ignore: cast_nullable_to_non_nullable
                       as String,
             sessionId: null == sessionId
                 ? _value.sessionId
                 : sessionId // ignore: cast_nullable_to_non_nullable
                       as String,
-            sessionTitle: null == sessionTitle
-                ? _value.sessionTitle
-                : sessionTitle // ignore: cast_nullable_to_non_nullable
-                      as String,
-            sport: null == sport
-                ? _value.sport
-                : sport // ignore: cast_nullable_to_non_nullable
-                      as Sport,
-            date: null == date
-                ? _value.date
-                : date // ignore: cast_nullable_to_non_nullable
-                      as DateTime,
             rating: null == rating
                 ? _value.rating
                 : rating // ignore: cast_nullable_to_non_nullable
@@ -138,10 +109,22 @@ class _$ReviewCopyWithImpl<$Res, $Val extends Review>
                 ? _value.comment
                 : comment // ignore: cast_nullable_to_non_nullable
                       as String?,
-            isAnonymous: null == isAnonymous
-                ? _value.isAnonymous
-                : isAnonymous // ignore: cast_nullable_to_non_nullable
-                      as bool,
+            createdAt: null == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            coachName: freezed == coachName
+                ? _value.coachName
+                : coachName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sessionTitle: freezed == sessionTitle
+                ? _value.sessionTitle
+                : sessionTitle // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sessionDate: freezed == sessionDate
+                ? _value.sessionDate
+                : sessionDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -157,18 +140,15 @@ abstract class _$$ReviewImplCopyWith<$Res> implements $ReviewCopyWith<$Res> {
   @override
   @useResult
   $Res call({
-    String id,
-    String reviewerId,
-    String reviewerName,
-    String coachId,
-    String coachName,
-    String sessionId,
-    String sessionTitle,
-    Sport sport,
-    DateTime date,
+    @JsonKey(fromJson: idFromJson) String id,
+    @JsonKey(name: 'coach_id', fromJson: idFromJson) String coachId,
+    @JsonKey(name: 'session_id', fromJson: idFromJson) String sessionId,
     int rating,
     String? comment,
-    bool isAnonymous,
+    @JsonKey(name: 'created_at') DateTime createdAt,
+    String? coachName,
+    String? sessionTitle,
+    DateTime? sessionDate,
   });
 }
 
@@ -187,17 +167,14 @@ class __$$ReviewImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? reviewerId = null,
-    Object? reviewerName = null,
     Object? coachId = null,
-    Object? coachName = null,
     Object? sessionId = null,
-    Object? sessionTitle = null,
-    Object? sport = null,
-    Object? date = null,
     Object? rating = null,
     Object? comment = freezed,
-    Object? isAnonymous = null,
+    Object? createdAt = null,
+    Object? coachName = freezed,
+    Object? sessionTitle = freezed,
+    Object? sessionDate = freezed,
   }) {
     return _then(
       _$ReviewImpl(
@@ -205,38 +182,14 @@ class __$$ReviewImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        reviewerId: null == reviewerId
-            ? _value.reviewerId
-            : reviewerId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        reviewerName: null == reviewerName
-            ? _value.reviewerName
-            : reviewerName // ignore: cast_nullable_to_non_nullable
-                  as String,
         coachId: null == coachId
             ? _value.coachId
             : coachId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        coachName: null == coachName
-            ? _value.coachName
-            : coachName // ignore: cast_nullable_to_non_nullable
                   as String,
         sessionId: null == sessionId
             ? _value.sessionId
             : sessionId // ignore: cast_nullable_to_non_nullable
                   as String,
-        sessionTitle: null == sessionTitle
-            ? _value.sessionTitle
-            : sessionTitle // ignore: cast_nullable_to_non_nullable
-                  as String,
-        sport: null == sport
-            ? _value.sport
-            : sport // ignore: cast_nullable_to_non_nullable
-                  as Sport,
-        date: null == date
-            ? _value.date
-            : date // ignore: cast_nullable_to_non_nullable
-                  as DateTime,
         rating: null == rating
             ? _value.rating
             : rating // ignore: cast_nullable_to_non_nullable
@@ -245,10 +198,22 @@ class __$$ReviewImplCopyWithImpl<$Res>
             ? _value.comment
             : comment // ignore: cast_nullable_to_non_nullable
                   as String?,
-        isAnonymous: null == isAnonymous
-            ? _value.isAnonymous
-            : isAnonymous // ignore: cast_nullable_to_non_nullable
-                  as bool,
+        createdAt: null == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        coachName: freezed == coachName
+            ? _value.coachName
+            : coachName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sessionTitle: freezed == sessionTitle
+            ? _value.sessionTitle
+            : sessionTitle // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sessionDate: freezed == sessionDate
+            ? _value.sessionDate
+            : sessionDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -258,52 +223,47 @@ class __$$ReviewImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ReviewImpl implements _Review {
   const _$ReviewImpl({
-    required this.id,
-    required this.reviewerId,
-    required this.reviewerName,
-    required this.coachId,
-    required this.coachName,
-    required this.sessionId,
-    required this.sessionTitle,
-    required this.sport,
-    required this.date,
+    @JsonKey(fromJson: idFromJson) required this.id,
+    @JsonKey(name: 'coach_id', fromJson: idFromJson) required this.coachId,
+    @JsonKey(name: 'session_id', fromJson: idFromJson) required this.sessionId,
     required this.rating,
     this.comment,
-    this.isAnonymous = false,
+    @JsonKey(name: 'created_at') required this.createdAt,
+    this.coachName,
+    this.sessionTitle,
+    this.sessionDate,
   });
 
   factory _$ReviewImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReviewImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: idFromJson)
   final String id;
   @override
-  final String reviewerId;
-  @override
-  final String reviewerName;
-  @override
+  @JsonKey(name: 'coach_id', fromJson: idFromJson)
   final String coachId;
   @override
-  final String coachName;
-  @override
+  @JsonKey(name: 'session_id', fromJson: idFromJson)
   final String sessionId;
-  @override
-  final String sessionTitle;
-  @override
-  final Sport sport;
-  @override
-  final DateTime date;
   @override
   final int rating;
   @override
   final String? comment;
   @override
-  @JsonKey()
-  final bool isAnonymous;
+  @JsonKey(name: 'created_at')
+  final DateTime createdAt;
+  // Populated only by [Review.fromListJson]; null on submit/my-review.
+  @override
+  final String? coachName;
+  @override
+  final String? sessionTitle;
+  @override
+  final DateTime? sessionDate;
 
   @override
   String toString() {
-    return 'Review(id: $id, reviewerId: $reviewerId, reviewerName: $reviewerName, coachId: $coachId, coachName: $coachName, sessionId: $sessionId, sessionTitle: $sessionTitle, sport: $sport, date: $date, rating: $rating, comment: $comment, isAnonymous: $isAnonymous)';
+    return 'Review(id: $id, coachId: $coachId, sessionId: $sessionId, rating: $rating, comment: $comment, createdAt: $createdAt, coachName: $coachName, sessionTitle: $sessionTitle, sessionDate: $sessionDate)';
   }
 
   @override
@@ -312,23 +272,19 @@ class _$ReviewImpl implements _Review {
         (other.runtimeType == runtimeType &&
             other is _$ReviewImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.reviewerId, reviewerId) ||
-                other.reviewerId == reviewerId) &&
-            (identical(other.reviewerName, reviewerName) ||
-                other.reviewerName == reviewerName) &&
             (identical(other.coachId, coachId) || other.coachId == coachId) &&
-            (identical(other.coachName, coachName) ||
-                other.coachName == coachName) &&
             (identical(other.sessionId, sessionId) ||
                 other.sessionId == sessionId) &&
-            (identical(other.sessionTitle, sessionTitle) ||
-                other.sessionTitle == sessionTitle) &&
-            (identical(other.sport, sport) || other.sport == sport) &&
-            (identical(other.date, date) || other.date == date) &&
             (identical(other.rating, rating) || other.rating == rating) &&
             (identical(other.comment, comment) || other.comment == comment) &&
-            (identical(other.isAnonymous, isAnonymous) ||
-                other.isAnonymous == isAnonymous));
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.coachName, coachName) ||
+                other.coachName == coachName) &&
+            (identical(other.sessionTitle, sessionTitle) ||
+                other.sessionTitle == sessionTitle) &&
+            (identical(other.sessionDate, sessionDate) ||
+                other.sessionDate == sessionDate));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -336,17 +292,14 @@ class _$ReviewImpl implements _Review {
   int get hashCode => Object.hash(
     runtimeType,
     id,
-    reviewerId,
-    reviewerName,
     coachId,
-    coachName,
     sessionId,
-    sessionTitle,
-    sport,
-    date,
     rating,
     comment,
-    isAnonymous,
+    createdAt,
+    coachName,
+    sessionTitle,
+    sessionDate,
   );
 
   /// Create a copy of Review
@@ -365,46 +318,43 @@ class _$ReviewImpl implements _Review {
 
 abstract class _Review implements Review {
   const factory _Review({
-    required final String id,
-    required final String reviewerId,
-    required final String reviewerName,
+    @JsonKey(fromJson: idFromJson) required final String id,
+    @JsonKey(name: 'coach_id', fromJson: idFromJson)
     required final String coachId,
-    required final String coachName,
+    @JsonKey(name: 'session_id', fromJson: idFromJson)
     required final String sessionId,
-    required final String sessionTitle,
-    required final Sport sport,
-    required final DateTime date,
     required final int rating,
     final String? comment,
-    final bool isAnonymous,
+    @JsonKey(name: 'created_at') required final DateTime createdAt,
+    final String? coachName,
+    final String? sessionTitle,
+    final DateTime? sessionDate,
   }) = _$ReviewImpl;
 
   factory _Review.fromJson(Map<String, dynamic> json) = _$ReviewImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: idFromJson)
   String get id;
   @override
-  String get reviewerId;
-  @override
-  String get reviewerName;
-  @override
+  @JsonKey(name: 'coach_id', fromJson: idFromJson)
   String get coachId;
   @override
-  String get coachName;
-  @override
+  @JsonKey(name: 'session_id', fromJson: idFromJson)
   String get sessionId;
-  @override
-  String get sessionTitle;
-  @override
-  Sport get sport;
-  @override
-  DateTime get date;
   @override
   int get rating;
   @override
   String? get comment;
   @override
-  bool get isAnonymous;
+  @JsonKey(name: 'created_at')
+  DateTime get createdAt; // Populated only by [Review.fromListJson]; null on submit/my-review.
+  @override
+  String? get coachName;
+  @override
+  String? get sessionTitle;
+  @override
+  DateTime? get sessionDate;
 
   /// Create a copy of Review
   /// with the given fields replaced by the non-null parameter values.

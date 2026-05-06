@@ -18,9 +18,6 @@ import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/coach/providers/assessment_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
 import 'package:hyperarena/features/notification/presentation/widgets/notification_bell.dart';
-import 'package:hyperarena/features/review/data/models/review.dart';
-import 'package:hyperarena/features/review/providers/review_providers.dart';
-import 'package:hyperarena/routing/app_routes.dart';
 
 class CoachDashboardScreen extends ConsumerWidget {
   const CoachDashboardScreen({super.key});
@@ -38,7 +35,6 @@ class CoachDashboardScreen extends ConsumerWidget {
     final user = ref.watch(authNotifierProvider);
     final scheduleAsync = ref.watch(coachScheduleProvider);
     final assessmentsAsync = ref.watch(assessmentListProvider);
-    final reviewsAsync = ref.watch(coachReviewsProvider('coach-001'));
 
     return Scaffold(
       body: SafeArea(
@@ -180,60 +176,9 @@ class CoachDashboardScreen extends ConsumerWidget {
                   );
                 },
               ),
-              // ── 5. Ulasan Terbaru ──────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Ulasan Terbaru', style: AppTypography.titleMedium),
-                  TextButton(
-                    onPressed: () {
-                      context.push(AppRoutes.coachReviews('coach-001'));
-                    },
-                    child: Text(
-                      'Lihat Semua',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppDimensions.sm),
-              AsyncValueWidget<List<Review>>(
-                value: reviewsAsync,
-                data: (reviews) {
-                  final sorted = [...reviews]
-                    ..sort((a, b) => b.date.compareTo(a.date));
-                  final recent = sorted.take(3).toList();
-
-                  if (recent.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppDimensions.lg,
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Belum ada ulasan',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textTertiary,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: recent
-                        .map((review) => Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: AppDimensions.sm,
-                              ),
-                              child: _ReviewCard(review: review),
-                            ))
-                        .toList(),
-                  );
-                },
-              ),
+              // "Ulasan Terbaru" intentionally absent — design forbids coach
+              // visibility into student reviews. Admin communicates feedback
+              // manually.
               const SizedBox(height: AppDimensions.xxl),
             ],
           ),
@@ -496,72 +441,6 @@ class _AssessmentCard extends StatelessWidget {
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Review Card (coach dashboard) ─────────────────────────────────────
-class _ReviewCard extends StatelessWidget {
-  final Review review;
-
-  const _ReviewCard({required this.review});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.base),
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        boxShadow: AppShadows.xs,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: reviewer name + rating stars
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                review.isAnonymous ? 'Anonim' : review.reviewerName,
-                style: AppTypography.titleSmall,
-              ),
-              Row(
-                children: List.generate(5, (i) {
-                  return Icon(
-                    i < review.rating
-                        ? Icons.star_rounded
-                        : Icons.star_outline_rounded,
-                    size: 16,
-                    color: i < review.rating
-                        ? AppColors.accent
-                        : AppColors.neutral300,
-                  );
-                }),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          // Session title + date
-          Text(
-            '${review.sessionTitle} \u2022 ${Formatters.formatDate(review.date)}',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          if (review.comment != null && review.comment!.isNotEmpty) ...[
-            const SizedBox(height: AppDimensions.sm),
-            Text(
-              review.comment!,
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
         ],
       ),
     );

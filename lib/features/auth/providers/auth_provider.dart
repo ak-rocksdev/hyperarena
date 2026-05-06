@@ -11,12 +11,23 @@ import 'package:hyperarena/features/auth/data/auth_repository.dart';
 import 'package:hyperarena/features/auth/data/models/user.dart';
 import 'package:hyperarena/features/auth/data/tenant_repository.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
+import 'package:hyperarena/features/coach/providers/assessment_provider.dart';
+import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
+import 'package:hyperarena/features/coach/providers/coach_detail_provider.dart';
+import 'package:hyperarena/features/coach/providers/coach_providers.dart';
+import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
+import 'package:hyperarena/features/coach/providers/student_provider.dart';
 import 'package:hyperarena/features/gamification/providers/gamification_providers.dart';
 import 'package:hyperarena/features/notification/providers/notification_providers.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/owner/providers/owner_providers.dart';
+import 'package:hyperarena/features/profile/providers/career_provider.dart';
+import 'package:hyperarena/features/review/providers/review_providers.dart';
+import 'package:hyperarena/features/review/providers/venue_review_providers.dart';
+import 'package:hyperarena/features/session/providers/marketplace_session_join_provider.dart';
 import 'package:hyperarena/features/session/providers/session_providers.dart';
+import 'package:hyperarena/features/venue/providers/venue_providers.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,6 +91,9 @@ class AuthNotifier extends Notifier<User?> {
     }
     _prefs.setString(_userKey, jsonEncode(user.toJson()));
     state = user;
+    // Clear cached data from any prior session (logout may not have completed
+    // cleanly, or app may have been killed mid-session).
+    _invalidateAllFeatureProviders();
     _initializePushNotifications();
   }
 
@@ -150,31 +164,67 @@ class AuthNotifier extends Notifier<User?> {
     }
   }
 
+  /// Resets every user-scoped data + UI-state provider in the app. Called on
+  /// role-switch (so the new role sees fresh data) AND on logout (so the
+  /// next user doesn't see the previous user's cached lists).
+  ///
+  /// **When adding a new data provider anywhere in `lib/features/`, add it
+  /// here.** Repositories (`Provider<XRepository>`) and infrastructure
+  /// (api_client, secure storage, locale, router) are intentionally NOT
+  /// invalidated — they're stateless or contain user-independent state.
+  ///
+  /// Family providers: `ref.invalidate(family)` invalidates ALL keyed
+  /// instances. NotifierProvider: invalidation recreates the Notifier and
+  /// re-runs `build()`. StateProvider: resets to its initial value.
   void _invalidateAllFeatureProviders() {
-    // Marketplace
+    // ── Marketplace ─────────────────────────────────────────────
     ref.invalidate(marketplaceVenueListProvider);
     ref.invalidate(marketplaceSessionListProvider);
     ref.invalidate(marketplaceCoachListProvider);
+    ref.invalidate(marketplaceSessionDetailProvider);
+    ref.invalidate(marketplaceVenueDetailProvider);
     ref.invalidate(sportFiltersProvider);
+    ref.invalidate(selectedSportIdProvider);
 
-    // Notifications
+    // ── Venue ───────────────────────────────────────────────────
+    ref.invalidate(venueListProvider);
+
+    // ── Notifications ───────────────────────────────────────────
     ref.invalidate(notificationListProvider);
     ref.invalidate(unreadCountProvider);
 
-    // Gamification
+    // ── Gamification ────────────────────────────────────────────
     ref.invalidate(badgeListProvider);
     ref.invalidate(playerStatsProvider);
 
-    // Coach sessions
+    // ── Coach (role) ────────────────────────────────────────────
+    ref.invalidate(coachListProvider);
+    ref.invalidate(coachFilterProvider);
+    ref.invalidate(coachDetailProvider);
+    ref.invalidate(coachPackagesProvider);
+    ref.invalidate(coachScheduleProvider);
     ref.invalidate(coachSessionListProvider);
+    ref.invalidate(coachSessionDetailProvider);
+    ref.invalidate(attendanceLocalStateProvider);
+    ref.invalidate(assessmentListProvider);
+    ref.invalidate(studentListProvider);
+    ref.invalidate(studentAssessmentsProvider);
+    ref.invalidate(coachBookingProvider);
 
-    // Player sessions
+    // ── Sessions / Bookings ─────────────────────────────────────
     ref.invalidate(sessionListProvider);
-
-    // Bookings
     ref.invalidate(bookingListProvider);
+    ref.invalidate(marketplaceSessionJoinProvider);
 
-    // Organizer
+    // ── Reviews (Issue 13) ──────────────────────────────────────
+    ref.invalidate(myReviewProvider);
+    ref.invalidate(myReviewsProvider);
+    ref.invalidate(coachReviewsProvider);
+    ref.invalidate(coachRatingProvider);
+    ref.invalidate(hasReviewedBookingProvider);
+    ref.invalidate(playerWrittenReviewsProvider);
+
+    // ── Organizer ───────────────────────────────────────────────
     ref.invalidate(organizerDashboardProvider);
     ref.invalidate(organizerSessionsProvider);
     ref.invalidate(organizerUpcomingSessionsProvider);
@@ -182,12 +232,19 @@ class AuthNotifier extends Notifier<User?> {
     ref.invalidate(organizerAgendaProvider);
     ref.invalidate(organizerActionInboxProvider);
     ref.invalidate(organizerEarningsProvider);
+    ref.invalidate(organizerTemplatesProvider);
+    ref.invalidate(dashboardDateRangeProvider);
+    ref.invalidate(dashboardFilterProvider);
+    ref.invalidate(organizerDateRangeProvider);
+    ref.invalidate(organizerActionTypeFilterProvider);
 
-    // Owner
+    // ── Owner ───────────────────────────────────────────────────
     ref.invalidate(ownerDashboardProvider);
     ref.invalidate(ownerVenuesProvider);
+    ref.invalidate(ownerVenueDetailProvider);
     ref.invalidate(ownerBookingQueueProvider);
     ref.invalidate(ownerAvailabilityIssuesProvider);
+    ref.invalidate(ownerQueueVenueFilterProvider);
   }
 
   Future<void> logout() async {
@@ -208,6 +265,10 @@ class AuthNotifier extends Notifier<User?> {
     _prefs.remove(_userKey);
     _prefs.remove(_legacyTokenKey);
     state = null;
+    // Clear every cached list/detail so the next login doesn't see prior
+    // user's data. Without this, switching accounts leaks bookings, sessions,
+    // reviews, etc. across users.
+    _invalidateAllFeatureProviders();
   }
 
   /// Migrate legacy SharedPreferences token → SecureStorage (one-time).

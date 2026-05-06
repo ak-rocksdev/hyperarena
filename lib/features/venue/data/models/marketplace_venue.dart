@@ -15,6 +15,7 @@ class MarketplaceVenue with _$MarketplaceVenue {
     SportInfo? sport,
     VenueLocation? location,
     @Default([]) List<VenuePhoto> photos,
+    @JsonKey(name: 'tenant_id') int? tenantId,
   }) = _MarketplaceVenue;
 
   factory MarketplaceVenue.fromJson(Map<String, dynamic> json) =>

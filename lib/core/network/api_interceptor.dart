@@ -82,6 +82,14 @@ class ApiInterceptor extends Interceptor {
             response: err.response,
           ),
         );
+      case 409:
+        handler.reject(
+          DioException(
+            requestOptions: err.requestOptions,
+            error: ConflictException(message),
+            response: err.response,
+          ),
+        );
       case 422:
         final errors = (dataMap?['errors'] as Map<String, dynamic>?)
                 ?.map((k, v) => MapEntry(k, v as List<dynamic>)) ??

@@ -28,6 +28,8 @@ mixin _$MarketplaceVenue {
   SportInfo? get sport => throw _privateConstructorUsedError;
   VenueLocation? get location => throw _privateConstructorUsedError;
   List<VenuePhoto> get photos => throw _privateConstructorUsedError;
+  @JsonKey(name: 'tenant_id')
+  int? get tenantId => throw _privateConstructorUsedError;
 
   /// Serializes this MarketplaceVenue to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -53,6 +55,7 @@ abstract class $MarketplaceVenueCopyWith<$Res> {
     SportInfo? sport,
     VenueLocation? location,
     List<VenuePhoto> photos,
+    @JsonKey(name: 'tenant_id') int? tenantId,
   });
 
   $SportInfoCopyWith<$Res>? get sport;
@@ -80,6 +83,7 @@ class _$MarketplaceVenueCopyWithImpl<$Res, $Val extends MarketplaceVenue>
     Object? sport = freezed,
     Object? location = freezed,
     Object? photos = null,
+    Object? tenantId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -107,6 +111,10 @@ class _$MarketplaceVenueCopyWithImpl<$Res, $Val extends MarketplaceVenue>
                 ? _value.photos
                 : photos // ignore: cast_nullable_to_non_nullable
                       as List<VenuePhoto>,
+            tenantId: freezed == tenantId
+                ? _value.tenantId
+                : tenantId // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -157,6 +165,7 @@ abstract class _$$MarketplaceVenueImplCopyWith<$Res>
     SportInfo? sport,
     VenueLocation? location,
     List<VenuePhoto> photos,
+    @JsonKey(name: 'tenant_id') int? tenantId,
   });
 
   @override
@@ -185,6 +194,7 @@ class __$$MarketplaceVenueImplCopyWithImpl<$Res>
     Object? sport = freezed,
     Object? location = freezed,
     Object? photos = null,
+    Object? tenantId = freezed,
   }) {
     return _then(
       _$MarketplaceVenueImpl(
@@ -212,6 +222,10 @@ class __$$MarketplaceVenueImplCopyWithImpl<$Res>
             ? _value._photos
             : photos // ignore: cast_nullable_to_non_nullable
                   as List<VenuePhoto>,
+        tenantId: freezed == tenantId
+            ? _value.tenantId
+            : tenantId // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -227,6 +241,7 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
     this.sport,
     this.location,
     final List<VenuePhoto> photos = const [],
+    @JsonKey(name: 'tenant_id') this.tenantId,
   }) : _photos = photos;
 
   factory _$MarketplaceVenueImpl.fromJson(Map<String, dynamic> json) =>
@@ -254,8 +269,12 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
   }
 
   @override
+  @JsonKey(name: 'tenant_id')
+  final int? tenantId;
+
+  @override
   String toString() {
-    return 'MarketplaceVenue(id: $id, name: $name, status: $status, sport: $sport, location: $location, photos: $photos)';
+    return 'MarketplaceVenue(id: $id, name: $name, status: $status, sport: $sport, location: $location, photos: $photos, tenantId: $tenantId)';
   }
 
   @override
@@ -269,7 +288,9 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
             (identical(other.sport, sport) || other.sport == sport) &&
             (identical(other.location, location) ||
                 other.location == location) &&
-            const DeepCollectionEquality().equals(other._photos, _photos));
+            const DeepCollectionEquality().equals(other._photos, _photos) &&
+            (identical(other.tenantId, tenantId) ||
+                other.tenantId == tenantId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -282,6 +303,7 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
     sport,
     location,
     const DeepCollectionEquality().hash(_photos),
+    tenantId,
   );
 
   /// Create a copy of MarketplaceVenue
@@ -309,6 +331,7 @@ abstract class _MarketplaceVenue implements MarketplaceVenue {
     final SportInfo? sport,
     final VenueLocation? location,
     final List<VenuePhoto> photos,
+    @JsonKey(name: 'tenant_id') final int? tenantId,
   }) = _$MarketplaceVenueImpl;
 
   factory _MarketplaceVenue.fromJson(Map<String, dynamic> json) =
@@ -327,6 +350,9 @@ abstract class _MarketplaceVenue implements MarketplaceVenue {
   VenueLocation? get location;
   @override
   List<VenuePhoto> get photos;
+  @override
+  @JsonKey(name: 'tenant_id')
+  int? get tenantId;
 
   /// Create a copy of MarketplaceVenue
   /// with the given fields replaced by the non-null parameter values.

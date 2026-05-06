@@ -25,9 +25,8 @@ final latestAssessmentPerSportProvider =
   return map;
 });
 
-/// Reviews written by a player (for the review history tab).
-final playerWrittenReviewsProvider =
-    FutureProvider.family<List<Review>, String>((ref, playerId) async {
+/// Reviews written by the current player (server scopes to auth user).
+final playerWrittenReviewsProvider = FutureProvider<List<Review>>((ref) async {
   final repo = ref.watch(reviewRepositoryProvider);
-  return repo.getPlayerReviews(playerId);
+  return repo.getPlayerReviews();
 });

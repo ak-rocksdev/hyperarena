@@ -4,10 +4,12 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
+import 'package:hyperarena/shared/widgets/other_tenant_caption.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:go_router/go_router.dart';
 
@@ -122,13 +124,18 @@ class _SessionListScreenState extends ConsumerState<SessionListScreen> {
 }
 
 /// Lightweight card for API marketplace sessions.
-class _MarketplaceSessionCard extends StatelessWidget {
+class _MarketplaceSessionCard extends ConsumerWidget {
   final MarketplaceSession session;
   const _MarketplaceSessionCard({required this.session});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final userTenantId = ref.watch(authNotifierProvider)?.tenantId;
+    final sessionTenantId = int.tryParse(session.tenant?.id ?? '');
+    final isOtherTenant = userTenantId != null &&
+        sessionTenantId != null &&
+        sessionTenantId != userTenantId;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -179,11 +186,22 @@ class _MarketplaceSessionCard extends StatelessWidget {
               ),
               if (session.tenant != null) ...[
                 const SizedBox(height: AppDimensions.xs),
-                Text(
-                  'oleh ${session.tenant!.name}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'oleh ${session.tenant!.name}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isOtherTenant) ...[
+                      const SizedBox(width: AppDimensions.xs),
+                      const OtherTenantCaption(),
+                    ],
+                  ],
                 ),
               ],
               if (session.venue != null) ...[

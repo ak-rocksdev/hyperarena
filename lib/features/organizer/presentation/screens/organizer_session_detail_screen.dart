@@ -570,6 +570,64 @@ class _ParticipantRow extends ConsumerWidget {
                 _participantStatusLabel(participant.status),
                 style: AppTypography.caption,
               ),
+
+              // Payment proof preview — only when participant uploaded one.
+              // Matches the web AdminSessionDetail lightbox pattern: small
+              // thumbnail in-list, tap opens an InteractiveViewer dialog.
+              if (participant.evidenceUrl != null &&
+                  participant.evidenceUrl!.isNotEmpty) ...[
+                const SizedBox(height: AppDimensions.base),
+                Text(
+                  'Bukti Pembayaran',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.neutral600,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.xs),
+                GestureDetector(
+                  onTap: () {
+                    final url = participant.evidenceUrl!;
+                    showDialog<void>(
+                      context: context,
+                      builder: (dlg) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(dlg),
+                          child: InteractiveViewer(
+                            child: Image.network(url, cacheWidth: 2048),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusMd),
+                    child: Image.network(
+                      participant.evidenceUrl!,
+                      height: 140,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      cacheHeight: 280,
+                      errorBuilder: (_, _, _) => Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppColors.neutral100,
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.radiusMd),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: AppColors.neutral400,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
               const SizedBox(height: AppDimensions.base),
               ..._buildContextualActions(ctx, actions),
 

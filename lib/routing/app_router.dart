@@ -32,6 +32,7 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_students_sc
 import 'package:hyperarena/features/coach/presentation/screens/student_detail_screen.dart';
 import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
+import 'package:hyperarena/features/organizer/presentation/screens/organizer_members_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_earnings_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_session_detail_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_session_list_screen.dart';
@@ -142,6 +143,11 @@ class RoleShell extends StatelessWidget {
         icon: Icon(Icons.event_outlined),
         selectedIcon: Icon(Icons.event),
         label: 'Sessions',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.groups_outlined),
+        selectedIcon: Icon(Icons.groups),
+        label: 'Klub',
       ),
       NavigationDestination(
         icon: Icon(Icons.person_outline),
@@ -487,7 +493,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             CoachDetailScreen(coachId: state.pathParameters['id']!),
       ),
 
-      // ── Organizer role shell (3 tabs — Klub hidden until backend ready) ──
+      // ── Organizer role shell (4 tabs) ────────────────
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) =>
             RoleShell(navigationShell: shell, role: UserRole.organizer),
@@ -505,6 +511,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.organizerSessions,
                 builder: (_, _) => const OrganizerSessionListScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.organizerClub,
+                builder: (_, _) => const OrganizerMembersScreen(),
               ),
             ],
           ),

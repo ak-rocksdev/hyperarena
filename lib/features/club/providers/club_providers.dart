@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/features/club/data/api_club_repository.dart';
-import 'package:hyperarena/features/club/data/models/admin_student_summary.dart';
+import 'package:hyperarena/features/club/data/models/admin_student_roster_item.dart';
 import 'package:hyperarena/features/club/data/models/club_summary.dart';
 import 'package:hyperarena/features/club/data/models/coach_student.dart';
 import 'package:hyperarena/features/club/data/models/student_detail.dart';
@@ -117,49 +117,39 @@ final adminStudentDetailProvider =
       .getAdminStudentDetail(studentProfileId);
 });
 
-/// Organizer roster fallback until BE Issue 19.5 ships. Page-based
-/// pagination (Laravel `paginate()`) over the existing `/admin/students`
-/// endpoint. Search lives in state so `loadMore()` continues the query
-/// the user is currently filtering with.
-class AdminStudentsListState {
-  final List<AdminStudentSummary> items;
-  final int currentPage;
-  final int lastPage;
-  final int total;
+/// 19.5 — tenant-wide roster for the organizer Klub list, cursor-paginated.
+/// Search lives in state so `loadMore()` continues the same query.
+class AdminRosterListState {
+  final List<AdminStudentRosterItem> items;
+  final String? nextCursor;
   final bool isLoading;
   final bool isLoadingMore;
   final String? error;
   final String search;
 
-  const AdminStudentsListState({
+  const AdminRosterListState({
     this.items = const [],
-    this.currentPage = 0,
-    this.lastPage = 1,
-    this.total = 0,
+    this.nextCursor,
     this.isLoading = false,
     this.isLoadingMore = false,
     this.error,
     this.search = '',
   });
 
-  bool get hasMore => currentPage < lastPage;
+  bool get hasMore => nextCursor != null;
   bool get isEmpty => items.isEmpty && !isLoading;
 
-  AdminStudentsListState copyWith({
-    List<AdminStudentSummary>? items,
-    int? currentPage,
-    int? lastPage,
-    int? total,
+  AdminRosterListState copyWith({
+    List<AdminStudentRosterItem>? items,
+    String? Function()? nextCursor,
     bool? isLoading,
     bool? isLoadingMore,
     String? Function()? error,
     String? search,
   }) {
-    return AdminStudentsListState(
+    return AdminRosterListState(
       items: items ?? this.items,
-      currentPage: currentPage ?? this.currentPage,
-      lastPage: lastPage ?? this.lastPage,
-      total: total ?? this.total,
+      nextCursor: nextCursor != null ? nextCursor() : this.nextCursor,
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       error: error != null ? error() : this.error,
@@ -168,34 +158,32 @@ class AdminStudentsListState {
   }
 }
 
-final adminStudentsListProvider =
-    NotifierProvider<AdminStudentsListNotifier, AdminStudentsListState>(
-  AdminStudentsListNotifier.new,
+final adminRosterListProvider =
+    NotifierProvider<AdminRosterListNotifier, AdminRosterListState>(
+  AdminRosterListNotifier.new,
 );
 
-class AdminStudentsListNotifier extends Notifier<AdminStudentsListState> {
+class AdminRosterListNotifier extends Notifier<AdminRosterListState> {
   @override
-  AdminStudentsListState build() {
+  AdminRosterListState build() {
     Future.microtask(loadInitial);
-    return const AdminStudentsListState(isLoading: true);
+    return const AdminRosterListState(isLoading: true);
   }
 
   Future<void> loadInitial({String? search}) async {
     final query = search ?? state.search;
-    state = AdminStudentsListState(isLoading: true, search: query);
+    state = AdminRosterListState(isLoading: true, search: query);
     try {
       final page = await ref
           .read(clubRepositoryProvider)
-          .getAdminStudents(search: query.isEmpty ? null : query, page: 1);
-      state = AdminStudentsListState(
+          .getAdminRoster(search: query.isEmpty ? null : query);
+      state = AdminRosterListState(
         items: page.items,
-        currentPage: page.currentPage,
-        lastPage: page.lastPage,
-        total: page.total,
+        nextCursor: page.nextCursor,
         search: query,
       );
     } catch (e) {
-      state = AdminStudentsListState(error: e.toString(), search: query);
+      state = AdminRosterListState(error: e.toString(), search: query);
     }
   }
 
@@ -203,14 +191,13 @@ class AdminStudentsListNotifier extends Notifier<AdminStudentsListState> {
     if (state.isLoadingMore || !state.hasMore) return;
     state = state.copyWith(isLoadingMore: true);
     try {
-      final page = await ref.read(clubRepositoryProvider).getAdminStudents(
+      final page = await ref.read(clubRepositoryProvider).getAdminRoster(
+            cursor: state.nextCursor,
             search: state.search.isEmpty ? null : state.search,
-            page: state.currentPage + 1,
           );
       state = state.copyWith(
         items: [...state.items, ...page.items],
-        currentPage: page.currentPage,
-        lastPage: page.lastPage,
+        nextCursor: () => page.nextCursor,
         isLoadingMore: false,
       );
     } catch (_) {
@@ -219,5 +206,5 @@ class AdminStudentsListNotifier extends Notifier<AdminStudentsListState> {
   }
 }
 
-/// CursorPage typedef alias used by callers if they want to expose page info.
 typedef CoachStudentsPage = CursorPage<CoachStudentRosterItem>;
+typedef AdminRosterPage = CursorPage<AdminStudentRosterItem>;

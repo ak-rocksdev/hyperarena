@@ -1,14 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/network/dio_error_handler.dart';
-import 'package:hyperarena/features/club/data/models/admin_student_summary.dart';
+import 'package:hyperarena/features/club/data/models/admin_student_roster_item.dart';
 import 'package:hyperarena/features/club/data/models/club_summary.dart';
 import 'package:hyperarena/features/club/data/models/coach_student.dart';
 import 'package:hyperarena/features/club/data/models/student_detail.dart';
 import 'package:hyperarena/shared/data/models/cursor_page.dart';
 
-/// One repo for all club / roster / detail traffic. Issue 19.1–19.4 plus
-/// the existing `/admin/students` list (until 19.5 ships).
+/// One repo for all club / roster / detail traffic. Issue 19.1–19.5.
 class ApiClubRepository {
   final ApiClient _apiClient;
 
@@ -70,49 +69,28 @@ class ApiClubRepository {
     }
   }
 
-  /// Existing thin admin students list — page-based Laravel pagination.
-  /// Used as the organizer Klub roster fallback until 19.5 ships.
-  Future<AdminStudentsPage> getAdminStudents({
-    String? search,
-    int? page,
+  /// 19.5 — tenant-wide roster (organizer Klub list) with assigned-coach
+  /// + outstanding-payment aggregates. Cursor-paginated; 50 max per page.
+  Future<CursorPage<AdminStudentRosterItem>> getAdminRoster({
     int? perPage,
+    String? cursor,
+    String? search,
   }) async {
     try {
       final res = await _apiClient.get(
-        '/v1/admin/students',
+        '/v1/admin/students/roster',
         queryParameters: {
-          'page': ?page,
           'per_page': ?perPage,
+          'cursor': ?cursor,
           if (search != null && search.isNotEmpty) 'search': search,
         },
       );
-      final data = res.data as Map<String, dynamic>;
-      final list = (data['data'] as List).cast<Map<String, dynamic>>();
-      return AdminStudentsPage(
-        items: list.map(AdminStudentSummary.fromJson).toList(),
-        currentPage: data['current_page'] as int? ?? 1,
-        lastPage: data['last_page'] as int? ?? 1,
-        total: data['total'] as int? ?? list.length,
+      return CursorPage.fromJson<AdminStudentRosterItem>(
+        res.data as Map<String, dynamic>,
+        AdminStudentRosterItem.fromJson,
       );
     } on DioException catch (e) {
       rethrowDio(e);
     }
   }
-}
-
-/// Page-based response wrapper for `/admin/students` (Laravel paginate()).
-class AdminStudentsPage {
-  final List<AdminStudentSummary> items;
-  final int currentPage;
-  final int lastPage;
-  final int total;
-
-  const AdminStudentsPage({
-    required this.items,
-    required this.currentPage,
-    required this.lastPage,
-    required this.total,
-  });
-
-  bool get hasMore => currentPage < lastPage;
 }

@@ -10,7 +10,7 @@ import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
-import 'package:hyperarena/features/club/data/models/admin_student_summary.dart';
+import 'package:hyperarena/features/club/data/models/admin_student_roster_item.dart';
 import 'package:hyperarena/features/club/data/models/club_summary.dart';
 import 'package:hyperarena/features/club/providers/club_providers.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/club_hero.dart';
@@ -20,12 +20,9 @@ import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
 /// Anggota Klub — tenant-wide roster for the organizer. 3-layer dashboard:
-/// club identity hero → vital stats ticker → member roster.
-///
-/// Hero + stats consume `GET /v1/admin/club/summary` (Issue 19.4). The
-/// roster falls back to existing `GET /v1/admin/students` (thin shape)
-/// until BE Issue 19.5 ships the per-row aggregates — at that point this
-/// screen swaps to the richer card design without other code changes.
+/// club identity hero (19.4) → vital stats ticker (19.4) → member roster
+/// (19.5). The roster card shows the organizer's lens: who's progressing,
+/// who's behind on payments, and which coach is grading them.
 class OrganizerMembersScreen extends ConsumerStatefulWidget {
   const OrganizerMembersScreen({super.key});
 
@@ -58,14 +55,14 @@ class _OrganizerMembersScreenState
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(adminStudentsListProvider.notifier).loadMore();
+      ref.read(adminRosterListProvider.notifier).loadMore();
     }
   }
 
   void _onSearchChanged(String value) {
     _debouncer.run(() {
       ref
-          .read(adminStudentsListProvider.notifier)
+          .read(adminRosterListProvider.notifier)
           .loadInitial(search: value.trim());
     });
   }
@@ -73,7 +70,7 @@ class _OrganizerMembersScreenState
   @override
   Widget build(BuildContext context) {
     final summaryAsync = ref.watch(clubSummaryProvider);
-    final listState = ref.watch(adminStudentsListProvider);
+    final listState = ref.watch(adminRosterListProvider);
     final currency = ref.watch(tenantCurrencyProvider);
 
     return Scaffold(
@@ -82,12 +79,11 @@ class _OrganizerMembersScreenState
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(clubSummaryProvider);
-          await ref.read(adminStudentsListProvider.notifier).loadInitial();
+          await ref.read(adminRosterListProvider.notifier).loadInitial();
         },
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // Hero
             SliverToBoxAdapter(
               child: summaryAsync.when(
                 loading: _buildHeroLoading,
@@ -110,15 +106,13 @@ class _OrganizerMembersScreenState
                   loading: _buildStatsLoading,
                   error: (_, _) => const SizedBox.shrink(),
                   data: (s) =>
-                    _ClubStatsCard(stats: s.stats, currency: currency),
+                      _ClubStatsCard(stats: s.stats, currency: currency),
                 ),
               ),
             ),
-            // Editorial section break
             SliverToBoxAdapter(child: _buildSectionLabel(listState)),
             SliverToBoxAdapter(child: _buildSearch()),
-            // Member list
-            ..._buildList(listState),
+            ..._buildList(listState, currency),
             const SliverToBoxAdapter(
                 child: SizedBox(height: AppDimensions.lg)),
           ],
@@ -194,7 +188,7 @@ class _OrganizerMembersScreenState
     );
   }
 
-  Widget _buildSectionLabel(AdminStudentsListState state) {
+  Widget _buildSectionLabel(AdminRosterListState state) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppDimensions.screenHorizontal,
@@ -213,10 +207,10 @@ class _OrganizerMembersScreenState
               letterSpacing: 1.6,
             ),
           ),
-          if (state.total > 0) ...[
+          if (state.items.isNotEmpty) ...[
             const SizedBox(width: AppDimensions.xs),
             Text(
-              '· ${state.total} total',
+              '· ${state.items.length}${state.hasMore ? '+' : ''}',
               style: AppTypography.caption
                   .copyWith(color: AppColors.textTertiary, fontSize: 10),
             ),
@@ -284,7 +278,7 @@ class _OrganizerMembersScreenState
     );
   }
 
-  List<Widget> _buildList(AdminStudentsListState state) {
+  List<Widget> _buildList(AdminRosterListState state, String currency) {
     if (state.isLoading) {
       return [
         SliverPadding(
@@ -294,7 +288,7 @@ class _OrganizerMembersScreenState
             itemCount: 4,
             itemBuilder: (_, _) => Padding(
               padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-              child: ShimmerLoading.card(height: 90),
+              child: ShimmerLoading.card(height: 110),
             ),
           ),
         ),
@@ -309,7 +303,7 @@ class _OrganizerMembersScreenState
             child: ErrorView(
               error: state.error!,
               onRetry: () =>
-                  ref.read(adminStudentsListProvider.notifier).loadInitial(),
+                  ref.read(adminRosterListProvider.notifier).loadInitial(),
             ),
           ),
         ),
@@ -340,7 +334,10 @@ class _OrganizerMembersScreenState
             }
             return Padding(
               padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-              child: _MemberCard(member: state.items[i]),
+              child: _MemberRosterCard(
+                member: state.items[i],
+                currency: currency,
+              ),
             );
           },
         ),
@@ -454,10 +451,8 @@ class _StatTile extends StatelessWidget {
       curve: Curves.easeOutCubic,
       tween: Tween<double>(begin: 0, end: 1),
       builder: (_, t, _) {
-        // Subtle scale-in cue on first paint.
-        final opacity = t;
         return Opacity(
-          opacity: opacity,
+          opacity: t,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -511,126 +506,357 @@ class _Divider extends StatelessWidget {
   }
 }
 
-/// Compact card for the organizer roster while 19.5 is pending. Displays
-/// the data `/admin/students` actually returns (identity + gender + joined
-/// date). Once 19.5 ships, this will swap to a richer card with status
-/// pill, attendance %, and outstanding ribbon — see `coach_students_screen`
-/// for the full pattern.
-class _MemberCard extends StatelessWidget {
-  final AdminStudentSummary member;
+/// Organizer-side member card. Carries the same Athletic Field Notebook
+/// language as `_StudentRosterCard` (coach side) but with two financial-
+/// stewardship signals layered in: a red dot on the avatar when there's
+/// outstanding balance, and a footer banner with the amount + count when
+/// the row owes money. Coach assignment chip sits on the enrollment line
+/// so the organizer can see *who* is grading at a glance.
+class _MemberRosterCard extends StatelessWidget {
+  final AdminStudentRosterItem member;
+  final String currency;
 
-  const _MemberCard({required this.member});
+  const _MemberRosterCard({required this.member, required this.currency});
 
   @override
   Widget build(BuildContext context) {
-    final fullName = Formatters.fullName(member.firstName, member.lastName);
-    final age = Formatters.ageInYears(member.dateOfBirth);
+    final accent = _statusColor(member.latestProgress?.status);
+    final hasOutstanding = member.outstandingCount > 0;
+    final accentBar = hasOutstanding ? AppColors.error : accent;
     return Material(
       color: AppSurfaces.surface,
       borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        onTap: () => context.push(AppRoutes.organizerMember(member.id)),
+        onTap: () =>
+            context.push(AppRoutes.organizerMember(member.studentProfileId)),
         child: Container(
-          padding: const EdgeInsets.all(AppDimensions.md),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
             border: Border.all(color: AppColors.neutral200, width: 1),
           ),
-          child: Row(
-            children: [
-              ZoomableAvatar(
-                heroTag: 'member-${member.id}',
-                imageUrl:
-                    member.photoUrls?['md'] ?? member.photoUrls?['sm'],
-                fallbackInitials: Formatters.initials(fullName),
-                radius: 22,
-                caption: fullName,
-              ),
-              const SizedBox(width: AppDimensions.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            fullName,
-                            style: AppTypography.titleSmall.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (member.gender != null) ...[
-                          const SizedBox(width: AppDimensions.xs),
-                          _GenderChip(gender: member.gender!),
-                        ],
-                      ],
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: accentBar,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(AppDimensions.radiusLg),
+                      bottomLeft: Radius.circular(AppDimensions.radiusLg),
                     ),
-                    const SizedBox(height: 2),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          age != null ? '$age tahun' : 'Umur Not Set',
-                          style: AppTypography.caption.copyWith(
-                            color: age != null
-                                ? AppColors.textSecondary
-                                : AppColors.textTertiary,
-                            fontStyle:
-                                age == null ? FontStyle.italic : null,
-                          ),
-                        ),
-                        if (member.createdAt != null) ...[
-                          const _MetaDot(),
-                          Text(
-                            'Anggota sejak ${Formatters.formatDateShort(member.createdAt!)}',
-                            style: AppTypography.caption
-                                .copyWith(color: AppColors.textTertiary),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right,
-                  size: 18, color: AppColors.textTertiary),
-            ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppDimensions.md,
+                          AppDimensions.md,
+                          AppDimensions.md,
+                          AppDimensions.sm,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildHeaderRow(hasOutstanding),
+                            const SizedBox(height: AppDimensions.xs),
+                            _buildEnrollmentLine(),
+                            const SizedBox(height: AppDimensions.sm),
+                            _buildMetaRow(accent),
+                          ],
+                        ),
+                      ),
+                      if (hasOutstanding) _OutstandingBanner(
+                        amount: member.outstandingAmount,
+                        count: member.outstandingCount,
+                        oldestAt: member.oldestOutstandingAt,
+                        currency: currency,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  Widget _buildHeaderRow(bool hasOutstanding) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ZoomableAvatar(
+              heroTag: 'member-${member.studentProfileId}',
+              imageUrl: member.photoUrls?['md'] ?? member.photoUrls?['sm'],
+              fallbackInitials: Formatters.initials(member.fullName),
+              radius: 22,
+              caption: member.fullName,
+            ),
+            if (hasOutstanding)
+              Positioned(
+                right: -1,
+                top: -1,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: AppColors.error,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppSurfaces.surface, width: 2),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(width: AppDimensions.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                member.fullName,
+                style: AppTypography.titleSmall.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                member.age != null ? '${member.age} tahun' : 'Umur Not Set',
+                style: AppTypography.caption.copyWith(
+                  color: member.age != null
+                      ? AppColors.textSecondary
+                      : AppColors.textTertiary,
+                  fontStyle: member.age == null ? FontStyle.italic : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+      ],
+    );
+  }
+
+  Widget _buildEnrollmentLine() {
+    final program = member.enrollment?.programName;
+    final coach = member.assignedCoach?.name;
+    return Padding(
+      padding: const EdgeInsets.only(left: 56),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            program == null ? Icons.info_outline : Icons.book_outlined,
+            size: 12,
+            color: program == null ? AppColors.warning : AppColors.textTertiary,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              program == null
+                  ? 'Belum terdaftar di program'
+                  : (member.enrollment?.levelName == null
+                      ? program
+                      : '$program · ${member.enrollment!.levelName}'),
+              style: AppTypography.caption.copyWith(
+                color: program == null
+                    ? AppColors.warning
+                    : AppColors.textSecondary,
+                fontStyle: program == null ? FontStyle.italic : null,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (coach != null) ...[
+            const SizedBox(width: AppDimensions.xs),
+            _CoachChip(name: coach),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetaRow(Color accent) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 56),
+      child: Wrap(
+        spacing: AppDimensions.xs,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.xs, vertical: 2),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+            ),
+            child: Text(
+              _statusLabel(member.latestProgress?.status),
+              style: AppTypography.caption.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+              ),
+            ),
+          ),
+          _MetaDot(),
+          Text(
+            member.lastSessionAt == null
+                ? 'Belum ada sesi'
+                : Formatters.relativeDate(member.lastSessionAt!),
+            style: AppTypography.caption
+                .copyWith(color: AppColors.textSecondary),
+          ),
+          _MetaDot(),
+          Text(
+            '${member.totalSessions} sesi',
+            style: AppTypography.caption
+                .copyWith(color: AppColors.textSecondary),
+          ),
+          if (member.totalSessions > 0) ...[
+            _MetaDot(),
+            Text(
+              'Hadir ${(member.attendanceRate * 100).round()}%',
+              style: AppTypography.caption.copyWith(
+                color: member.attendanceRate >= 0.85
+                    ? AppColors.success
+                    : member.attendanceRate >= 0.7
+                        ? AppColors.warning
+                        : AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
-class _GenderChip extends StatelessWidget {
-  final String gender;
-  const _GenderChip({required this.gender});
+class _CoachChip extends StatelessWidget {
+  final String name;
+  const _CoachChip({required this.name});
 
   @override
   Widget build(BuildContext context) {
-    final isFemale = gender == 'female';
-    final color = isFemale ? const Color(0xFFEC4899) : AppColors.primary700;
-    final label = isFemale ? 'Wanita' : (gender == 'male' ? 'Pria' : gender);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: AppColors.primary50,
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        border: Border.all(color: AppColors.primary100),
       ),
-      child: Text(
-        label,
-        style: AppTypography.caption.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-          fontSize: 10,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.sports, size: 10, color: AppColors.primary700),
+          const SizedBox(width: 3),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 90),
+            child: Text(
+              _shortCoachName(name),
+              style: AppTypography.caption.copyWith(
+                color: AppColors.primary700,
+                fontWeight: FontWeight.w600,
+                fontSize: 10,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "Haris Mustamsikin" → "Coach Haris". Strips honorific prefixes that
+  /// would otherwise compete for chip width.
+  String _shortCoachName(String full) {
+    final cleaned = full
+        .replaceFirst(RegExp(r'^(Coach|Pelatih|Pak|Bu)\s+', caseSensitive: false), '')
+        .trim();
+    final firstName = cleaned.split(RegExp(r'\s+')).first;
+    return 'Coach $firstName';
+  }
+}
+
+class _OutstandingBanner extends StatelessWidget {
+  final int amount;
+  final int count;
+  final DateTime? oldestAt;
+  final String currency;
+
+  const _OutstandingBanner({
+    required this.amount,
+    required this.count,
+    required this.oldestAt,
+    required this.currency,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md, vertical: AppDimensions.xs),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.06),
+        border: Border(
+          top: BorderSide(color: AppColors.error.withValues(alpha: 0.18)),
         ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(AppDimensions.radiusLg - 1),
+          bottomRight: Radius.circular(AppDimensions.radiusLg),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, size: 12, color: AppColors.error),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.error,
+                  fontSize: 11,
+                ),
+                children: [
+                  TextSpan(
+                    text: Formatters.formatCurrencyCompact(amount, currency),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  TextSpan(text: ' · $count tagihan menunggak'),
+                  if (oldestAt != null)
+                    TextSpan(
+                      text: ' sejak ${Formatters.formatDateShort(oldestAt!)}',
+                      style: TextStyle(
+                        color: AppColors.error.withValues(alpha: 0.8),
+                      ),
+                    ),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -653,4 +879,24 @@ class _MetaDot extends StatelessWidget {
       ),
     );
   }
+}
+
+Color _statusColor(String? status) {
+  return switch (status) {
+    'needs_work' => AppColors.error,
+    'progressing' => AppColors.warning,
+    'good' => AppColors.success,
+    'excellent' => AppColors.primary,
+    _ => AppColors.neutral300,
+  };
+}
+
+String _statusLabel(String? status) {
+  return switch (status) {
+    'needs_work' => 'Perlu Latihan',
+    'progressing' => 'Berkembang',
+    'good' => 'Baik',
+    'excellent' => 'Sangat Baik',
+    _ => 'Belum Dinilai',
+  };
 }

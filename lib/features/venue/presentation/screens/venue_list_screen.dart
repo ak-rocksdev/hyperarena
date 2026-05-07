@@ -67,29 +67,53 @@ class _VenueListScreenState extends ConsumerState<VenueListScreen> {
       return _buildShimmer(height: 220);
     }
 
+    Future<void> reload() =>
+        ref.read(marketplaceVenueListProvider.notifier).loadInitial();
+
     if (state.error != null) {
-      return EmptyState(
-        icon: Icons.error_outline,
-        message: 'Gagal memuat lapangan',
-        actionLabel: 'Coba lagi',
-        onAction: () =>
-            ref.read(marketplaceVenueListProvider.notifier).loadInitial(),
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: EmptyState(
+                icon: Icons.error_outline,
+                message: 'Gagal memuat lapangan',
+                actionLabel: 'Coba lagi',
+                onAction: reload,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     if (state.isEmpty) {
-      return const EmptyState(
-        icon: Icons.store_outlined,
-        message: 'Belum ada lapangan tersedia',
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: const EmptyState(
+                icon: Icons.store_outlined,
+                message: 'Belum ada lapangan tersedia',
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     final items = state.items;
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(marketplaceVenueListProvider.notifier).loadInitial(),
+      onRefresh: reload,
       child: ListView.builder(
         controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.screenHorizontal,
         ),

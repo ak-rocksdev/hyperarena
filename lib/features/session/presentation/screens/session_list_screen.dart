@@ -69,33 +69,60 @@ class _SessionListScreenState extends ConsumerState<SessionListScreen> {
       return _buildShimmer(height: 200);
     }
 
+    Future<void> reload() =>
+        ref.read(marketplaceSessionListProvider.notifier).loadInitial();
+
+    // Wrap every branch in RefreshIndicator so pull-to-refresh works on
+    // empty + error states (parity with tab Lapangan + Coach). The
+    // EmptyState already exposes a "Muat ulang" button — we keep both
+    // affordances per user's preference.
     if (state.error != null) {
-      return EmptyState(
-        icon: Icons.error_outline,
-        message: 'Gagal memuat sesi',
-        actionLabel: 'Coba lagi',
-        onAction: () =>
-            ref.read(marketplaceSessionListProvider.notifier).loadInitial(),
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: EmptyState(
+                icon: Icons.error_outline,
+                message: 'Gagal memuat sesi',
+                actionLabel: 'Coba lagi',
+                onAction: reload,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     if (state.isEmpty) {
-      return EmptyState(
-        icon: Icons.event_outlined,
-        message: 'Belum ada sesi mendatang.\n'
-            'Sesi yang sudah dijadwalkan oleh admin akan muncul di sini.',
-        actionLabel: 'Muat ulang',
-        onAction: () =>
-            ref.read(marketplaceSessionListProvider.notifier).loadInitial(),
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: EmptyState(
+                icon: Icons.event_outlined,
+                message: 'Belum ada sesi mendatang.\n'
+                    'Sesi yang sudah dijadwalkan oleh admin akan muncul di sini.',
+                actionLabel: 'Muat ulang',
+                onAction: reload,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     final items = state.items;
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(marketplaceSessionListProvider.notifier).loadInitial(),
+      onRefresh: reload,
       child: ListView.builder(
         controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.screenHorizontal,
         ),
@@ -173,32 +200,21 @@ class _MarketplaceSessionCard extends ConsumerWidget {
                     child: Text(session.safeTitle,
                         style: theme.textTheme.titleMedium),
                   ),
-                  if (session.isEnrolled)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.sm,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.successLight,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusSm),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle,
-                              size: 12, color: AppColors.success),
-                          const SizedBox(width: 3),
-                          Text(
-                            'Terdaftar',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.success,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                  // Status pill — "Sedang berlangsung" when start ≤ now < end,
+                  // else "Terdaftar" if user enrolled. Computed client-side
+                  // because the BE filter relaxes to include ongoing sessions
+                  // (Issue 2026-05-07 — was strict start_at > now()).
+                  if (_isOngoing(session))
+                    _StatusPill(
+                      label: 'Sedang berlangsung',
+                      icon: Icons.play_circle_outline,
+                      color: AppColors.warning,
+                    )
+                  else if (session.isEnrolled)
+                    _StatusPill(
+                      label: 'Terdaftar',
+                      icon: Icons.check_circle,
+                      color: AppColors.success,
                     ),
                 ],
               ),
@@ -264,6 +280,56 @@ class _MarketplaceSessionCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// True when the session has started but not yet ended. Compares against
+  /// `DateTime.now()` (device-local) — the wall-clock-naive `startAt` from
+  /// `tenantWallClockFromJson` carries the tenant's wall-clock components,
+  /// so for users in the same tz as the tenant this is exact, and for
+  /// cross-tz users the badge will be approximately right (off by tz delta).
+  bool _isOngoing(MarketplaceSession session) {
+    final start = session.startAt;
+    final end = start.add(Duration(minutes: session.durationMinutes));
+    final now = DateTime.now();
+    return !now.isBefore(start) && now.isBefore(end);
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _StatusPill({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.sm, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
       ),
     );
   }

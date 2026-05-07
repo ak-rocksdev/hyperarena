@@ -67,29 +67,53 @@ class _CoachListScreenState extends ConsumerState<CoachListScreen> {
       return _buildShimmer(height: 160);
     }
 
+    Future<void> reload() =>
+        ref.read(marketplaceCoachListProvider.notifier).loadInitial();
+
     if (state.error != null) {
-      return EmptyState(
-        icon: Icons.error_outline,
-        message: 'Gagal memuat coach',
-        actionLabel: 'Coba lagi',
-        onAction: () =>
-            ref.read(marketplaceCoachListProvider.notifier).loadInitial(),
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: EmptyState(
+                icon: Icons.error_outline,
+                message: 'Gagal memuat coach',
+                actionLabel: 'Coba lagi',
+                onAction: reload,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     if (state.isEmpty) {
-      return const EmptyState(
-        icon: Icons.person_outlined,
-        message: 'Belum ada coach tersedia',
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: const EmptyState(
+                icon: Icons.person_outlined,
+                message: 'Belum ada coach tersedia',
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     final items = state.items;
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(marketplaceCoachListProvider.notifier).loadInitial(),
+      onRefresh: reload,
       child: ListView.builder(
         controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.screenHorizontal,
         ),

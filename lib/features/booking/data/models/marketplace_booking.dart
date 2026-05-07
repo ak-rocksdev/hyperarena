@@ -36,10 +36,21 @@ class BookingSession with _$BookingSession {
     BookingTenant? tenant,
     BookingVenue? venue,
     @Default(<BookingCoach>[]) List<BookingCoach> coaches,
+    String? title,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   }) = _BookingSession;
 
   factory BookingSession.fromJson(Map<String, dynamic> json) =>
       _$BookingSessionFromJson(json);
+}
+
+extension BookingSessionTitleX on BookingSession {
+  String get safeTitle =>
+      (displayTitle != null && displayTitle!.isNotEmpty)
+          ? displayTitle!
+          : name;
 }
 
 @freezed
@@ -48,6 +59,8 @@ class BookingTenant with _$BookingTenant {
     @JsonKey(fromJson: idFromJson) required String id,
     required String name,
     String? slug,
+    @JsonKey(name: 'brand_color') String? brandColor,
+    @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
   }) = _BookingTenant;
 
   factory BookingTenant.fromJson(Map<String, dynamic> json) =>

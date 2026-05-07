@@ -13,6 +13,7 @@ import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/booking/data/models/marketplace_booking.dart';
 import 'package:hyperarena/features/booking/providers/marketplace_booking_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 
 /// Bookings tab — student's own enrolled sessions, cross-tenant.
 /// Sourced from `GET /v1/marketplace/me/bookings?tab=upcoming|past` (Issue 14).
@@ -141,20 +142,33 @@ class _BookingCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
       onTap: () => context.push(AppRoutes.marketplaceSession(session.id)),
       child: Container(
-        padding: const EdgeInsets.all(AppDimensions.base),
         decoration: BoxDecoration(
           color: AppSurfaces.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           boxShadow: AppShadows.sm,
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Hero — pass tenant.brandColor for cross-tenant fallback rendering.
+            SessionHero(
+              photoUrls: session.photoUrls,
+              photoPath: session.photoPath,
+              size: SessionHeroSize.md,
+              brandColor: session.tenant?.brandColor,
+              borderRadius: 0,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.base),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    session.name,
+                    session.safeTitle,
                     style: AppTypography.titleSmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -283,6 +297,9 @@ class _BookingCard extends StatelessWidget {
                 ),
               ),
             ],
+                ],
+              ),
+            ),
           ],
         ),
       ),

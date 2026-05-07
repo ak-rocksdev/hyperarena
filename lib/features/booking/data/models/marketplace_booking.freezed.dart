@@ -342,6 +342,13 @@ mixin _$BookingSession {
   BookingTenant? get tenant => throw _privateConstructorUsedError;
   BookingVenue? get venue => throw _privateConstructorUsedError;
   List<BookingCoach> get coaches => throw _privateConstructorUsedError;
+  String? get title => throw _privateConstructorUsedError;
+  @JsonKey(name: 'display_title')
+  String? get displayTitle => throw _privateConstructorUsedError;
+  @JsonKey(name: 'photo_path')
+  String? get photoPath => throw _privateConstructorUsedError;
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls => throw _privateConstructorUsedError;
 
   /// Serializes this BookingSession to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -369,6 +376,10 @@ abstract class $BookingSessionCopyWith<$Res> {
     BookingTenant? tenant,
     BookingVenue? venue,
     List<BookingCoach> coaches,
+    String? title,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   });
 
   $BookingTenantCopyWith<$Res>? get tenant;
@@ -398,6 +409,10 @@ class _$BookingSessionCopyWithImpl<$Res, $Val extends BookingSession>
     Object? tenant = freezed,
     Object? venue = freezed,
     Object? coaches = null,
+    Object? title = freezed,
+    Object? displayTitle = freezed,
+    Object? photoPath = freezed,
+    Object? photoUrls = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -433,6 +448,22 @@ class _$BookingSessionCopyWithImpl<$Res, $Val extends BookingSession>
                 ? _value.coaches
                 : coaches // ignore: cast_nullable_to_non_nullable
                       as List<BookingCoach>,
+            title: freezed == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            displayTitle: freezed == displayTitle
+                ? _value.displayTitle
+                : displayTitle // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoPath: freezed == photoPath
+                ? _value.photoPath
+                : photoPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoUrls: freezed == photoUrls
+                ? _value.photoUrls
+                : photoUrls // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
           )
           as $Val,
     );
@@ -485,6 +516,10 @@ abstract class _$$BookingSessionImplCopyWith<$Res>
     BookingTenant? tenant,
     BookingVenue? venue,
     List<BookingCoach> coaches,
+    String? title,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   });
 
   @override
@@ -515,6 +550,10 @@ class __$$BookingSessionImplCopyWithImpl<$Res>
     Object? tenant = freezed,
     Object? venue = freezed,
     Object? coaches = null,
+    Object? title = freezed,
+    Object? displayTitle = freezed,
+    Object? photoPath = freezed,
+    Object? photoUrls = freezed,
   }) {
     return _then(
       _$BookingSessionImpl(
@@ -550,6 +589,22 @@ class __$$BookingSessionImplCopyWithImpl<$Res>
             ? _value._coaches
             : coaches // ignore: cast_nullable_to_non_nullable
                   as List<BookingCoach>,
+        title: freezed == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        displayTitle: freezed == displayTitle
+            ? _value.displayTitle
+            : displayTitle // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoPath: freezed == photoPath
+            ? _value.photoPath
+            : photoPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoUrls: freezed == photoUrls
+            ? _value._photoUrls
+            : photoUrls // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
       ),
     );
   }
@@ -567,7 +622,12 @@ class _$BookingSessionImpl implements _BookingSession {
     this.tenant,
     this.venue,
     final List<BookingCoach> coaches = const <BookingCoach>[],
-  }) : _coaches = coaches;
+    this.title,
+    @JsonKey(name: 'display_title') this.displayTitle,
+    @JsonKey(name: 'photo_path') this.photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
+  }) : _coaches = coaches,
+       _photoUrls = photoUrls;
 
   factory _$BookingSessionImpl.fromJson(Map<String, dynamic> json) =>
       _$$BookingSessionImplFromJson(json);
@@ -599,8 +659,27 @@ class _$BookingSessionImpl implements _BookingSession {
   }
 
   @override
+  final String? title;
+  @override
+  @JsonKey(name: 'display_title')
+  final String? displayTitle;
+  @override
+  @JsonKey(name: 'photo_path')
+  final String? photoPath;
+  final Map<String, String>? _photoUrls;
+  @override
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls {
+    final value = _photoUrls;
+    if (value == null) return null;
+    if (_photoUrls is EqualUnmodifiableMapView) return _photoUrls;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  @override
   String toString() {
-    return 'BookingSession(id: $id, name: $name, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, tenant: $tenant, venue: $venue, coaches: $coaches)';
+    return 'BookingSession(id: $id, name: $name, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, tenant: $tenant, venue: $venue, coaches: $coaches, title: $title, displayTitle: $displayTitle, photoPath: $photoPath, photoUrls: $photoUrls)';
   }
 
   @override
@@ -616,7 +695,16 @@ class _$BookingSessionImpl implements _BookingSession {
                 other.durationMinutes == durationMinutes) &&
             (identical(other.tenant, tenant) || other.tenant == tenant) &&
             (identical(other.venue, venue) || other.venue == venue) &&
-            const DeepCollectionEquality().equals(other._coaches, _coaches));
+            const DeepCollectionEquality().equals(other._coaches, _coaches) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.displayTitle, displayTitle) ||
+                other.displayTitle == displayTitle) &&
+            (identical(other.photoPath, photoPath) ||
+                other.photoPath == photoPath) &&
+            const DeepCollectionEquality().equals(
+              other._photoUrls,
+              _photoUrls,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -631,6 +719,10 @@ class _$BookingSessionImpl implements _BookingSession {
     tenant,
     venue,
     const DeepCollectionEquality().hash(_coaches),
+    title,
+    displayTitle,
+    photoPath,
+    const DeepCollectionEquality().hash(_photoUrls),
   );
 
   /// Create a copy of BookingSession
@@ -660,6 +752,10 @@ abstract class _BookingSession implements BookingSession {
     final BookingTenant? tenant,
     final BookingVenue? venue,
     final List<BookingCoach> coaches,
+    final String? title,
+    @JsonKey(name: 'display_title') final String? displayTitle,
+    @JsonKey(name: 'photo_path') final String? photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
   }) = _$BookingSessionImpl;
 
   factory _BookingSession.fromJson(Map<String, dynamic> json) =
@@ -684,6 +780,17 @@ abstract class _BookingSession implements BookingSession {
   BookingVenue? get venue;
   @override
   List<BookingCoach> get coaches;
+  @override
+  String? get title;
+  @override
+  @JsonKey(name: 'display_title')
+  String? get displayTitle;
+  @override
+  @JsonKey(name: 'photo_path')
+  String? get photoPath;
+  @override
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls;
 
   /// Create a copy of BookingSession
   /// with the given fields replaced by the non-null parameter values.
@@ -703,6 +810,10 @@ mixin _$BookingTenant {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get slug => throw _privateConstructorUsedError;
+  @JsonKey(name: 'brand_color')
+  String? get brandColor => throw _privateConstructorUsedError;
+  @JsonKey(name: 'logo_urls')
+  Map<String, String>? get logoUrls => throw _privateConstructorUsedError;
 
   /// Serializes this BookingTenant to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -725,6 +836,8 @@ abstract class $BookingTenantCopyWith<$Res> {
     @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? slug,
+    @JsonKey(name: 'brand_color') String? brandColor,
+    @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
   });
 }
 
@@ -742,7 +855,13 @@ class _$BookingTenantCopyWithImpl<$Res, $Val extends BookingTenant>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? name = null, Object? slug = freezed}) {
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? slug = freezed,
+    Object? brandColor = freezed,
+    Object? logoUrls = freezed,
+  }) {
     return _then(
       _value.copyWith(
             id: null == id
@@ -757,6 +876,14 @@ class _$BookingTenantCopyWithImpl<$Res, $Val extends BookingTenant>
                 ? _value.slug
                 : slug // ignore: cast_nullable_to_non_nullable
                       as String?,
+            brandColor: freezed == brandColor
+                ? _value.brandColor
+                : brandColor // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            logoUrls: freezed == logoUrls
+                ? _value.logoUrls
+                : logoUrls // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
           )
           as $Val,
     );
@@ -776,6 +903,8 @@ abstract class _$$BookingTenantImplCopyWith<$Res>
     @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? slug,
+    @JsonKey(name: 'brand_color') String? brandColor,
+    @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
   });
 }
 
@@ -792,7 +921,13 @@ class __$$BookingTenantImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? name = null, Object? slug = freezed}) {
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? slug = freezed,
+    Object? brandColor = freezed,
+    Object? logoUrls = freezed,
+  }) {
     return _then(
       _$BookingTenantImpl(
         id: null == id
@@ -807,6 +942,14 @@ class __$$BookingTenantImplCopyWithImpl<$Res>
             ? _value.slug
             : slug // ignore: cast_nullable_to_non_nullable
                   as String?,
+        brandColor: freezed == brandColor
+            ? _value.brandColor
+            : brandColor // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        logoUrls: freezed == logoUrls
+            ? _value._logoUrls
+            : logoUrls // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
       ),
     );
   }
@@ -819,7 +962,9 @@ class _$BookingTenantImpl implements _BookingTenant {
     @JsonKey(fromJson: idFromJson) required this.id,
     required this.name,
     this.slug,
-  });
+    @JsonKey(name: 'brand_color') this.brandColor,
+    @JsonKey(name: 'logo_urls') final Map<String, String>? logoUrls,
+  }) : _logoUrls = logoUrls;
 
   factory _$BookingTenantImpl.fromJson(Map<String, dynamic> json) =>
       _$$BookingTenantImplFromJson(json);
@@ -831,10 +976,23 @@ class _$BookingTenantImpl implements _BookingTenant {
   final String name;
   @override
   final String? slug;
+  @override
+  @JsonKey(name: 'brand_color')
+  final String? brandColor;
+  final Map<String, String>? _logoUrls;
+  @override
+  @JsonKey(name: 'logo_urls')
+  Map<String, String>? get logoUrls {
+    final value = _logoUrls;
+    if (value == null) return null;
+    if (_logoUrls is EqualUnmodifiableMapView) return _logoUrls;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'BookingTenant(id: $id, name: $name, slug: $slug)';
+    return 'BookingTenant(id: $id, name: $name, slug: $slug, brandColor: $brandColor, logoUrls: $logoUrls)';
   }
 
   @override
@@ -844,12 +1002,22 @@ class _$BookingTenantImpl implements _BookingTenant {
             other is _$BookingTenantImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.slug, slug) || other.slug == slug));
+            (identical(other.slug, slug) || other.slug == slug) &&
+            (identical(other.brandColor, brandColor) ||
+                other.brandColor == brandColor) &&
+            const DeepCollectionEquality().equals(other._logoUrls, _logoUrls));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, slug);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    name,
+    slug,
+    brandColor,
+    const DeepCollectionEquality().hash(_logoUrls),
+  );
 
   /// Create a copy of BookingTenant
   /// with the given fields replaced by the non-null parameter values.
@@ -870,6 +1038,8 @@ abstract class _BookingTenant implements BookingTenant {
     @JsonKey(fromJson: idFromJson) required final String id,
     required final String name,
     final String? slug,
+    @JsonKey(name: 'brand_color') final String? brandColor,
+    @JsonKey(name: 'logo_urls') final Map<String, String>? logoUrls,
   }) = _$BookingTenantImpl;
 
   factory _BookingTenant.fromJson(Map<String, dynamic> json) =
@@ -882,6 +1052,12 @@ abstract class _BookingTenant implements BookingTenant {
   String get name;
   @override
   String? get slug;
+  @override
+  @JsonKey(name: 'brand_color')
+  String? get brandColor;
+  @override
+  @JsonKey(name: 'logo_urls')
+  Map<String, String>? get logoUrls;
 
   /// Create a copy of BookingTenant
   /// with the given fields replaced by the non-null parameter values.

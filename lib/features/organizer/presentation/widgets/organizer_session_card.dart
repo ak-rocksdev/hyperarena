@@ -11,6 +11,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 
 /// Reusable card for displaying an organizer's open session with health
 /// indicators, fill-rate bar, and action button.
@@ -94,20 +95,23 @@ class OrganizerSessionCard extends ConsumerWidget {
             borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
             boxShadow: AppShadows.sm,
           ),
-        child: IntrinsicHeight(
-          child: Row(
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ── Sport accent bar ──────────────────────────────────
-              Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  color: accentBarColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(AppDimensions.radiusLg),
-                    bottomLeft: Radius.circular(AppDimensions.radiusLg),
-                  ),
-                ),
+              // 16:9 hero — falls back to tenant logo when no photo set.
+              SessionHero(
+                photoUrls: session.photoUrls,
+                photoPath: session.photoPath,
+                size: SessionHeroSize.md,
+                borderRadius: 0,
               ),
+              IntrinsicHeight(
+                child: Row(
+                  children: [
+                    // ── Sport accent bar (now full-height, hero already
+                    // covered the rounded top — square here is fine).
+                    Container(width: 4, color: accentBarColor),
 
               // ── Content area ─────────────────────────────────────
               Expanded(
@@ -130,10 +134,12 @@ class OrganizerSessionCard extends ConsumerWidget {
                   ),
                 ),
               ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
-      ),
       ),
     );
   }

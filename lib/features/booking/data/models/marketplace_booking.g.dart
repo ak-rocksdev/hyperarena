@@ -46,6 +46,12 @@ _$BookingSessionImpl _$$BookingSessionImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => BookingCoach.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <BookingCoach>[],
+      title: json['title'] as String?,
+      displayTitle: json['display_title'] as String?,
+      photoPath: json['photo_path'] as String?,
+      photoUrls: (json['photo_urls'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
     );
 
 Map<String, dynamic> _$$BookingSessionImplToJson(
@@ -59,6 +65,10 @@ Map<String, dynamic> _$$BookingSessionImplToJson(
   'tenant': instance.tenant,
   'venue': instance.venue,
   'coaches': instance.coaches,
+  'title': instance.title,
+  'display_title': instance.displayTitle,
+  'photo_path': instance.photoPath,
+  'photo_urls': instance.photoUrls,
 };
 
 _$BookingTenantImpl _$$BookingTenantImplFromJson(Map<String, dynamic> json) =>
@@ -66,6 +76,10 @@ _$BookingTenantImpl _$$BookingTenantImplFromJson(Map<String, dynamic> json) =>
       id: idFromJson(json['id']),
       name: json['name'] as String,
       slug: json['slug'] as String?,
+      brandColor: json['brand_color'] as String?,
+      logoUrls: (json['logo_urls'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
     );
 
 Map<String, dynamic> _$$BookingTenantImplToJson(_$BookingTenantImpl instance) =>
@@ -73,6 +87,8 @@ Map<String, dynamic> _$$BookingTenantImplToJson(_$BookingTenantImpl instance) =>
       'id': instance.id,
       'name': instance.name,
       'slug': instance.slug,
+      'brand_color': instance.brandColor,
+      'logo_urls': instance.logoUrls,
     };
 
 _$BookingVenueImpl _$$BookingVenueImplFromJson(Map<String, dynamic> json) =>

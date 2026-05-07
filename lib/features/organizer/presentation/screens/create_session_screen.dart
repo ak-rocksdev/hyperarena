@@ -682,7 +682,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                     size: 16,
                     color: AppColors.neutral400,
                   ),
-                  label: Text(session.title),
+                  label: Text(session.safeTitle),
                   onPressed: () async {
                     final nav = GoRouter.of(context);
                     final created = await ref

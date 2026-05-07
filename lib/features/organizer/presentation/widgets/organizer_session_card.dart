@@ -149,7 +149,7 @@ class OrganizerSessionCard extends ConsumerWidget {
       children: [
         Expanded(
           child: Text(
-            session.title,
+            session.safeTitle,
             style: AppTypography.titleSmall,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

@@ -35,6 +35,11 @@ mixin _$User {
   String? get tenantName => throw _privateConstructorUsedError;
   String? get tenantCurrency => throw _privateConstructorUsedError;
   String? get tenantTimezone => throw _privateConstructorUsedError;
+
+  /// Hex color (`#RRGGBB`) for fallback hero rendering — used by
+  /// `SessionHero` when a session has no photo and falls back to the
+  /// tenant logo (square logo centered on this color).
+  String? get tenantBrandColor => throw _privateConstructorUsedError;
   String? get activeRole => throw _privateConstructorUsedError;
   String? get locale => throw _privateConstructorUsedError;
   List<String> get availableRoles => throw _privateConstructorUsedError;
@@ -68,6 +73,7 @@ abstract class $UserCopyWith<$Res> {
     String? tenantName,
     String? tenantCurrency,
     String? tenantTimezone,
+    String? tenantBrandColor,
     String? activeRole,
     String? locale,
     List<String> availableRoles,
@@ -103,6 +109,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? tenantName = freezed,
     Object? tenantCurrency = freezed,
     Object? tenantTimezone = freezed,
+    Object? tenantBrandColor = freezed,
     Object? activeRole = freezed,
     Object? locale = freezed,
     Object? availableRoles = null,
@@ -165,6 +172,10 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
                 ? _value.tenantTimezone
                 : tenantTimezone // ignore: cast_nullable_to_non_nullable
                       as String?,
+            tenantBrandColor: freezed == tenantBrandColor
+                ? _value.tenantBrandColor
+                : tenantBrandColor // ignore: cast_nullable_to_non_nullable
+                      as String?,
             activeRole: freezed == activeRole
                 ? _value.activeRole
                 : activeRole // ignore: cast_nullable_to_non_nullable
@@ -206,6 +217,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     String? tenantName,
     String? tenantCurrency,
     String? tenantTimezone,
+    String? tenantBrandColor,
     String? activeRole,
     String? locale,
     List<String> availableRoles,
@@ -238,6 +250,7 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? tenantName = freezed,
     Object? tenantCurrency = freezed,
     Object? tenantTimezone = freezed,
+    Object? tenantBrandColor = freezed,
     Object? activeRole = freezed,
     Object? locale = freezed,
     Object? availableRoles = null,
@@ -300,6 +313,10 @@ class __$$UserImplCopyWithImpl<$Res>
             ? _value.tenantTimezone
             : tenantTimezone // ignore: cast_nullable_to_non_nullable
                   as String?,
+        tenantBrandColor: freezed == tenantBrandColor
+            ? _value.tenantBrandColor
+            : tenantBrandColor // ignore: cast_nullable_to_non_nullable
+                  as String?,
         activeRole: freezed == activeRole
             ? _value.activeRole
             : activeRole // ignore: cast_nullable_to_non_nullable
@@ -335,6 +352,7 @@ class _$UserImpl implements _User {
     this.tenantName,
     this.tenantCurrency,
     this.tenantTimezone,
+    this.tenantBrandColor,
     this.activeRole,
     this.locale,
     final List<String> availableRoles = const [],
@@ -372,6 +390,12 @@ class _$UserImpl implements _User {
   final String? tenantCurrency;
   @override
   final String? tenantTimezone;
+
+  /// Hex color (`#RRGGBB`) for fallback hero rendering — used by
+  /// `SessionHero` when a session has no photo and falls back to the
+  /// tenant logo (square logo centered on this color).
+  @override
+  final String? tenantBrandColor;
   @override
   final String? activeRole;
   @override
@@ -387,7 +411,7 @@ class _$UserImpl implements _User {
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, email: $email, phone: $phone, bio: $bio, city: $city, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, tenantCurrency: $tenantCurrency, tenantTimezone: $tenantTimezone, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
+    return 'User(id: $id, name: $name, email: $email, phone: $phone, bio: $bio, city: $city, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, tenantCurrency: $tenantCurrency, tenantTimezone: $tenantTimezone, tenantBrandColor: $tenantBrandColor, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
   }
 
   @override
@@ -416,6 +440,8 @@ class _$UserImpl implements _User {
                 other.tenantCurrency == tenantCurrency) &&
             (identical(other.tenantTimezone, tenantTimezone) ||
                 other.tenantTimezone == tenantTimezone) &&
+            (identical(other.tenantBrandColor, tenantBrandColor) ||
+                other.tenantBrandColor == tenantBrandColor) &&
             (identical(other.activeRole, activeRole) ||
                 other.activeRole == activeRole) &&
             (identical(other.locale, locale) || other.locale == locale) &&
@@ -443,6 +469,7 @@ class _$UserImpl implements _User {
     tenantName,
     tenantCurrency,
     tenantTimezone,
+    tenantBrandColor,
     activeRole,
     locale,
     const DeepCollectionEquality().hash(_availableRoles),
@@ -478,6 +505,7 @@ abstract class _User implements User {
     final String? tenantName,
     final String? tenantCurrency,
     final String? tenantTimezone,
+    final String? tenantBrandColor,
     final String? activeRole,
     final String? locale,
     final List<String> availableRoles,
@@ -513,6 +541,12 @@ abstract class _User implements User {
   String? get tenantCurrency;
   @override
   String? get tenantTimezone;
+
+  /// Hex color (`#RRGGBB`) for fallback hero rendering — used by
+  /// `SessionHero` when a session has no photo and falls back to the
+  /// tenant logo (square logo centered on this color).
+  @override
+  String? get tenantBrandColor;
   @override
   String? get activeRole;
   @override

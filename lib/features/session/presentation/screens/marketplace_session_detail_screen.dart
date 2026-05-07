@@ -466,7 +466,14 @@ class _BottomBar extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  Formatters.formatCurrency(pricing.price, currency),
+                  Formatters.sessionPriceLabel(
+                    effectivePrice: pricing.effectivePrice,
+                    paymentMode: pricing.paymentMode,
+                    creditRequired: pricing.creditRequired,
+                    currency: pricing.currency,
+                    fallbackAmount: pricing.effectivePrice ?? 0,
+                    tenantCurrency: currency,
+                  ),
                   style: AppTypography.price,
                 ),
               ],
@@ -638,12 +645,13 @@ class _BottomBar extends ConsumerWidget {
     }
 
     // Navigate based on result
+    final effectivePrice = pricing.effectivePrice ?? 0;
     if (response.usedCredit) {
       context.go(
         AppRoutes.marketplaceSessionConfirmation(sessionId),
         extra: {
           'sessionName': session.name,
-          'price': pricing.price,
+          'price': effectivePrice,
         },
       );
     } else {
@@ -653,7 +661,7 @@ class _BottomBar extends ConsumerWidget {
           'joinResponse': response,
           'tenantPayment': tenantPayment,
           'sessionName': session.name,
-          'price': pricing.price,
+          'price': effectivePrice,
         },
       );
     }

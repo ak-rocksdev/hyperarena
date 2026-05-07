@@ -25,6 +25,7 @@ _$ClubTenantImpl _$$ClubTenantImplFromJson(Map<String, dynamic> json) =>
         (k, e) => MapEntry(k, e as String),
       ),
       city: json['city'] as String?,
+      brandColor: json['brand_color'] as String?,
     );
 
 Map<String, dynamic> _$$ClubTenantImplToJson(_$ClubTenantImpl instance) =>
@@ -35,6 +36,7 @@ Map<String, dynamic> _$$ClubTenantImplToJson(_$ClubTenantImpl instance) =>
       'sport_name': instance.sportName,
       'logo_urls': instance.logoUrls,
       'city': instance.city,
+      'brand_color': instance.brandColor,
     };
 
 _$ClubStatsImpl _$$ClubStatsImplFromJson(Map<String, dynamic> json) =>

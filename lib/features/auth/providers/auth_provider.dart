@@ -64,6 +64,11 @@ final tenantCurrencyProvider = Provider<String>(
 final tenantTimezoneProvider = Provider<String>(
     (ref) => ref.watch(authNotifierProvider)?.tenantTimezone ?? 'UTC');
 
+/// Hex color (`#RRGGBB`) used by `SessionHero` for the tenant-logo
+/// fallback background. Defaults to slate-900 to match the Vue web app.
+final tenantBrandColorProvider = Provider<String>(
+    (ref) => ref.watch(authNotifierProvider)?.tenantBrandColor ?? '#0F172A');
+
 class AuthNotifier extends Notifier<User?> {
   @override
   User? build() {

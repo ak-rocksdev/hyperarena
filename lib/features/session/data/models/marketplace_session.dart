@@ -24,6 +24,10 @@ class MarketplaceSession with _$MarketplaceSession {
     @Default([]) List<SessionCoach> coaches,
     @Default([]) List<SessionParticipant> participants,
     @Default(false) bool isEnrolled,
+    String? title,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   }) = _MarketplaceSession;
 
   factory MarketplaceSession.fromJson(Map<String, dynamic> json) =>
@@ -36,6 +40,11 @@ class SessionTenant with _$SessionTenant {
     @JsonKey(fromJson: idFromJson) required String id,
     required String name,
     String? slug,
+    /// Hex color (`#RRGGBB`) for fallback hero rendering when the session
+    /// has no photo and falls back to the tenant logo (logo is square,
+    /// rendered centered on this color to fill the 16:9 box).
+    @JsonKey(name: 'brand_color') String? brandColor,
+    @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
   }) = _SessionTenant;
 
   factory SessionTenant.fromJson(Map<String, dynamic> json) =>

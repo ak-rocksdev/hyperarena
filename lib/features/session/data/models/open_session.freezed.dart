@@ -626,7 +626,12 @@ OpenSession _$OpenSessionFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$OpenSession {
   String get id => throw _privateConstructorUsedError;
-  String get title => throw _privateConstructorUsedError;
+
+  /// Raw editable title (nullable post-Issue 2026-05-07-session-title).
+  /// Pre-feature-deploy BE sent auto-name here; consumers should read
+  /// [displayTitle] (or use the `safeTitle` extension) which handles
+  /// both windows.
+  String? get title => throw _privateConstructorUsedError;
   Sport get sport => throw _privateConstructorUsedError;
   String get hostId => throw _privateConstructorUsedError;
   String get hostName => throw _privateConstructorUsedError;
@@ -649,6 +654,27 @@ mixin _$OpenSession {
   /// because mock fixtures may omit it; consumers fall back to
   /// `pricePerPerson` + tenant currency.
   SessionPricing? get pricing => throw _privateConstructorUsedError;
+
+  /// `title ?? auto-name` from BE. Always non-null on a real response;
+  /// nullable here so pre-feature-deploy responses (which omit this
+  /// field) still parse — use the `safeTitle` extension at call sites.
+  @JsonKey(name: 'display_title')
+  String? get displayTitle => throw _privateConstructorUsedError;
+
+  /// 8-char hash, null when no session-specific photo set. Used to
+  /// distinguish "real session photo" (rectangular 16:9) from
+  /// "fallback to tenant logo" (square) — when [photoUrls] is non-null
+  /// but [photoPath] is null, the URLs point at the tenant logo and
+  /// caller renders the centered-on-brand-color fallback layout.
+  @JsonKey(name: 'photo_path')
+  String? get photoPath => throw _privateConstructorUsedError;
+
+  /// Hero photo URLs in 4 sizes (sm/md/lg/xl). When [photoPath] is set
+  /// these are 16:9 session photos; otherwise BE returns the tenant
+  /// `logo_urls` map (square) as the fallback. Null when neither
+  /// session nor tenant has a photo.
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   List<String> get participantNames => throw _privateConstructorUsedError;
   OpenSessionStatus get status => throw _privateConstructorUsedError;
@@ -681,7 +707,7 @@ abstract class $OpenSessionCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String title,
+    String? title,
     Sport sport,
     String hostId,
     String hostName,
@@ -696,6 +722,9 @@ abstract class $OpenSessionCopyWith<$Res> {
     LevelTier? maxLevel,
     int pricePerPerson,
     SessionPricing? pricing,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
     String? description,
     List<String> participantNames,
     OpenSessionStatus status,
@@ -729,7 +758,7 @@ class _$OpenSessionCopyWithImpl<$Res, $Val extends OpenSession>
   @override
   $Res call({
     Object? id = null,
-    Object? title = null,
+    Object? title = freezed,
     Object? sport = null,
     Object? hostId = null,
     Object? hostName = null,
@@ -744,6 +773,9 @@ class _$OpenSessionCopyWithImpl<$Res, $Val extends OpenSession>
     Object? maxLevel = freezed,
     Object? pricePerPerson = null,
     Object? pricing = freezed,
+    Object? displayTitle = freezed,
+    Object? photoPath = freezed,
+    Object? photoUrls = freezed,
     Object? description = freezed,
     Object? participantNames = null,
     Object? status = null,
@@ -762,10 +794,10 @@ class _$OpenSessionCopyWithImpl<$Res, $Val extends OpenSession>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            title: null == title
+            title: freezed == title
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             sport: null == sport
                 ? _value.sport
                 : sport // ignore: cast_nullable_to_non_nullable
@@ -822,6 +854,18 @@ class _$OpenSessionCopyWithImpl<$Res, $Val extends OpenSession>
                 ? _value.pricing
                 : pricing // ignore: cast_nullable_to_non_nullable
                       as SessionPricing?,
+            displayTitle: freezed == displayTitle
+                ? _value.displayTitle
+                : displayTitle // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoPath: freezed == photoPath
+                ? _value.photoPath
+                : photoPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoUrls: freezed == photoUrls
+                ? _value.photoUrls
+                : photoUrls // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
             description: freezed == description
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
@@ -907,7 +951,7 @@ abstract class _$$OpenSessionImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
-    String title,
+    String? title,
     Sport sport,
     String hostId,
     String hostName,
@@ -922,6 +966,9 @@ abstract class _$$OpenSessionImplCopyWith<$Res>
     LevelTier? maxLevel,
     int pricePerPerson,
     SessionPricing? pricing,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
     String? description,
     List<String> participantNames,
     OpenSessionStatus status,
@@ -956,7 +1003,7 @@ class __$$OpenSessionImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? title = null,
+    Object? title = freezed,
     Object? sport = null,
     Object? hostId = null,
     Object? hostName = null,
@@ -971,6 +1018,9 @@ class __$$OpenSessionImplCopyWithImpl<$Res>
     Object? maxLevel = freezed,
     Object? pricePerPerson = null,
     Object? pricing = freezed,
+    Object? displayTitle = freezed,
+    Object? photoPath = freezed,
+    Object? photoUrls = freezed,
     Object? description = freezed,
     Object? participantNames = null,
     Object? status = null,
@@ -989,10 +1039,10 @@ class __$$OpenSessionImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        title: null == title
+        title: freezed == title
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         sport: null == sport
             ? _value.sport
             : sport // ignore: cast_nullable_to_non_nullable
@@ -1049,6 +1099,18 @@ class __$$OpenSessionImplCopyWithImpl<$Res>
             ? _value.pricing
             : pricing // ignore: cast_nullable_to_non_nullable
                   as SessionPricing?,
+        displayTitle: freezed == displayTitle
+            ? _value.displayTitle
+            : displayTitle // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoPath: freezed == photoPath
+            ? _value.photoPath
+            : photoPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoUrls: freezed == photoUrls
+            ? _value._photoUrls
+            : photoUrls // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
         description: freezed == description
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
@@ -1103,7 +1165,7 @@ class __$$OpenSessionImplCopyWithImpl<$Res>
 class _$OpenSessionImpl implements _OpenSession {
   const _$OpenSessionImpl({
     required this.id,
-    required this.title,
+    this.title,
     required this.sport,
     required this.hostId,
     required this.hostName,
@@ -1118,6 +1180,9 @@ class _$OpenSessionImpl implements _OpenSession {
     this.maxLevel,
     required this.pricePerPerson,
     this.pricing,
+    @JsonKey(name: 'display_title') this.displayTitle,
+    @JsonKey(name: 'photo_path') this.photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
     this.description,
     final List<String> participantNames = const [],
     this.status = OpenSessionStatus.open,
@@ -1129,15 +1194,21 @@ class _$OpenSessionImpl implements _OpenSession {
     this.organizerFeePerPerson,
     this.settlementStatus = SessionSettlementStatus.pending,
     this.health = const SessionHealth(),
-  }) : _participantNames = participantNames;
+  }) : _photoUrls = photoUrls,
+       _participantNames = participantNames;
 
   factory _$OpenSessionImpl.fromJson(Map<String, dynamic> json) =>
       _$$OpenSessionImplFromJson(json);
 
   @override
   final String id;
+
+  /// Raw editable title (nullable post-Issue 2026-05-07-session-title).
+  /// Pre-feature-deploy BE sent auto-name here; consumers should read
+  /// [displayTitle] (or use the `safeTitle` extension) which handles
+  /// both windows.
   @override
-  final String title;
+  final String? title;
   @override
   final Sport sport;
   @override
@@ -1176,6 +1247,43 @@ class _$OpenSessionImpl implements _OpenSession {
   /// `pricePerPerson` + tenant currency.
   @override
   final SessionPricing? pricing;
+
+  /// `title ?? auto-name` from BE. Always non-null on a real response;
+  /// nullable here so pre-feature-deploy responses (which omit this
+  /// field) still parse — use the `safeTitle` extension at call sites.
+  @override
+  @JsonKey(name: 'display_title')
+  final String? displayTitle;
+
+  /// 8-char hash, null when no session-specific photo set. Used to
+  /// distinguish "real session photo" (rectangular 16:9) from
+  /// "fallback to tenant logo" (square) — when [photoUrls] is non-null
+  /// but [photoPath] is null, the URLs point at the tenant logo and
+  /// caller renders the centered-on-brand-color fallback layout.
+  @override
+  @JsonKey(name: 'photo_path')
+  final String? photoPath;
+
+  /// Hero photo URLs in 4 sizes (sm/md/lg/xl). When [photoPath] is set
+  /// these are 16:9 session photos; otherwise BE returns the tenant
+  /// `logo_urls` map (square) as the fallback. Null when neither
+  /// session nor tenant has a photo.
+  final Map<String, String>? _photoUrls;
+
+  /// Hero photo URLs in 4 sizes (sm/md/lg/xl). When [photoPath] is set
+  /// these are 16:9 session photos; otherwise BE returns the tenant
+  /// `logo_urls` map (square) as the fallback. Null when neither
+  /// session nor tenant has a photo.
+  @override
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls {
+    final value = _photoUrls;
+    if (value == null) return null;
+    if (_photoUrls is EqualUnmodifiableMapView) return _photoUrls;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   final String? description;
   final List<String> _participantNames;
@@ -1214,7 +1322,7 @@ class _$OpenSessionImpl implements _OpenSession {
 
   @override
   String toString() {
-    return 'OpenSession(id: $id, title: $title, sport: $sport, hostId: $hostId, hostName: $hostName, venueName: $venueName, venueId: $venueId, date: $date, startTime: $startTime, endTime: $endTime, currentPlayers: $currentPlayers, maxPlayers: $maxPlayers, minLevel: $minLevel, maxLevel: $maxLevel, pricePerPerson: $pricePerPerson, pricing: $pricing, description: $description, participantNames: $participantNames, status: $status, joinDeadline: $joinDeadline, pricingModel: $pricingModel, visibility: $visibility, courtCost: $courtCost, coachCost: $coachCost, organizerFeePerPerson: $organizerFeePerPerson, settlementStatus: $settlementStatus, health: $health)';
+    return 'OpenSession(id: $id, title: $title, sport: $sport, hostId: $hostId, hostName: $hostName, venueName: $venueName, venueId: $venueId, date: $date, startTime: $startTime, endTime: $endTime, currentPlayers: $currentPlayers, maxPlayers: $maxPlayers, minLevel: $minLevel, maxLevel: $maxLevel, pricePerPerson: $pricePerPerson, pricing: $pricing, displayTitle: $displayTitle, photoPath: $photoPath, photoUrls: $photoUrls, description: $description, participantNames: $participantNames, status: $status, joinDeadline: $joinDeadline, pricingModel: $pricingModel, visibility: $visibility, courtCost: $courtCost, coachCost: $coachCost, organizerFeePerPerson: $organizerFeePerPerson, settlementStatus: $settlementStatus, health: $health)';
   }
 
   @override
@@ -1246,6 +1354,14 @@ class _$OpenSessionImpl implements _OpenSession {
             (identical(other.pricePerPerson, pricePerPerson) ||
                 other.pricePerPerson == pricePerPerson) &&
             (identical(other.pricing, pricing) || other.pricing == pricing) &&
+            (identical(other.displayTitle, displayTitle) ||
+                other.displayTitle == displayTitle) &&
+            (identical(other.photoPath, photoPath) ||
+                other.photoPath == photoPath) &&
+            const DeepCollectionEquality().equals(
+              other._photoUrls,
+              _photoUrls,
+            ) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             const DeepCollectionEquality().equals(
@@ -1290,6 +1406,9 @@ class _$OpenSessionImpl implements _OpenSession {
     maxLevel,
     pricePerPerson,
     pricing,
+    displayTitle,
+    photoPath,
+    const DeepCollectionEquality().hash(_photoUrls),
     description,
     const DeepCollectionEquality().hash(_participantNames),
     status,
@@ -1320,7 +1439,7 @@ class _$OpenSessionImpl implements _OpenSession {
 abstract class _OpenSession implements OpenSession {
   const factory _OpenSession({
     required final String id,
-    required final String title,
+    final String? title,
     required final Sport sport,
     required final String hostId,
     required final String hostName,
@@ -1335,6 +1454,9 @@ abstract class _OpenSession implements OpenSession {
     final LevelTier? maxLevel,
     required final int pricePerPerson,
     final SessionPricing? pricing,
+    @JsonKey(name: 'display_title') final String? displayTitle,
+    @JsonKey(name: 'photo_path') final String? photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
     final String? description,
     final List<String> participantNames,
     final OpenSessionStatus status,
@@ -1353,8 +1475,13 @@ abstract class _OpenSession implements OpenSession {
 
   @override
   String get id;
+
+  /// Raw editable title (nullable post-Issue 2026-05-07-session-title).
+  /// Pre-feature-deploy BE sent auto-name here; consumers should read
+  /// [displayTitle] (or use the `safeTitle` extension) which handles
+  /// both windows.
   @override
-  String get title;
+  String? get title;
   @override
   Sport get sport;
   @override
@@ -1391,6 +1518,30 @@ abstract class _OpenSession implements OpenSession {
   /// `pricePerPerson` + tenant currency.
   @override
   SessionPricing? get pricing;
+
+  /// `title ?? auto-name` from BE. Always non-null on a real response;
+  /// nullable here so pre-feature-deploy responses (which omit this
+  /// field) still parse — use the `safeTitle` extension at call sites.
+  @override
+  @JsonKey(name: 'display_title')
+  String? get displayTitle;
+
+  /// 8-char hash, null when no session-specific photo set. Used to
+  /// distinguish "real session photo" (rectangular 16:9) from
+  /// "fallback to tenant logo" (square) — when [photoUrls] is non-null
+  /// but [photoPath] is null, the URLs point at the tenant logo and
+  /// caller renders the centered-on-brand-color fallback layout.
+  @override
+  @JsonKey(name: 'photo_path')
+  String? get photoPath;
+
+  /// Hero photo URLs in 4 sizes (sm/md/lg/xl). When [photoPath] is set
+  /// these are 16:9 session photos; otherwise BE returns the tenant
+  /// `logo_urls` map (square) as the fallback. Null when neither
+  /// session nor tenant has a photo.
+  @override
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls;
   @override
   String? get description;
   @override

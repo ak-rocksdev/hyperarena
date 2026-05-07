@@ -25,6 +25,12 @@ MarketplaceSessionDetail _$MarketplaceSessionDetailFromJson(
 mixin _$MarketplaceSessionDetail {
   MarketplaceSession get session => throw _privateConstructorUsedError;
   SessionPricing get pricing => throw _privateConstructorUsedError;
+
+  /// Display label for the resolved product — appears next to the price
+  /// in the join CTA (e.g. "Group Single"). Sibling of `pricing` on the
+  /// wire because it's presentational, not part of the price contract.
+  @JsonKey(name: 'product_label')
+  String? get productLabel => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_status')
   UserSessionStatus get userStatus => throw _privateConstructorUsedError;
   @JsonKey(name: 'tenant_payment')
@@ -50,6 +56,7 @@ abstract class $MarketplaceSessionDetailCopyWith<$Res> {
   $Res call({
     MarketplaceSession session,
     SessionPricing pricing,
+    @JsonKey(name: 'product_label') String? productLabel,
     @JsonKey(name: 'user_status') UserSessionStatus userStatus,
     @JsonKey(name: 'tenant_payment') TenantPaymentInfo tenantPayment,
   });
@@ -80,6 +87,7 @@ class _$MarketplaceSessionDetailCopyWithImpl<
   $Res call({
     Object? session = null,
     Object? pricing = null,
+    Object? productLabel = freezed,
     Object? userStatus = null,
     Object? tenantPayment = null,
   }) {
@@ -93,6 +101,10 @@ class _$MarketplaceSessionDetailCopyWithImpl<
                 ? _value.pricing
                 : pricing // ignore: cast_nullable_to_non_nullable
                       as SessionPricing,
+            productLabel: freezed == productLabel
+                ? _value.productLabel
+                : productLabel // ignore: cast_nullable_to_non_nullable
+                      as String?,
             userStatus: null == userStatus
                 ? _value.userStatus
                 : userStatus // ignore: cast_nullable_to_non_nullable
@@ -159,6 +171,7 @@ abstract class _$$MarketplaceSessionDetailImplCopyWith<$Res>
   $Res call({
     MarketplaceSession session,
     SessionPricing pricing,
+    @JsonKey(name: 'product_label') String? productLabel,
     @JsonKey(name: 'user_status') UserSessionStatus userStatus,
     @JsonKey(name: 'tenant_payment') TenantPaymentInfo tenantPayment,
   });
@@ -193,6 +206,7 @@ class __$$MarketplaceSessionDetailImplCopyWithImpl<$Res>
   $Res call({
     Object? session = null,
     Object? pricing = null,
+    Object? productLabel = freezed,
     Object? userStatus = null,
     Object? tenantPayment = null,
   }) {
@@ -206,6 +220,10 @@ class __$$MarketplaceSessionDetailImplCopyWithImpl<$Res>
             ? _value.pricing
             : pricing // ignore: cast_nullable_to_non_nullable
                   as SessionPricing,
+        productLabel: freezed == productLabel
+            ? _value.productLabel
+            : productLabel // ignore: cast_nullable_to_non_nullable
+                  as String?,
         userStatus: null == userStatus
             ? _value.userStatus
             : userStatus // ignore: cast_nullable_to_non_nullable
@@ -225,6 +243,7 @@ class _$MarketplaceSessionDetailImpl implements _MarketplaceSessionDetail {
   const _$MarketplaceSessionDetailImpl({
     required this.session,
     required this.pricing,
+    @JsonKey(name: 'product_label') this.productLabel,
     @JsonKey(name: 'user_status') required this.userStatus,
     @JsonKey(name: 'tenant_payment') required this.tenantPayment,
   });
@@ -236,6 +255,13 @@ class _$MarketplaceSessionDetailImpl implements _MarketplaceSessionDetail {
   final MarketplaceSession session;
   @override
   final SessionPricing pricing;
+
+  /// Display label for the resolved product — appears next to the price
+  /// in the join CTA (e.g. "Group Single"). Sibling of `pricing` on the
+  /// wire because it's presentational, not part of the price contract.
+  @override
+  @JsonKey(name: 'product_label')
+  final String? productLabel;
   @override
   @JsonKey(name: 'user_status')
   final UserSessionStatus userStatus;
@@ -245,7 +271,7 @@ class _$MarketplaceSessionDetailImpl implements _MarketplaceSessionDetail {
 
   @override
   String toString() {
-    return 'MarketplaceSessionDetail(session: $session, pricing: $pricing, userStatus: $userStatus, tenantPayment: $tenantPayment)';
+    return 'MarketplaceSessionDetail(session: $session, pricing: $pricing, productLabel: $productLabel, userStatus: $userStatus, tenantPayment: $tenantPayment)';
   }
 
   @override
@@ -255,6 +281,8 @@ class _$MarketplaceSessionDetailImpl implements _MarketplaceSessionDetail {
             other is _$MarketplaceSessionDetailImpl &&
             (identical(other.session, session) || other.session == session) &&
             (identical(other.pricing, pricing) || other.pricing == pricing) &&
+            (identical(other.productLabel, productLabel) ||
+                other.productLabel == productLabel) &&
             (identical(other.userStatus, userStatus) ||
                 other.userStatus == userStatus) &&
             (identical(other.tenantPayment, tenantPayment) ||
@@ -263,8 +291,14 @@ class _$MarketplaceSessionDetailImpl implements _MarketplaceSessionDetail {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, session, pricing, userStatus, tenantPayment);
+  int get hashCode => Object.hash(
+    runtimeType,
+    session,
+    pricing,
+    productLabel,
+    userStatus,
+    tenantPayment,
+  );
 
   /// Create a copy of MarketplaceSessionDetail
   /// with the given fields replaced by the non-null parameter values.
@@ -287,6 +321,7 @@ abstract class _MarketplaceSessionDetail implements MarketplaceSessionDetail {
   const factory _MarketplaceSessionDetail({
     required final MarketplaceSession session,
     required final SessionPricing pricing,
+    @JsonKey(name: 'product_label') final String? productLabel,
     @JsonKey(name: 'user_status') required final UserSessionStatus userStatus,
     @JsonKey(name: 'tenant_payment')
     required final TenantPaymentInfo tenantPayment,
@@ -299,6 +334,13 @@ abstract class _MarketplaceSessionDetail implements MarketplaceSessionDetail {
   MarketplaceSession get session;
   @override
   SessionPricing get pricing;
+
+  /// Display label for the resolved product — appears next to the price
+  /// in the join CTA (e.g. "Group Single"). Sibling of `pricing` on the
+  /// wire because it's presentational, not part of the price contract.
+  @override
+  @JsonKey(name: 'product_label')
+  String? get productLabel;
   @override
   @JsonKey(name: 'user_status')
   UserSessionStatus get userStatus;
@@ -312,240 +354,6 @@ abstract class _MarketplaceSessionDetail implements MarketplaceSessionDetail {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$MarketplaceSessionDetailImplCopyWith<_$MarketplaceSessionDetailImpl>
   get copyWith => throw _privateConstructorUsedError;
-}
-
-SessionPricing _$SessionPricingFromJson(Map<String, dynamic> json) {
-  return _SessionPricing.fromJson(json);
-}
-
-/// @nodoc
-mixin _$SessionPricing {
-  @JsonKey(name: 'product_id', fromJson: idFromJson)
-  String get productId => throw _privateConstructorUsedError;
-  int get price => throw _privateConstructorUsedError;
-  String get currency => throw _privateConstructorUsedError;
-  String get label => throw _privateConstructorUsedError;
-
-  /// Serializes this SessionPricing to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SessionPricing
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $SessionPricingCopyWith<SessionPricing> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $SessionPricingCopyWith<$Res> {
-  factory $SessionPricingCopyWith(
-    SessionPricing value,
-    $Res Function(SessionPricing) then,
-  ) = _$SessionPricingCopyWithImpl<$Res, SessionPricing>;
-  @useResult
-  $Res call({
-    @JsonKey(name: 'product_id', fromJson: idFromJson) String productId,
-    int price,
-    String currency,
-    String label,
-  });
-}
-
-/// @nodoc
-class _$SessionPricingCopyWithImpl<$Res, $Val extends SessionPricing>
-    implements $SessionPricingCopyWith<$Res> {
-  _$SessionPricingCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of SessionPricing
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? productId = null,
-    Object? price = null,
-    Object? currency = null,
-    Object? label = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            productId: null == productId
-                ? _value.productId
-                : productId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            price: null == price
-                ? _value.price
-                : price // ignore: cast_nullable_to_non_nullable
-                      as int,
-            currency: null == currency
-                ? _value.currency
-                : currency // ignore: cast_nullable_to_non_nullable
-                      as String,
-            label: null == label
-                ? _value.label
-                : label // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
-  }
-}
-
-/// @nodoc
-abstract class _$$SessionPricingImplCopyWith<$Res>
-    implements $SessionPricingCopyWith<$Res> {
-  factory _$$SessionPricingImplCopyWith(
-    _$SessionPricingImpl value,
-    $Res Function(_$SessionPricingImpl) then,
-  ) = __$$SessionPricingImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: 'product_id', fromJson: idFromJson) String productId,
-    int price,
-    String currency,
-    String label,
-  });
-}
-
-/// @nodoc
-class __$$SessionPricingImplCopyWithImpl<$Res>
-    extends _$SessionPricingCopyWithImpl<$Res, _$SessionPricingImpl>
-    implements _$$SessionPricingImplCopyWith<$Res> {
-  __$$SessionPricingImplCopyWithImpl(
-    _$SessionPricingImpl _value,
-    $Res Function(_$SessionPricingImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of SessionPricing
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? productId = null,
-    Object? price = null,
-    Object? currency = null,
-    Object? label = null,
-  }) {
-    return _then(
-      _$SessionPricingImpl(
-        productId: null == productId
-            ? _value.productId
-            : productId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        price: null == price
-            ? _value.price
-            : price // ignore: cast_nullable_to_non_nullable
-                  as int,
-        currency: null == currency
-            ? _value.currency
-            : currency // ignore: cast_nullable_to_non_nullable
-                  as String,
-        label: null == label
-            ? _value.label
-            : label // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$SessionPricingImpl implements _SessionPricing {
-  const _$SessionPricingImpl({
-    @JsonKey(name: 'product_id', fromJson: idFromJson) required this.productId,
-    required this.price,
-    required this.currency,
-    this.label = '',
-  });
-
-  factory _$SessionPricingImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SessionPricingImplFromJson(json);
-
-  @override
-  @JsonKey(name: 'product_id', fromJson: idFromJson)
-  final String productId;
-  @override
-  final int price;
-  @override
-  final String currency;
-  @override
-  @JsonKey()
-  final String label;
-
-  @override
-  String toString() {
-    return 'SessionPricing(productId: $productId, price: $price, currency: $currency, label: $label)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$SessionPricingImpl &&
-            (identical(other.productId, productId) ||
-                other.productId == productId) &&
-            (identical(other.price, price) || other.price == price) &&
-            (identical(other.currency, currency) ||
-                other.currency == currency) &&
-            (identical(other.label, label) || other.label == label));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, productId, price, currency, label);
-
-  /// Create a copy of SessionPricing
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$SessionPricingImplCopyWith<_$SessionPricingImpl> get copyWith =>
-      __$$SessionPricingImplCopyWithImpl<_$SessionPricingImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SessionPricingImplToJson(this);
-  }
-}
-
-abstract class _SessionPricing implements SessionPricing {
-  const factory _SessionPricing({
-    @JsonKey(name: 'product_id', fromJson: idFromJson)
-    required final String productId,
-    required final int price,
-    required final String currency,
-    final String label,
-  }) = _$SessionPricingImpl;
-
-  factory _SessionPricing.fromJson(Map<String, dynamic> json) =
-      _$SessionPricingImpl.fromJson;
-
-  @override
-  @JsonKey(name: 'product_id', fromJson: idFromJson)
-  String get productId;
-  @override
-  int get price;
-  @override
-  String get currency;
-  @override
-  String get label;
-
-  /// Create a copy of SessionPricing
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SessionPricingImplCopyWith<_$SessionPricingImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
 UserSessionStatus _$UserSessionStatusFromJson(Map<String, dynamic> json) {

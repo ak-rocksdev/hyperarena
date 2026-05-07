@@ -39,6 +39,13 @@ mixin _$MarketplaceSession {
   List<SessionParticipant> get participants =>
       throw _privateConstructorUsedError;
   bool get isEnrolled => throw _privateConstructorUsedError;
+  String? get title => throw _privateConstructorUsedError;
+  @JsonKey(name: 'display_title')
+  String? get displayTitle => throw _privateConstructorUsedError;
+  @JsonKey(name: 'photo_path')
+  String? get photoPath => throw _privateConstructorUsedError;
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls => throw _privateConstructorUsedError;
 
   /// Serializes this MarketplaceSession to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -71,6 +78,10 @@ abstract class $MarketplaceSessionCopyWith<$Res> {
     List<SessionCoach> coaches,
     List<SessionParticipant> participants,
     bool isEnrolled,
+    String? title,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   });
 
   $SessionTenantCopyWith<$Res>? get tenant;
@@ -105,6 +116,10 @@ class _$MarketplaceSessionCopyWithImpl<$Res, $Val extends MarketplaceSession>
     Object? coaches = null,
     Object? participants = null,
     Object? isEnrolled = null,
+    Object? title = freezed,
+    Object? displayTitle = freezed,
+    Object? photoPath = freezed,
+    Object? photoUrls = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -160,6 +175,22 @@ class _$MarketplaceSessionCopyWithImpl<$Res, $Val extends MarketplaceSession>
                 ? _value.isEnrolled
                 : isEnrolled // ignore: cast_nullable_to_non_nullable
                       as bool,
+            title: freezed == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            displayTitle: freezed == displayTitle
+                ? _value.displayTitle
+                : displayTitle // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoPath: freezed == photoPath
+                ? _value.photoPath
+                : photoPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoUrls: freezed == photoUrls
+                ? _value.photoUrls
+                : photoUrls // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
           )
           as $Val,
     );
@@ -217,6 +248,10 @@ abstract class _$$MarketplaceSessionImplCopyWith<$Res>
     List<SessionCoach> coaches,
     List<SessionParticipant> participants,
     bool isEnrolled,
+    String? title,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   });
 
   @override
@@ -252,6 +287,10 @@ class __$$MarketplaceSessionImplCopyWithImpl<$Res>
     Object? coaches = null,
     Object? participants = null,
     Object? isEnrolled = null,
+    Object? title = freezed,
+    Object? displayTitle = freezed,
+    Object? photoPath = freezed,
+    Object? photoUrls = freezed,
   }) {
     return _then(
       _$MarketplaceSessionImpl(
@@ -307,6 +346,22 @@ class __$$MarketplaceSessionImplCopyWithImpl<$Res>
             ? _value.isEnrolled
             : isEnrolled // ignore: cast_nullable_to_non_nullable
                   as bool,
+        title: freezed == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        displayTitle: freezed == displayTitle
+            ? _value.displayTitle
+            : displayTitle // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoPath: freezed == photoPath
+            ? _value.photoPath
+            : photoPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoUrls: freezed == photoUrls
+            ? _value._photoUrls
+            : photoUrls // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
       ),
     );
   }
@@ -329,8 +384,13 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     final List<SessionCoach> coaches = const [],
     final List<SessionParticipant> participants = const [],
     this.isEnrolled = false,
+    this.title,
+    @JsonKey(name: 'display_title') this.displayTitle,
+    @JsonKey(name: 'photo_path') this.photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
   }) : _coaches = coaches,
-       _participants = participants;
+       _participants = participants,
+       _photoUrls = photoUrls;
 
   factory _$MarketplaceSessionImpl.fromJson(Map<String, dynamic> json) =>
       _$$MarketplaceSessionImplFromJson(json);
@@ -381,10 +441,28 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
   @override
   @JsonKey()
   final bool isEnrolled;
+  @override
+  final String? title;
+  @override
+  @JsonKey(name: 'display_title')
+  final String? displayTitle;
+  @override
+  @JsonKey(name: 'photo_path')
+  final String? photoPath;
+  final Map<String, String>? _photoUrls;
+  @override
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls {
+    final value = _photoUrls;
+    if (value == null) return null;
+    if (_photoUrls is EqualUnmodifiableMapView) return _photoUrls;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'MarketplaceSession(id: $id, name: $name, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, bookedCount: $bookedCount, notes: $notes, tenant: $tenant, venue: $venue, coaches: $coaches, participants: $participants, isEnrolled: $isEnrolled)';
+    return 'MarketplaceSession(id: $id, name: $name, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, bookedCount: $bookedCount, notes: $notes, tenant: $tenant, venue: $venue, coaches: $coaches, participants: $participants, isEnrolled: $isEnrolled, title: $title, displayTitle: $displayTitle, photoPath: $photoPath, photoUrls: $photoUrls)';
   }
 
   @override
@@ -411,7 +489,16 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
               _participants,
             ) &&
             (identical(other.isEnrolled, isEnrolled) ||
-                other.isEnrolled == isEnrolled));
+                other.isEnrolled == isEnrolled) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.displayTitle, displayTitle) ||
+                other.displayTitle == displayTitle) &&
+            (identical(other.photoPath, photoPath) ||
+                other.photoPath == photoPath) &&
+            const DeepCollectionEquality().equals(
+              other._photoUrls,
+              _photoUrls,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -431,6 +518,10 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     const DeepCollectionEquality().hash(_coaches),
     const DeepCollectionEquality().hash(_participants),
     isEnrolled,
+    title,
+    displayTitle,
+    photoPath,
+    const DeepCollectionEquality().hash(_photoUrls),
   );
 
   /// Create a copy of MarketplaceSession
@@ -465,6 +556,10 @@ abstract class _MarketplaceSession implements MarketplaceSession {
     final List<SessionCoach> coaches,
     final List<SessionParticipant> participants,
     final bool isEnrolled,
+    final String? title,
+    @JsonKey(name: 'display_title') final String? displayTitle,
+    @JsonKey(name: 'photo_path') final String? photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
   }) = _$MarketplaceSessionImpl;
 
   factory _MarketplaceSession.fromJson(Map<String, dynamic> json) =
@@ -500,6 +595,17 @@ abstract class _MarketplaceSession implements MarketplaceSession {
   List<SessionParticipant> get participants;
   @override
   bool get isEnrolled;
+  @override
+  String? get title;
+  @override
+  @JsonKey(name: 'display_title')
+  String? get displayTitle;
+  @override
+  @JsonKey(name: 'photo_path')
+  String? get photoPath;
+  @override
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls;
 
   /// Create a copy of MarketplaceSession
   /// with the given fields replaced by the non-null parameter values.
@@ -519,6 +625,14 @@ mixin _$SessionTenant {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get slug => throw _privateConstructorUsedError;
+
+  /// Hex color (`#RRGGBB`) for fallback hero rendering when the session
+  /// has no photo and falls back to the tenant logo (logo is square,
+  /// rendered centered on this color to fill the 16:9 box).
+  @JsonKey(name: 'brand_color')
+  String? get brandColor => throw _privateConstructorUsedError;
+  @JsonKey(name: 'logo_urls')
+  Map<String, String>? get logoUrls => throw _privateConstructorUsedError;
 
   /// Serializes this SessionTenant to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -541,6 +655,8 @@ abstract class $SessionTenantCopyWith<$Res> {
     @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? slug,
+    @JsonKey(name: 'brand_color') String? brandColor,
+    @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
   });
 }
 
@@ -558,7 +674,13 @@ class _$SessionTenantCopyWithImpl<$Res, $Val extends SessionTenant>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? name = null, Object? slug = freezed}) {
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? slug = freezed,
+    Object? brandColor = freezed,
+    Object? logoUrls = freezed,
+  }) {
     return _then(
       _value.copyWith(
             id: null == id
@@ -573,6 +695,14 @@ class _$SessionTenantCopyWithImpl<$Res, $Val extends SessionTenant>
                 ? _value.slug
                 : slug // ignore: cast_nullable_to_non_nullable
                       as String?,
+            brandColor: freezed == brandColor
+                ? _value.brandColor
+                : brandColor // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            logoUrls: freezed == logoUrls
+                ? _value.logoUrls
+                : logoUrls // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
           )
           as $Val,
     );
@@ -592,6 +722,8 @@ abstract class _$$SessionTenantImplCopyWith<$Res>
     @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? slug,
+    @JsonKey(name: 'brand_color') String? brandColor,
+    @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
   });
 }
 
@@ -608,7 +740,13 @@ class __$$SessionTenantImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? name = null, Object? slug = freezed}) {
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? slug = freezed,
+    Object? brandColor = freezed,
+    Object? logoUrls = freezed,
+  }) {
     return _then(
       _$SessionTenantImpl(
         id: null == id
@@ -623,6 +761,14 @@ class __$$SessionTenantImplCopyWithImpl<$Res>
             ? _value.slug
             : slug // ignore: cast_nullable_to_non_nullable
                   as String?,
+        brandColor: freezed == brandColor
+            ? _value.brandColor
+            : brandColor // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        logoUrls: freezed == logoUrls
+            ? _value._logoUrls
+            : logoUrls // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
       ),
     );
   }
@@ -635,7 +781,9 @@ class _$SessionTenantImpl implements _SessionTenant {
     @JsonKey(fromJson: idFromJson) required this.id,
     required this.name,
     this.slug,
-  });
+    @JsonKey(name: 'brand_color') this.brandColor,
+    @JsonKey(name: 'logo_urls') final Map<String, String>? logoUrls,
+  }) : _logoUrls = logoUrls;
 
   factory _$SessionTenantImpl.fromJson(Map<String, dynamic> json) =>
       _$$SessionTenantImplFromJson(json);
@@ -648,9 +796,26 @@ class _$SessionTenantImpl implements _SessionTenant {
   @override
   final String? slug;
 
+  /// Hex color (`#RRGGBB`) for fallback hero rendering when the session
+  /// has no photo and falls back to the tenant logo (logo is square,
+  /// rendered centered on this color to fill the 16:9 box).
+  @override
+  @JsonKey(name: 'brand_color')
+  final String? brandColor;
+  final Map<String, String>? _logoUrls;
+  @override
+  @JsonKey(name: 'logo_urls')
+  Map<String, String>? get logoUrls {
+    final value = _logoUrls;
+    if (value == null) return null;
+    if (_logoUrls is EqualUnmodifiableMapView) return _logoUrls;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'SessionTenant(id: $id, name: $name, slug: $slug)';
+    return 'SessionTenant(id: $id, name: $name, slug: $slug, brandColor: $brandColor, logoUrls: $logoUrls)';
   }
 
   @override
@@ -660,12 +825,22 @@ class _$SessionTenantImpl implements _SessionTenant {
             other is _$SessionTenantImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.slug, slug) || other.slug == slug));
+            (identical(other.slug, slug) || other.slug == slug) &&
+            (identical(other.brandColor, brandColor) ||
+                other.brandColor == brandColor) &&
+            const DeepCollectionEquality().equals(other._logoUrls, _logoUrls));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, slug);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    name,
+    slug,
+    brandColor,
+    const DeepCollectionEquality().hash(_logoUrls),
+  );
 
   /// Create a copy of SessionTenant
   /// with the given fields replaced by the non-null parameter values.
@@ -686,6 +861,8 @@ abstract class _SessionTenant implements SessionTenant {
     @JsonKey(fromJson: idFromJson) required final String id,
     required final String name,
     final String? slug,
+    @JsonKey(name: 'brand_color') final String? brandColor,
+    @JsonKey(name: 'logo_urls') final Map<String, String>? logoUrls,
   }) = _$SessionTenantImpl;
 
   factory _SessionTenant.fromJson(Map<String, dynamic> json) =
@@ -698,6 +875,16 @@ abstract class _SessionTenant implements SessionTenant {
   String get name;
   @override
   String? get slug;
+
+  /// Hex color (`#RRGGBB`) for fallback hero rendering when the session
+  /// has no photo and falls back to the tenant logo (logo is square,
+  /// rendered centered on this color to fill the 16:9 box).
+  @override
+  @JsonKey(name: 'brand_color')
+  String? get brandColor;
+  @override
+  @JsonKey(name: 'logo_urls')
+  Map<String, String>? get logoUrls;
 
   /// Create a copy of SessionTenant
   /// with the given fields replaced by the non-null parameter values.

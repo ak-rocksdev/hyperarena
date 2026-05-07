@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/session/data/models/open_session.dart' show OpenSessionTitleX;
 import 'package:hyperarena/features/session/providers/session_join_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -113,7 +114,7 @@ class _SessionConfirmationScreenState
                   child: Column(
                     children: [
                       Text(
-                        session.title,
+                        session.safeTitle,
                         style: AppTypography.titleSmall,
                       ),
                       Text(

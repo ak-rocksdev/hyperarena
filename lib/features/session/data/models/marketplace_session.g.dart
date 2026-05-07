@@ -34,6 +34,12 @@ _$MarketplaceSessionImpl _$$MarketplaceSessionImplFromJson(
           .toList() ??
       const [],
   isEnrolled: json['is_enrolled'] as bool? ?? false,
+  title: json['title'] as String?,
+  displayTitle: json['display_title'] as String?,
+  photoPath: json['photo_path'] as String?,
+  photoUrls: (json['photo_urls'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(k, e as String),
+  ),
 );
 
 Map<String, dynamic> _$$MarketplaceSessionImplToJson(
@@ -52,6 +58,10 @@ Map<String, dynamic> _$$MarketplaceSessionImplToJson(
   'coaches': instance.coaches,
   'participants': instance.participants,
   'is_enrolled': instance.isEnrolled,
+  'title': instance.title,
+  'display_title': instance.displayTitle,
+  'photo_path': instance.photoPath,
+  'photo_urls': instance.photoUrls,
 };
 
 _$SessionTenantImpl _$$SessionTenantImplFromJson(Map<String, dynamic> json) =>
@@ -59,6 +69,10 @@ _$SessionTenantImpl _$$SessionTenantImplFromJson(Map<String, dynamic> json) =>
       id: idFromJson(json['id']),
       name: json['name'] as String,
       slug: json['slug'] as String?,
+      brandColor: json['brand_color'] as String?,
+      logoUrls: (json['logo_urls'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
     );
 
 Map<String, dynamic> _$$SessionTenantImplToJson(_$SessionTenantImpl instance) =>
@@ -66,6 +80,8 @@ Map<String, dynamic> _$$SessionTenantImplToJson(_$SessionTenantImpl instance) =>
       'id': instance.id,
       'name': instance.name,
       'slug': instance.slug,
+      'brand_color': instance.brandColor,
+      'logo_urls': instance.logoUrls,
     };
 
 _$MarketplaceSessionVenueImpl _$$MarketplaceSessionVenueImplFromJson(

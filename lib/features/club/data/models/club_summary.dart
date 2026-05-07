@@ -27,6 +27,7 @@ class ClubTenant with _$ClubTenant {
     @JsonKey(name: 'sport_name') String? sportName,
     @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
     String? city,
+    @JsonKey(name: 'brand_color') String? brandColor,
   }) = _ClubTenant;
 
   factory ClubTenant.fromJson(Map<String, dynamic> json) =>

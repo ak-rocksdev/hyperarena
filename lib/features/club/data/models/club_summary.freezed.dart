@@ -226,6 +226,8 @@ mixin _$ClubTenant {
   @JsonKey(name: 'logo_urls')
   Map<String, String>? get logoUrls => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
+  @JsonKey(name: 'brand_color')
+  String? get brandColor => throw _privateConstructorUsedError;
 
   /// Serializes this ClubTenant to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -251,6 +253,7 @@ abstract class $ClubTenantCopyWith<$Res> {
     @JsonKey(name: 'sport_name') String? sportName,
     @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
     String? city,
+    @JsonKey(name: 'brand_color') String? brandColor,
   });
 }
 
@@ -275,6 +278,7 @@ class _$ClubTenantCopyWithImpl<$Res, $Val extends ClubTenant>
     Object? sportName = freezed,
     Object? logoUrls = freezed,
     Object? city = freezed,
+    Object? brandColor = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -302,6 +306,10 @@ class _$ClubTenantCopyWithImpl<$Res, $Val extends ClubTenant>
                 ? _value.city
                 : city // ignore: cast_nullable_to_non_nullable
                       as String?,
+            brandColor: freezed == brandColor
+                ? _value.brandColor
+                : brandColor // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -324,6 +332,7 @@ abstract class _$$ClubTenantImplCopyWith<$Res>
     @JsonKey(name: 'sport_name') String? sportName,
     @JsonKey(name: 'logo_urls') Map<String, String>? logoUrls,
     String? city,
+    @JsonKey(name: 'brand_color') String? brandColor,
   });
 }
 
@@ -347,6 +356,7 @@ class __$$ClubTenantImplCopyWithImpl<$Res>
     Object? sportName = freezed,
     Object? logoUrls = freezed,
     Object? city = freezed,
+    Object? brandColor = freezed,
   }) {
     return _then(
       _$ClubTenantImpl(
@@ -374,6 +384,10 @@ class __$$ClubTenantImplCopyWithImpl<$Res>
             ? _value.city
             : city // ignore: cast_nullable_to_non_nullable
                   as String?,
+        brandColor: freezed == brandColor
+            ? _value.brandColor
+            : brandColor // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -389,6 +403,7 @@ class _$ClubTenantImpl implements _ClubTenant {
     @JsonKey(name: 'sport_name') this.sportName,
     @JsonKey(name: 'logo_urls') final Map<String, String>? logoUrls,
     this.city,
+    @JsonKey(name: 'brand_color') this.brandColor,
   }) : _logoUrls = logoUrls;
 
   factory _$ClubTenantImpl.fromJson(Map<String, dynamic> json) =>
@@ -417,10 +432,13 @@ class _$ClubTenantImpl implements _ClubTenant {
 
   @override
   final String? city;
+  @override
+  @JsonKey(name: 'brand_color')
+  final String? brandColor;
 
   @override
   String toString() {
-    return 'ClubTenant(id: $id, name: $name, slug: $slug, sportName: $sportName, logoUrls: $logoUrls, city: $city)';
+    return 'ClubTenant(id: $id, name: $name, slug: $slug, sportName: $sportName, logoUrls: $logoUrls, city: $city, brandColor: $brandColor)';
   }
 
   @override
@@ -434,7 +452,9 @@ class _$ClubTenantImpl implements _ClubTenant {
             (identical(other.sportName, sportName) ||
                 other.sportName == sportName) &&
             const DeepCollectionEquality().equals(other._logoUrls, _logoUrls) &&
-            (identical(other.city, city) || other.city == city));
+            (identical(other.city, city) || other.city == city) &&
+            (identical(other.brandColor, brandColor) ||
+                other.brandColor == brandColor));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -447,6 +467,7 @@ class _$ClubTenantImpl implements _ClubTenant {
     sportName,
     const DeepCollectionEquality().hash(_logoUrls),
     city,
+    brandColor,
   );
 
   /// Create a copy of ClubTenant
@@ -471,6 +492,7 @@ abstract class _ClubTenant implements ClubTenant {
     @JsonKey(name: 'sport_name') final String? sportName,
     @JsonKey(name: 'logo_urls') final Map<String, String>? logoUrls,
     final String? city,
+    @JsonKey(name: 'brand_color') final String? brandColor,
   }) = _$ClubTenantImpl;
 
   factory _ClubTenant.fromJson(Map<String, dynamic> json) =
@@ -491,6 +513,9 @@ abstract class _ClubTenant implements ClubTenant {
   Map<String, String>? get logoUrls;
   @override
   String? get city;
+  @override
+  @JsonKey(name: 'brand_color')
+  String? get brandColor;
 
   /// Create a copy of ClubTenant
   /// with the given fields replaced by the non-null parameter values.

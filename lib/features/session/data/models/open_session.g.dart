@@ -55,7 +55,7 @@ Map<String, dynamic> _$$SessionPricingImplToJson(
 _$OpenSessionImpl _$$OpenSessionImplFromJson(Map<String, dynamic> json) =>
     _$OpenSessionImpl(
       id: json['id'] as String,
-      title: json['title'] as String,
+      title: json['title'] as String?,
       sport: $enumDecode(_$SportEnumMap, json['sport']),
       hostId: json['host_id'] as String,
       hostName: json['host_name'] as String,
@@ -72,6 +72,11 @@ _$OpenSessionImpl _$$OpenSessionImplFromJson(Map<String, dynamic> json) =>
       pricing: json['pricing'] == null
           ? null
           : SessionPricing.fromJson(json['pricing'] as Map<String, dynamic>),
+      displayTitle: json['display_title'] as String?,
+      photoPath: json['photo_path'] as String?,
+      photoUrls: (json['photo_urls'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
       description: json['description'] as String?,
       participantNames:
           (json['participant_names'] as List<dynamic>?)
@@ -126,6 +131,9 @@ Map<String, dynamic> _$$OpenSessionImplToJson(_$OpenSessionImpl instance) =>
       'max_level': _$LevelTierEnumMap[instance.maxLevel],
       'price_per_person': instance.pricePerPerson,
       'pricing': instance.pricing,
+      'display_title': instance.displayTitle,
+      'photo_path': instance.photoPath,
+      'photo_urls': instance.photoUrls,
       'description': instance.description,
       'participant_names': instance.participantNames,
       'status': _$OpenSessionStatusEnumMap[instance.status]!,

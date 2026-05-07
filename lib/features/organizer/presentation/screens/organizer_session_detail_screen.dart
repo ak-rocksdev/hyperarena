@@ -138,7 +138,7 @@ class _SessionHeaderCard extends ConsumerWidget {
           const SizedBox(height: AppDimensions.sm),
 
           // Title
-          Text(session.title, style: AppTypography.headingSmall),
+          Text(session.safeTitle, style: AppTypography.headingSmall),
           const SizedBox(height: AppDimensions.sm),
 
           // Status pill

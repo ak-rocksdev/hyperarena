@@ -10,6 +10,7 @@ import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/organizer/providers/participant_management_provider.dart';
+import 'package:hyperarena/features/session/data/models/open_session.dart' show OpenSessionTitleX;
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
 
 enum _ParticipantFilter { semua, menunggu, terkonfirmasi, bermasalah }
@@ -66,7 +67,7 @@ class _ParticipantManagementScreenState
             const Text('Kelola Peserta'),
             sessionAsync.whenOrNull(
                   data: (session) => Text(
-                    session.title,
+                    session.safeTitle,
                     style: AppTypography.caption,
                   ),
                 ) ??

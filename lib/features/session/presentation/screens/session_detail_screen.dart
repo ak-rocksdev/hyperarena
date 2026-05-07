@@ -19,7 +19,7 @@ import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/core/mocks/mock_venues.dart';
 import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart'
-    show OpenSessionStatus;
+    show OpenSessionStatus, OpenSessionTitleX;
 import 'package:hyperarena/features/session/providers/session_join_provider.dart';
 import 'package:hyperarena/features/session/providers/session_providers.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
@@ -92,7 +92,7 @@ class SessionDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: AppDimensions.sm),
-                      Text(session.title, style: AppTypography.headingLarge),
+                      Text(session.safeTitle, style: AppTypography.headingLarge),
                       const SizedBox(height: AppDimensions.xs),
                       Text(
                         'oleh ${session.hostName}',
@@ -168,7 +168,7 @@ class SessionDetailScreen extends ConsumerWidget {
                           sessionId: session.id,
                           coachId: session.hostId,
                           coachName: session.hostName,
-                          sessionTitle: session.title,
+                          sessionTitle: session.safeTitle,
                           blockedReason: 'session_not_ended',
                         ),
 

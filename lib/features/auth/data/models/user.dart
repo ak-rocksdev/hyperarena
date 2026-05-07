@@ -21,6 +21,10 @@ class User with _$User {
     String? tenantName,
     String? tenantCurrency,
     String? tenantTimezone,
+    /// Hex color (`#RRGGBB`) for fallback hero rendering — used by
+    /// `SessionHero` when a session has no photo and falls back to the
+    /// tenant logo (square logo centered on this color).
+    String? tenantBrandColor,
     String? activeRole,
     String? locale,
     @Default([]) List<String> availableRoles,

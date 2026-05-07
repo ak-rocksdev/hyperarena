@@ -7,6 +7,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/club/data/models/student_detail.dart';
 import 'package:hyperarena/features/club/providers/club_providers.dart';
 import 'package:hyperarena/shared/widgets/session_result_sheet.dart';
@@ -36,6 +37,7 @@ class OrganizerMemberDetailScreen extends ConsumerWidget {
       );
     }
     final async = ref.watch(adminStudentDetailProvider(id));
+    final tenantCurrency = ref.watch(tenantCurrencyProvider);
     return async.when(
       loading: () => const _LoadingScaffold(),
       error: (e, _) => Scaffold(
@@ -45,7 +47,8 @@ class OrganizerMemberDetailScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(adminStudentDetailProvider(id)),
         ),
       ),
-      data: (detail) => _Body(detail: detail),
+      data: (detail) =>
+          _Body(detail: detail, tenantCurrency: tenantCurrency),
     );
   }
 }
@@ -75,8 +78,9 @@ class _LoadingScaffold extends StatelessWidget {
 
 class _Body extends StatelessWidget {
   final AdminStudentDetail detail;
+  final String tenantCurrency;
 
-  const _Body({required this.detail});
+  const _Body({required this.detail, required this.tenantCurrency});
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +104,10 @@ class _Body extends StatelessWidget {
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('RINGKASAN KEUANGAN'),
                   const SizedBox(height: AppDimensions.sm),
-                  _FinancialKpiStrip(fin: detail.financialStats),
+                  _FinancialKpiStrip(
+                    fin: detail.financialStats,
+                    currency: tenantCurrency,
+                  ),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('ENROLLMENT'),
                   const SizedBox(height: AppDimensions.sm),
@@ -378,8 +385,9 @@ class _EngagementKpiStrip extends StatelessWidget {
 
 class _FinancialKpiStrip extends StatelessWidget {
   final FinancialStats fin;
+  final String currency;
 
-  const _FinancialKpiStrip({required this.fin});
+  const _FinancialKpiStrip({required this.fin, required this.currency});
 
   @override
   Widget build(BuildContext context) {
@@ -403,7 +411,8 @@ class _FinancialKpiStrip extends StatelessWidget {
           children: [
             Expanded(
               child: _KpiTile(
-                value: Formatters.formatRupiahCompact(fin.paidThisMonth),
+                value: Formatters.formatCurrencyCompact(
+                    fin.paidThisMonth, currency),
                 label: 'Bayar bulan ini',
                 color: AppColors.success,
               ),
@@ -412,7 +421,8 @@ class _FinancialKpiStrip extends StatelessWidget {
             Expanded(
               child: _KpiTile(
                 value: hasOutstanding
-                    ? Formatters.formatRupiahCompact(fin.outstandingAmount)
+                    ? Formatters.formatCurrencyCompact(
+                        fin.outstandingAmount, currency)
                     : '—',
                 label: hasOutstanding
                     ? '${fin.outstandingCount} tagihan'
@@ -856,7 +866,8 @@ class _PaymentRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    Formatters.formatRupiah(payment.amount),
+                    Formatters.formatCurrency(
+                        payment.amount, payment.currency),
                     style: AppTypography.bodyMedium
                         .copyWith(fontWeight: FontWeight.w700),
                   ),

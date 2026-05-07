@@ -54,6 +54,16 @@ final authNotifierProvider =
 /// True while a role switch API call is in flight.
 final isSwitchingRoleProvider = StateProvider<bool>((ref) => false);
 
+/// The current tenant's display currency code (e.g. `'IDR'`, `'MYR'`).
+final tenantCurrencyProvider = Provider<String>(
+    (ref) => ref.watch(authNotifierProvider)?.tenantCurrency ?? 'IDR');
+
+/// The current tenant's IANA timezone (e.g. `'Asia/Jakarta'`). Pending
+/// consumption — Issue 19.6 (BE handoff) standardizes datetime serialization
+/// with tenant tz offset; until then formatters fall back to device-local.
+final tenantTimezoneProvider = Provider<String>(
+    (ref) => ref.watch(authNotifierProvider)?.tenantTimezone ?? 'UTC');
+
 class AuthNotifier extends Notifier<User?> {
   @override
   User? build() {

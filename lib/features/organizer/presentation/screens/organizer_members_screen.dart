@@ -9,6 +9,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/club/data/models/admin_student_summary.dart';
 import 'package:hyperarena/features/club/data/models/club_summary.dart';
 import 'package:hyperarena/features/club/providers/club_providers.dart';
@@ -73,6 +74,7 @@ class _OrganizerMembersScreenState
   Widget build(BuildContext context) {
     final summaryAsync = ref.watch(clubSummaryProvider);
     final listState = ref.watch(adminStudentsListProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
@@ -107,7 +109,8 @@ class _OrganizerMembersScreenState
                 child: summaryAsync.when(
                   loading: _buildStatsLoading,
                   error: (_, _) => const SizedBox.shrink(),
-                  data: (s) => _ClubStatsCard(stats: s.stats),
+                  data: (s) =>
+                    _ClubStatsCard(stats: s.stats, currency: currency),
                 ),
               ),
             ),
@@ -348,8 +351,9 @@ class _OrganizerMembersScreenState
 
 class _ClubStatsCard extends StatelessWidget {
   final ClubStats stats;
+  final String currency;
 
-  const _ClubStatsCard({required this.stats});
+  const _ClubStatsCard({required this.stats, required this.currency});
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +416,8 @@ class _ClubStatsCard extends StatelessWidget {
               child: _StatTile(
                 label: 'TAGIHAN',
                 value: hasOutstanding
-                    ? Formatters.formatRupiahCompact(stats.outstandingTotal)
+                    ? Formatters.formatCurrencyCompact(
+                        stats.outstandingTotal, currency)
                     : '—',
                 hint: hasOutstanding
                     ? '${stats.outstandingCount} anggota'

@@ -1,38 +1,115 @@
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:intl/intl.dart';
 
-/// Formatting utilities for Rupiah, dates, times, and durations.
+/// Formatting utilities for currency, dates, times, and durations.
 abstract final class Formatters {
-  static final _rupiahFormat = NumberFormat.currency(
-    locale: 'id',
-    symbol: 'Rp ',
-    decimalDigits: 0,
-  );
+  // ── Currency ───────────────────────────────────────────────────────
+  //
+  // Mirrors:
+  //   BE:  app/Helpers/CurrencyHelper.php
+  //   Web: resources/js/utils/currency.js
+  //
+  // Storage convention: amounts are stored in the smallest unit. Zero-
+  // decimal currencies (IDR, JPY, KRW, …) store as whole units; the rest
+  // (MYR, USD, SGD, …) store as ×100 (cents/sen). When a new zero-decimal
+  // currency is introduced, add it to BOTH this set AND the BE helper
+  // AND web mirror, in the same commit.
+
+  static const _zeroDecimalCurrencies = {
+    'IDR', 'JPY', 'KRW', 'VND', 'CLP', 'PYG', 'RWF', 'UGX',
+  };
+
+  static const _currencyLocales = <String, String>{
+    'IDR': 'id_ID',
+    'MYR': 'ms_MY',
+    'USD': 'en_US',
+    'SGD': 'en_SG',
+  };
+
+  static const _currencySymbols = <String, String>{
+    'IDR': 'Rp ',
+    'MYR': 'RM ',
+    'USD': r'$ ',
+    'SGD': r'$ ',
+  };
+
+  // Bounded by the supported-currency set above (~4 entries) — intentionally
+  // never evicted. `intl`'s `NumberFormat` constructor parses locale tables,
+  // so reuse pays off on payment lists.
+  static final Map<String, _CurrencySpec> _currencySpecs = {};
+
+  static _CurrencySpec _specFor(String upper) {
+    return _currencySpecs.putIfAbsent(upper, () {
+      final locale = _currencyLocales[upper] ?? 'en_US';
+      final symbol = _currencySymbols[upper] ?? '$upper ';
+      final isZeroDecimal = _zeroDecimalCurrencies.contains(upper);
+      return _CurrencySpec(
+        symbol: symbol,
+        multiplier: isZeroDecimal ? 1 : 100,
+        currency: NumberFormat.currency(
+          locale: locale,
+          symbol: symbol,
+          decimalDigits: isZeroDecimal ? 0 : 2,
+        ),
+        decimal: NumberFormat('0.#', locale),
+      );
+    });
+  }
+
+  /// Locale-aware currency formatter.
+  ///
+  /// `formatCurrency(150000, 'IDR')` → "Rp 150.000"
+  /// `formatCurrency(5000, 'MYR')`   → "RM 50.00" (5000 sen → 50 ringgit)
+  ///
+  /// [amount] is in the smallest unit (rupiah for IDR, sen for MYR — same
+  /// convention BE uses for storage).
+  static String formatCurrency(int amount, String currency) {
+    final spec = _specFor(currency.toUpperCase());
+    final display = spec.multiplier == 1 ? amount : amount / spec.multiplier;
+    return spec.currency.format(display);
+  }
+
+  /// Compact currency: 750000 IDR → "Rp 750rb", 4200000 IDR → "Rp 4,2jt".
+  /// For non-Indonesian currencies falls back to the K/M suffix convention
+  /// since "rb"/"jt" are Indonesian-specific. Decimal separator follows the
+  /// currency locale (id → "4,2", en → "4.2").
+  static String formatCurrencyCompact(int amount, String currency) {
+    final upper = currency.toUpperCase();
+    final spec = _specFor(upper);
+    final display = spec.multiplier == 1 ? amount : amount / spec.multiplier;
+    final useIndonesian = upper == 'IDR';
+    final unitMillion = useIndonesian ? 'jt' : 'M';
+    final unitThousand = useIndonesian ? 'rb' : 'K';
+
+    String render(num value, String unit) {
+      final asDouble = value.toDouble();
+      final whole = asDouble == asDouble.truncateToDouble();
+      return whole
+          ? '${asDouble.toInt()}$unit'
+          : '${spec.decimal.format(asDouble)}$unit';
+    }
+
+    if (display >= 1000000) return '${spec.symbol}${render(display / 1000000, unitMillion)}';
+    if (display >= 1000) return '${spec.symbol}${render(display / 1000, unitThousand)}';
+    return '${spec.symbol}${render(display, '')}';
+  }
+
+  /// **Deprecated**: use [formatCurrency] with an explicit currency code.
+  /// Kept for the booking/coach-mock screens that haven't been wired to
+  /// real BE yet — they still operate on hardcoded IDR values. Migration
+  /// tracked under Issue 19 (BE handoff doc).
+  @Deprecated('Use formatCurrency(amount, currency); migration tracked in Issue 19')
+  static String formatRupiah(int amount) => formatCurrency(amount, 'IDR');
+
+  /// **Deprecated**: use [formatCurrencyCompact] with an explicit currency.
+  @Deprecated('Use formatCurrencyCompact(amount, currency); migration tracked in Issue 19')
+  static String formatRupiahCompact(int amount) =>
+      formatCurrencyCompact(amount, 'IDR');
 
   static final _whitespace = RegExp(r'\s+');
   static final _dateLong = DateFormat('EEEE, d MMMM yyyy', 'id');
   static final _timeHm = DateFormat('HH:mm', 'id');
   static final _dateTimeCompact = DateFormat('EEE, d MMM yyyy \u2022 HH:mm', 'id');
-
-  /// Format integer to Rupiah: 150000 → "Rp 150.000"
-  static String formatRupiah(int amount) => _rupiahFormat.format(amount);
-
-  /// Compact Rupiah: 750000 → "Rp 750rb", 4200000 → "Rp 4,2jt"
-  static String formatRupiahCompact(int amount) {
-    if (amount >= 1000000) {
-      final jt = amount / 1000000;
-      final formatted =
-          jt == jt.truncateToDouble() ? '${jt.toInt()}' : jt.toStringAsFixed(1);
-      return 'Rp ${formatted}jt';
-    }
-    if (amount >= 1000) {
-      final rb = amount / 1000;
-      final formatted =
-          rb == rb.truncateToDouble() ? '${rb.toInt()}' : rb.toStringAsFixed(0);
-      return 'Rp ${formatted}rb';
-    }
-    return 'Rp $amount';
-  }
 
   /// Format DateTime to full date: "15 Feb 2026"
   static String formatDate(DateTime date) =>
@@ -137,4 +214,18 @@ abstract final class Formatters {
   /// `'bio': nullIfEmpty(_bio.text.trim())` sends `null` (clears column)
   /// instead of an empty string.
   static String? nullIfEmpty(String value) => value.isEmpty ? null : value;
+}
+
+class _CurrencySpec {
+  final String symbol;
+  final int multiplier;
+  final NumberFormat currency;
+  final NumberFormat decimal;
+
+  const _CurrencySpec({
+    required this.symbol,
+    required this.multiplier,
+    required this.currency,
+    required this.decimal,
+  });
 }

@@ -286,7 +286,7 @@ class _PaymentSection extends StatelessWidget {
                   children: [
                     Text(
                       payment.amountPaid > 0
-                          ? Formatters.formatRupiah(payment.amountPaid)
+                          ? Formatters.formatCurrency(payment.amountPaid, payment.currency)
                           : 'Dibayar dengan kredit',
                       style: AppTypography.titleSmall.copyWith(
                         fontWeight: FontWeight.w700,
@@ -321,7 +321,7 @@ class _PaymentSection extends StatelessWidget {
               heroTag: 'payment-proof-$sessionId',
               imageUrl: payment.paymentProofUrl!,
               caption: payment.amountPaid > 0
-                  ? Formatters.formatRupiah(payment.amountPaid)
+                  ? Formatters.formatCurrency(payment.amountPaid, payment.currency)
                   : null,
               thumbnailHeight: 140,
             ),

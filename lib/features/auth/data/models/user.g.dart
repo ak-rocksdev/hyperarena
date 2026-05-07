@@ -19,6 +19,8 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
   tenantId: (json['tenant_id'] as num?)?.toInt(),
   tenantSlug: json['tenant_slug'] as String?,
   tenantName: json['tenant_name'] as String?,
+  tenantCurrency: json['tenant_currency'] as String?,
+  tenantTimezone: json['tenant_timezone'] as String?,
   activeRole: json['active_role'] as String?,
   locale: json['locale'] as String?,
   availableRoles:
@@ -42,6 +44,8 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'tenant_id': instance.tenantId,
       'tenant_slug': instance.tenantSlug,
       'tenant_name': instance.tenantName,
+      'tenant_currency': instance.tenantCurrency,
+      'tenant_timezone': instance.tenantTimezone,
       'active_role': instance.activeRole,
       'locale': instance.locale,
       'available_roles': instance.availableRoles,

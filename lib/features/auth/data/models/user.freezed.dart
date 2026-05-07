@@ -33,6 +33,8 @@ mixin _$User {
   int? get tenantId => throw _privateConstructorUsedError;
   String? get tenantSlug => throw _privateConstructorUsedError;
   String? get tenantName => throw _privateConstructorUsedError;
+  String? get tenantCurrency => throw _privateConstructorUsedError;
+  String? get tenantTimezone => throw _privateConstructorUsedError;
   String? get activeRole => throw _privateConstructorUsedError;
   String? get locale => throw _privateConstructorUsedError;
   List<String> get availableRoles => throw _privateConstructorUsedError;
@@ -64,6 +66,8 @@ abstract class $UserCopyWith<$Res> {
     int? tenantId,
     String? tenantSlug,
     String? tenantName,
+    String? tenantCurrency,
+    String? tenantTimezone,
     String? activeRole,
     String? locale,
     List<String> availableRoles,
@@ -97,6 +101,8 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? tenantId = freezed,
     Object? tenantSlug = freezed,
     Object? tenantName = freezed,
+    Object? tenantCurrency = freezed,
+    Object? tenantTimezone = freezed,
     Object? activeRole = freezed,
     Object? locale = freezed,
     Object? availableRoles = null,
@@ -151,6 +157,14 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
                 ? _value.tenantName
                 : tenantName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            tenantCurrency: freezed == tenantCurrency
+                ? _value.tenantCurrency
+                : tenantCurrency // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            tenantTimezone: freezed == tenantTimezone
+                ? _value.tenantTimezone
+                : tenantTimezone // ignore: cast_nullable_to_non_nullable
+                      as String?,
             activeRole: freezed == activeRole
                 ? _value.activeRole
                 : activeRole // ignore: cast_nullable_to_non_nullable
@@ -190,6 +204,8 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     int? tenantId,
     String? tenantSlug,
     String? tenantName,
+    String? tenantCurrency,
+    String? tenantTimezone,
     String? activeRole,
     String? locale,
     List<String> availableRoles,
@@ -220,6 +236,8 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? tenantId = freezed,
     Object? tenantSlug = freezed,
     Object? tenantName = freezed,
+    Object? tenantCurrency = freezed,
+    Object? tenantTimezone = freezed,
     Object? activeRole = freezed,
     Object? locale = freezed,
     Object? availableRoles = null,
@@ -274,6 +292,14 @@ class __$$UserImplCopyWithImpl<$Res>
             ? _value.tenantName
             : tenantName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        tenantCurrency: freezed == tenantCurrency
+            ? _value.tenantCurrency
+            : tenantCurrency // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        tenantTimezone: freezed == tenantTimezone
+            ? _value.tenantTimezone
+            : tenantTimezone // ignore: cast_nullable_to_non_nullable
+                  as String?,
         activeRole: freezed == activeRole
             ? _value.activeRole
             : activeRole // ignore: cast_nullable_to_non_nullable
@@ -307,6 +333,8 @@ class _$UserImpl implements _User {
     this.tenantId,
     this.tenantSlug,
     this.tenantName,
+    this.tenantCurrency,
+    this.tenantTimezone,
     this.activeRole,
     this.locale,
     final List<String> availableRoles = const [],
@@ -341,6 +369,10 @@ class _$UserImpl implements _User {
   @override
   final String? tenantName;
   @override
+  final String? tenantCurrency;
+  @override
+  final String? tenantTimezone;
+  @override
   final String? activeRole;
   @override
   final String? locale;
@@ -355,7 +387,7 @@ class _$UserImpl implements _User {
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, email: $email, phone: $phone, bio: $bio, city: $city, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
+    return 'User(id: $id, name: $name, email: $email, phone: $phone, bio: $bio, city: $city, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, tenantCurrency: $tenantCurrency, tenantTimezone: $tenantTimezone, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
   }
 
   @override
@@ -380,6 +412,10 @@ class _$UserImpl implements _User {
                 other.tenantSlug == tenantSlug) &&
             (identical(other.tenantName, tenantName) ||
                 other.tenantName == tenantName) &&
+            (identical(other.tenantCurrency, tenantCurrency) ||
+                other.tenantCurrency == tenantCurrency) &&
+            (identical(other.tenantTimezone, tenantTimezone) ||
+                other.tenantTimezone == tenantTimezone) &&
             (identical(other.activeRole, activeRole) ||
                 other.activeRole == activeRole) &&
             (identical(other.locale, locale) || other.locale == locale) &&
@@ -405,6 +441,8 @@ class _$UserImpl implements _User {
     tenantId,
     tenantSlug,
     tenantName,
+    tenantCurrency,
+    tenantTimezone,
     activeRole,
     locale,
     const DeepCollectionEquality().hash(_availableRoles),
@@ -438,6 +476,8 @@ abstract class _User implements User {
     final int? tenantId,
     final String? tenantSlug,
     final String? tenantName,
+    final String? tenantCurrency,
+    final String? tenantTimezone,
     final String? activeRole,
     final String? locale,
     final List<String> availableRoles,
@@ -469,6 +509,10 @@ abstract class _User implements User {
   String? get tenantSlug;
   @override
   String? get tenantName;
+  @override
+  String? get tenantCurrency;
+  @override
+  String? get tenantTimezone;
   @override
   String? get activeRole;
   @override

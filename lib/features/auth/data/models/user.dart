@@ -19,6 +19,8 @@ class User with _$User {
     int? tenantId,
     String? tenantSlug,
     String? tenantName,
+    String? tenantCurrency,
+    String? tenantTimezone,
     String? activeRole,
     String? locale,
     @Default([]) List<String> availableRoles,

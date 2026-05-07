@@ -6,6 +6,7 @@ import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
+import 'package:hyperarena/features/organizer/data/models/session_financial.dart';
 import 'package:hyperarena/features/organizer/data/organizer_repository.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
@@ -107,6 +108,14 @@ final organizerEarningsProvider = FutureProvider<OrganizerEarningsSummary>((
 ) {
   final repo = ref.watch(organizerRepositoryProvider);
   return repo.getEarningsSummary();
+});
+
+/// 403 here means the auth user lacks `view-finances` — consumer should
+/// hide the section rather than surface a generic error.
+final sessionFinancialProvider =
+    FutureProvider.family<SessionFinancial, String>((ref, sessionId) {
+  final repo = ref.watch(organizerRepositoryProvider);
+  return repo.getSessionFinancial(sessionId);
 });
 
 final clubProfileProvider = FutureProvider<ClubProfile>((ref) {

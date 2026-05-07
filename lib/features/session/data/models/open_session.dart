@@ -34,6 +34,32 @@ class SessionHealth with _$SessionHealth {
       _$SessionHealthFromJson(json);
 }
 
+/// Resolved per-person session pricing — see BE `SessionPriceResolver`
+/// for the resolution rules. UI consumers should branch on
+/// [paymentMode] via [isCredit] / [isNominal] / [isUnconfigured] rather
+/// than comparing the string literally.
+@freezed
+class SessionPricing with _$SessionPricing {
+  const factory SessionPricing({
+    @JsonKey(name: 'effective_price') int? effectivePrice,
+    @Default('IDR') String currency,
+    @JsonKey(name: 'payment_mode') @Default('unconfigured') String paymentMode,
+    @JsonKey(name: 'credit_required') int? creditRequired,
+    String? source,
+    @JsonKey(name: 'product_id') int? productId,
+  }) = _SessionPricing;
+
+  factory SessionPricing.fromJson(Map<String, dynamic> json) =>
+      _$SessionPricingFromJson(json);
+}
+
+extension SessionPricingX on SessionPricing {
+  bool get isNominal => paymentMode == 'nominal';
+  bool get isCredit => paymentMode == 'credit';
+  bool get isUnconfigured =>
+      paymentMode == 'unconfigured' || effectivePrice == null;
+}
+
 @freezed
 class OpenSession with _$OpenSession {
   const factory OpenSession({
@@ -51,7 +77,14 @@ class OpenSession with _$OpenSession {
     @Default(1) int maxPlayers,
     LevelTier? minLevel,
     LevelTier? maxLevel,
+    /// Legacy alias for `pricing.effective_price`. Prefer reading
+    /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
+    /// credit requirement, or currency.
     required int pricePerPerson,
+    /// Resolved pricing block — source of truth for display. Nullable
+    /// because mock fixtures may omit it; consumers fall back to
+    /// `pricePerPerson` + tenant currency.
+    SessionPricing? pricing,
     String? description,
     @Default([]) List<String> participantNames,
     @Default(OpenSessionStatus.open) OpenSessionStatus status,

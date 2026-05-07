@@ -202,6 +202,39 @@ abstract final class Formatters {
   /// `'bio': nullIfEmpty(_bio.text.trim())` sends `null` (clears column)
   /// instead of an empty string.
   static String? nullIfEmpty(String value) => value.isEmpty ? null : value;
+
+  /// Renders the per-person price label respecting `pricing.payment_mode`.
+  /// Falls back to `fallbackAmount` + `tenantCurrency` when `pricing` is
+  /// null (older clients / mock fixtures that don't populate the block).
+  ///
+  /// Output:
+  ///   - 'unconfigured' → `"Harga sesi belum diatur"`
+  ///   - 'credit'       → `"1 Kredit / orang (≈ Rp 200.000)"`
+  ///   - 'nominal'      → `"Rp 200.000 / orang"`
+  static String sessionPriceLabel({
+    int? effectivePrice,
+    String? paymentMode,
+    int? creditRequired,
+    String? currency,
+    required int fallbackAmount,
+    required String tenantCurrency,
+  }) {
+    if (paymentMode == null || effectivePrice == null) {
+      return '${formatCurrency(fallbackAmount, tenantCurrency)} / orang';
+    }
+    if (paymentMode == 'unconfigured') {
+      return 'Harga sesi belum diatur';
+    }
+    final priceStr = formatCurrency(effectivePrice, currency ?? tenantCurrency);
+    if (paymentMode == 'credit') {
+      // Credit count up front so the organizer's eye lands on the unit;
+      // nominal equivalent in parens for context.
+      final credits = creditRequired ?? 1;
+      final unit = credits == 1 ? '1 Kredit' : '$credits Kredit';
+      return '$unit / orang (≈ $priceStr)';
+    }
+    return '$priceStr / orang';
+  }
 }
 
 class _CurrencySpec {

@@ -12,6 +12,7 @@ import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/organizer/data/models/session_financial.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/organizer/providers/participant_management_provider.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
@@ -165,7 +166,14 @@ class _SessionHeaderCard extends ConsumerWidget {
           const SizedBox(height: AppDimensions.xs),
           _InfoRow(
             icon: Icons.attach_money_outlined,
-            text: '${Formatters.formatCurrency(session.pricePerPerson, currency)} / orang',
+            text: Formatters.sessionPriceLabel(
+              effectivePrice: session.pricing?.effectivePrice,
+              paymentMode: session.pricing?.paymentMode,
+              creditRequired: session.pricing?.creditRequired,
+              currency: session.pricing?.currency,
+              fallbackAmount: session.pricePerPerson,
+              tenantCurrency: currency,
+            ),
           ),
         ],
       ),
@@ -904,6 +912,9 @@ class _ParticipantStatusChip extends StatelessWidget {
 
 // ── 5. Settlement Section ───────────────────────────────────────────────────
 
+/// Replaces the old `organizerEarningsProvider` settlement (which
+/// hardcoded `estimated_cost: 0`) with the live financial snapshot from
+/// `SessionFinancialService::forSession`.
 class _SettlementSection extends ConsumerWidget {
   const _SettlementSection({required this.sessionId});
 
@@ -911,8 +922,7 @@ class _SettlementSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final earningsAsync = ref.watch(organizerEarningsProvider);
-    final currency = ref.watch(tenantCurrencyProvider);
+    final financialAsync = ref.watch(sessionFinancialProvider(sessionId));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -920,106 +930,245 @@ class _SettlementSection extends ConsumerWidget {
         Text('Settlement', style: AppTypography.titleMedium),
         const SizedBox(height: AppDimensions.sm),
         AsyncValueWidget(
-          value: earningsAsync,
-          data: (earnings) {
-            final settlement = earnings.settlements.firstWhere(
-              (s) => s.sessionId == sessionId,
-              orElse: () => earnings.settlements.first,
-            );
-
-            final settlementColor = _settlementStatusColor(
-              settlement.settlementStatus,
-            );
-            final settlementLabel = _settlementStatusLabel(
-              settlement.settlementStatus,
-            );
-
-            return Container(
-              padding: const EdgeInsets.all(AppDimensions.base),
-              decoration: BoxDecoration(
-                color: AppSurfaces.surface,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                boxShadow: AppShadows.xs,
-              ),
-              child: Column(
-                children: [
-                  _SettlementRow(
-                    label: 'Pendapatan Kotor',
-                    value: Formatters.formatCurrency(
-                        settlement.grossRevenue, currency),
-                  ),
-                  const SizedBox(height: AppDimensions.xs),
-                  _SettlementRow(
-                    label: 'Estimasi Biaya',
-                    value:
-                        '- ${Formatters.formatCurrency(settlement.estimatedCost, currency)}',
-                    valueColor: AppColors.error,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: AppDimensions.sm,
-                    ),
-                    child: Divider(height: 1),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Pendapatan Bersih',
-                        style: AppTypography.titleSmall,
-                      ),
-                      Text(
-                        Formatters.formatCurrency(
-                            settlement.netRevenue, currency),
-                        style: AppTypography.titleMedium,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: settlementColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusFull,
-                        ),
-                      ),
-                      child: Text(
-                        settlementLabel,
-                        style: AppTypography.labelSmall.copyWith(
-                          color: settlementColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
+          value: financialAsync,
+          data: (fin) => _FinancialBreakdown(financial: fin),
         ),
       ],
     );
   }
+}
 
-  Color _settlementStatusColor(SessionSettlementStatus status) {
-    return switch (status) {
-      SessionSettlementStatus.pending => AppColors.warning,
-      SessionSettlementStatus.cleared => AppColors.info,
-      SessionSettlementStatus.paidOut => AppColors.success,
-    };
+class _FinancialBreakdown extends StatefulWidget {
+  const _FinancialBreakdown({required this.financial});
+
+  final SessionFinancial financial;
+
+  @override
+  State<_FinancialBreakdown> createState() => _FinancialBreakdownState();
+}
+
+class _FinancialBreakdownState extends State<_FinancialBreakdown> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final fin = widget.financial;
+    final currency = fin.currency;
+    final hasDetail = fin.revenue.systemTracked.streams.isNotEmpty ||
+        fin.cost.systemTracked.streams.isNotEmpty ||
+        fin.revenue.custom.entries.isNotEmpty ||
+        fin.cost.custom.entries.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.base),
+      decoration: BoxDecoration(
+        color: AppSurfaces.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        boxShadow: AppShadows.xs,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _NetTopLine(net: fin.net, currency: currency),
+          const SizedBox(height: AppDimensions.sm),
+          const Divider(height: 1),
+          const SizedBox(height: AppDimensions.sm),
+          _SettlementRow(
+            label: 'Pendapatan',
+            value: Formatters.formatCurrency(fin.revenue.total, currency),
+            valueColor: AppColors.success,
+          ),
+          const SizedBox(height: AppDimensions.xs),
+          _SettlementRow(
+            label: 'Biaya',
+            value: '- ${Formatters.formatCurrency(fin.cost.total, currency)}',
+            valueColor: AppColors.error,
+          ),
+          if (hasDetail) ...[
+            const SizedBox(height: AppDimensions.sm),
+            InkWell(
+              onTap: () => setState(() => _expanded = !_expanded),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppDimensions.xs),
+                child: Row(
+                  children: [
+                    Icon(
+                      _expanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: AppDimensions.xs),
+                    Text(
+                      _expanded ? 'Sembunyikan rincian' : 'Lihat rincian',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_expanded)
+              _BreakdownPanel(financial: fin, currency: currency),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _NetTopLine extends StatelessWidget {
+  const _NetTopLine({required this.net, required this.currency});
+
+  final FinancialNet net;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPositive = net.amount >= 0;
+    final color = isPositive ? AppColors.success : AppColors.error;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Pendapatan Bersih', style: AppTypography.caption),
+            const SizedBox(height: 2),
+            Text(
+              Formatters.formatCurrency(net.amount, currency),
+              style: AppTypography.titleMedium.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        if (net.marginPercent != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+            ),
+            child: Text(
+              'Margin ${net.marginPercent}%',
+              style: AppTypography.labelSmall.copyWith(color: color),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _BreakdownPanel extends StatelessWidget {
+  const _BreakdownPanel({required this.financial, required this.currency});
+
+  final SessionFinancial financial;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppDimensions.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (financial.revenue.systemTracked.streams.isNotEmpty ||
+              financial.revenue.custom.entries.isNotEmpty)
+            _BreakdownGroup(
+              label: 'Pendapatan',
+              accent: AppColors.success,
+              streams: financial.revenue.systemTracked.streams,
+              entries: financial.revenue.custom.entries,
+              currency: currency,
+            ),
+          if (financial.cost.systemTracked.streams.isNotEmpty ||
+              financial.cost.custom.entries.isNotEmpty) ...[
+            const SizedBox(height: AppDimensions.sm),
+            _BreakdownGroup(
+              label: 'Biaya',
+              accent: AppColors.error,
+              streams: financial.cost.systemTracked.streams,
+              entries: financial.cost.custom.entries,
+              currency: currency,
+              negative: true,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BreakdownGroup extends StatelessWidget {
+  const _BreakdownGroup({
+    required this.label,
+    required this.accent,
+    required this.streams,
+    required this.entries,
+    required this.currency,
+    this.negative = false,
+  });
+
+  final String label;
+  final Color accent;
+  final List<FinancialStream> streams;
+  final List<FinancialEntry> entries;
+  final String currency;
+  final bool negative;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.sm),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.caption.copyWith(
+              color: accent,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.xs),
+          for (final s in streams.where((s) => s.amount != 0))
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: _SettlementRow(
+                label: s.displayLabel,
+                value: _amountText(s.amount, currency),
+                valueColor: negative ? AppColors.error : null,
+              ),
+            ),
+          for (final e in entries)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: _SettlementRow(
+                label: e.category?.name ?? 'Lain-lain',
+                value: _amountText(e.amount, currency),
+                valueColor: negative ? AppColors.error : null,
+                hint: e.notes,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
-  String _settlementStatusLabel(SessionSettlementStatus status) {
-    return switch (status) {
-      SessionSettlementStatus.pending => 'Tertunda',
-      SessionSettlementStatus.cleared => 'Tersedia',
-      SessionSettlementStatus.paidOut => 'Dibayarkan',
-    };
+  String _amountText(int amount, String currency) {
+    final formatted = Formatters.formatCurrency(amount, currency);
+    return negative ? '- $formatted' : formatted;
   }
 }
 
@@ -1028,18 +1177,42 @@ class _SettlementRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.valueColor,
+    this.hint,
   });
 
   final String label;
   final String value;
   final Color? valueColor;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
+    final hintText = hint;
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.bodyMedium),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label, style: AppTypography.bodyMedium),
+              if (hintText != null && hintText.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    hintText,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppDimensions.sm),
         Text(
           value,
           style: AppTypography.bodyMedium.copyWith(

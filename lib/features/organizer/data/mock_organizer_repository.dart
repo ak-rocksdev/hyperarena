@@ -9,6 +9,7 @@ import 'package:hyperarena/features/organizer/data/models/create_session_draft.d
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
+import 'package:hyperarena/features/organizer/data/models/session_financial.dart';
 import 'package:hyperarena/features/organizer/data/organizer_repository.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
@@ -504,6 +505,43 @@ class MockOrganizerRepository implements OrganizerRepository {
     bool pendingOnly = false,
   }) async {
     await Future.delayed(_delay);
+  }
+
+  @override
+  Future<SessionFinancial> getSessionFinancial(String sessionId) async {
+    await Future.delayed(_delay);
+    final session = _mySessions.firstWhere(
+      (s) => s.id == sessionId,
+      orElse: () => _mySessions.first,
+    );
+    final gross = session.currentPlayers * session.pricePerPerson;
+    final coachCost = session.coachCost ?? 0;
+    final courtCost = session.courtCost ?? 0;
+    final cost = coachCost + courtCost;
+    final net = gross - cost;
+    final margin = gross > 0 ? ((net / gross) * 100).round() : null;
+    return SessionFinancial(
+      revenue: FinancialSide(
+        total: gross,
+        systemTracked: SystemTrackedBlock(
+          total: gross,
+          streams: [
+            FinancialStream(key: 'student_payments', amount: gross),
+          ],
+        ),
+      ),
+      cost: FinancialSide(
+        total: cost,
+        systemTracked: SystemTrackedBlock(
+          total: coachCost,
+          streams: [
+            if (coachCost > 0)
+              FinancialStream(key: 'coach_payouts', amount: coachCost),
+          ],
+        ),
+      ),
+      net: FinancialNet(amount: net, marginPercent: margin),
+    );
   }
 
   @override

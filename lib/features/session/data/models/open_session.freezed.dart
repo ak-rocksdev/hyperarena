@@ -327,6 +327,298 @@ abstract class _SessionHealth implements SessionHealth {
       throw _privateConstructorUsedError;
 }
 
+SessionPricing _$SessionPricingFromJson(Map<String, dynamic> json) {
+  return _SessionPricing.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SessionPricing {
+  @JsonKey(name: 'effective_price')
+  int? get effectivePrice => throw _privateConstructorUsedError;
+  String get currency => throw _privateConstructorUsedError;
+  @JsonKey(name: 'payment_mode')
+  String get paymentMode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'credit_required')
+  int? get creditRequired => throw _privateConstructorUsedError;
+  String? get source => throw _privateConstructorUsedError;
+  @JsonKey(name: 'product_id')
+  int? get productId => throw _privateConstructorUsedError;
+
+  /// Serializes this SessionPricing to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SessionPricing
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SessionPricingCopyWith<SessionPricing> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SessionPricingCopyWith<$Res> {
+  factory $SessionPricingCopyWith(
+    SessionPricing value,
+    $Res Function(SessionPricing) then,
+  ) = _$SessionPricingCopyWithImpl<$Res, SessionPricing>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'effective_price') int? effectivePrice,
+    String currency,
+    @JsonKey(name: 'payment_mode') String paymentMode,
+    @JsonKey(name: 'credit_required') int? creditRequired,
+    String? source,
+    @JsonKey(name: 'product_id') int? productId,
+  });
+}
+
+/// @nodoc
+class _$SessionPricingCopyWithImpl<$Res, $Val extends SessionPricing>
+    implements $SessionPricingCopyWith<$Res> {
+  _$SessionPricingCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SessionPricing
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? effectivePrice = freezed,
+    Object? currency = null,
+    Object? paymentMode = null,
+    Object? creditRequired = freezed,
+    Object? source = freezed,
+    Object? productId = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            effectivePrice: freezed == effectivePrice
+                ? _value.effectivePrice
+                : effectivePrice // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            currency: null == currency
+                ? _value.currency
+                : currency // ignore: cast_nullable_to_non_nullable
+                      as String,
+            paymentMode: null == paymentMode
+                ? _value.paymentMode
+                : paymentMode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            creditRequired: freezed == creditRequired
+                ? _value.creditRequired
+                : creditRequired // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            source: freezed == source
+                ? _value.source
+                : source // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            productId: freezed == productId
+                ? _value.productId
+                : productId // ignore: cast_nullable_to_non_nullable
+                      as int?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$SessionPricingImplCopyWith<$Res>
+    implements $SessionPricingCopyWith<$Res> {
+  factory _$$SessionPricingImplCopyWith(
+    _$SessionPricingImpl value,
+    $Res Function(_$SessionPricingImpl) then,
+  ) = __$$SessionPricingImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'effective_price') int? effectivePrice,
+    String currency,
+    @JsonKey(name: 'payment_mode') String paymentMode,
+    @JsonKey(name: 'credit_required') int? creditRequired,
+    String? source,
+    @JsonKey(name: 'product_id') int? productId,
+  });
+}
+
+/// @nodoc
+class __$$SessionPricingImplCopyWithImpl<$Res>
+    extends _$SessionPricingCopyWithImpl<$Res, _$SessionPricingImpl>
+    implements _$$SessionPricingImplCopyWith<$Res> {
+  __$$SessionPricingImplCopyWithImpl(
+    _$SessionPricingImpl _value,
+    $Res Function(_$SessionPricingImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of SessionPricing
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? effectivePrice = freezed,
+    Object? currency = null,
+    Object? paymentMode = null,
+    Object? creditRequired = freezed,
+    Object? source = freezed,
+    Object? productId = freezed,
+  }) {
+    return _then(
+      _$SessionPricingImpl(
+        effectivePrice: freezed == effectivePrice
+            ? _value.effectivePrice
+            : effectivePrice // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        currency: null == currency
+            ? _value.currency
+            : currency // ignore: cast_nullable_to_non_nullable
+                  as String,
+        paymentMode: null == paymentMode
+            ? _value.paymentMode
+            : paymentMode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        creditRequired: freezed == creditRequired
+            ? _value.creditRequired
+            : creditRequired // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        source: freezed == source
+            ? _value.source
+            : source // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        productId: freezed == productId
+            ? _value.productId
+            : productId // ignore: cast_nullable_to_non_nullable
+                  as int?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SessionPricingImpl implements _SessionPricing {
+  const _$SessionPricingImpl({
+    @JsonKey(name: 'effective_price') this.effectivePrice,
+    this.currency = 'IDR',
+    @JsonKey(name: 'payment_mode') this.paymentMode = 'unconfigured',
+    @JsonKey(name: 'credit_required') this.creditRequired,
+    this.source,
+    @JsonKey(name: 'product_id') this.productId,
+  });
+
+  factory _$SessionPricingImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SessionPricingImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'effective_price')
+  final int? effectivePrice;
+  @override
+  @JsonKey()
+  final String currency;
+  @override
+  @JsonKey(name: 'payment_mode')
+  final String paymentMode;
+  @override
+  @JsonKey(name: 'credit_required')
+  final int? creditRequired;
+  @override
+  final String? source;
+  @override
+  @JsonKey(name: 'product_id')
+  final int? productId;
+
+  @override
+  String toString() {
+    return 'SessionPricing(effectivePrice: $effectivePrice, currency: $currency, paymentMode: $paymentMode, creditRequired: $creditRequired, source: $source, productId: $productId)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SessionPricingImpl &&
+            (identical(other.effectivePrice, effectivePrice) ||
+                other.effectivePrice == effectivePrice) &&
+            (identical(other.currency, currency) ||
+                other.currency == currency) &&
+            (identical(other.paymentMode, paymentMode) ||
+                other.paymentMode == paymentMode) &&
+            (identical(other.creditRequired, creditRequired) ||
+                other.creditRequired == creditRequired) &&
+            (identical(other.source, source) || other.source == source) &&
+            (identical(other.productId, productId) ||
+                other.productId == productId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    effectivePrice,
+    currency,
+    paymentMode,
+    creditRequired,
+    source,
+    productId,
+  );
+
+  /// Create a copy of SessionPricing
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SessionPricingImplCopyWith<_$SessionPricingImpl> get copyWith =>
+      __$$SessionPricingImplCopyWithImpl<_$SessionPricingImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SessionPricingImplToJson(this);
+  }
+}
+
+abstract class _SessionPricing implements SessionPricing {
+  const factory _SessionPricing({
+    @JsonKey(name: 'effective_price') final int? effectivePrice,
+    final String currency,
+    @JsonKey(name: 'payment_mode') final String paymentMode,
+    @JsonKey(name: 'credit_required') final int? creditRequired,
+    final String? source,
+    @JsonKey(name: 'product_id') final int? productId,
+  }) = _$SessionPricingImpl;
+
+  factory _SessionPricing.fromJson(Map<String, dynamic> json) =
+      _$SessionPricingImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'effective_price')
+  int? get effectivePrice;
+  @override
+  String get currency;
+  @override
+  @JsonKey(name: 'payment_mode')
+  String get paymentMode;
+  @override
+  @JsonKey(name: 'credit_required')
+  int? get creditRequired;
+  @override
+  String? get source;
+  @override
+  @JsonKey(name: 'product_id')
+  int? get productId;
+
+  /// Create a copy of SessionPricing
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SessionPricingImplCopyWith<_$SessionPricingImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 OpenSession _$OpenSessionFromJson(Map<String, dynamic> json) {
   return _OpenSession.fromJson(json);
 }
@@ -347,7 +639,16 @@ mixin _$OpenSession {
   int get maxPlayers => throw _privateConstructorUsedError;
   LevelTier? get minLevel => throw _privateConstructorUsedError;
   LevelTier? get maxLevel => throw _privateConstructorUsedError;
+
+  /// Legacy alias for `pricing.effective_price`. Prefer reading
+  /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
+  /// credit requirement, or currency.
   int get pricePerPerson => throw _privateConstructorUsedError;
+
+  /// Resolved pricing block — source of truth for display. Nullable
+  /// because mock fixtures may omit it; consumers fall back to
+  /// `pricePerPerson` + tenant currency.
+  SessionPricing? get pricing => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   List<String> get participantNames => throw _privateConstructorUsedError;
   OpenSessionStatus get status => throw _privateConstructorUsedError;
@@ -394,6 +695,7 @@ abstract class $OpenSessionCopyWith<$Res> {
     LevelTier? minLevel,
     LevelTier? maxLevel,
     int pricePerPerson,
+    SessionPricing? pricing,
     String? description,
     List<String> participantNames,
     OpenSessionStatus status,
@@ -407,6 +709,7 @@ abstract class $OpenSessionCopyWith<$Res> {
     SessionHealth health,
   });
 
+  $SessionPricingCopyWith<$Res>? get pricing;
   $SessionHealthCopyWith<$Res> get health;
 }
 
@@ -440,6 +743,7 @@ class _$OpenSessionCopyWithImpl<$Res, $Val extends OpenSession>
     Object? minLevel = freezed,
     Object? maxLevel = freezed,
     Object? pricePerPerson = null,
+    Object? pricing = freezed,
     Object? description = freezed,
     Object? participantNames = null,
     Object? status = null,
@@ -514,6 +818,10 @@ class _$OpenSessionCopyWithImpl<$Res, $Val extends OpenSession>
                 ? _value.pricePerPerson
                 : pricePerPerson // ignore: cast_nullable_to_non_nullable
                       as int,
+            pricing: freezed == pricing
+                ? _value.pricing
+                : pricing // ignore: cast_nullable_to_non_nullable
+                      as SessionPricing?,
             description: freezed == description
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
@@ -567,6 +875,20 @@ class _$OpenSessionCopyWithImpl<$Res, $Val extends OpenSession>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
+  $SessionPricingCopyWith<$Res>? get pricing {
+    if (_value.pricing == null) {
+      return null;
+    }
+
+    return $SessionPricingCopyWith<$Res>(_value.pricing!, (value) {
+      return _then(_value.copyWith(pricing: value) as $Val);
+    });
+  }
+
+  /// Create a copy of OpenSession
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
   $SessionHealthCopyWith<$Res> get health {
     return $SessionHealthCopyWith<$Res>(_value.health, (value) {
       return _then(_value.copyWith(health: value) as $Val);
@@ -599,6 +921,7 @@ abstract class _$$OpenSessionImplCopyWith<$Res>
     LevelTier? minLevel,
     LevelTier? maxLevel,
     int pricePerPerson,
+    SessionPricing? pricing,
     String? description,
     List<String> participantNames,
     OpenSessionStatus status,
@@ -612,6 +935,8 @@ abstract class _$$OpenSessionImplCopyWith<$Res>
     SessionHealth health,
   });
 
+  @override
+  $SessionPricingCopyWith<$Res>? get pricing;
   @override
   $SessionHealthCopyWith<$Res> get health;
 }
@@ -645,6 +970,7 @@ class __$$OpenSessionImplCopyWithImpl<$Res>
     Object? minLevel = freezed,
     Object? maxLevel = freezed,
     Object? pricePerPerson = null,
+    Object? pricing = freezed,
     Object? description = freezed,
     Object? participantNames = null,
     Object? status = null,
@@ -719,6 +1045,10 @@ class __$$OpenSessionImplCopyWithImpl<$Res>
             ? _value.pricePerPerson
             : pricePerPerson // ignore: cast_nullable_to_non_nullable
                   as int,
+        pricing: freezed == pricing
+            ? _value.pricing
+            : pricing // ignore: cast_nullable_to_non_nullable
+                  as SessionPricing?,
         description: freezed == description
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
@@ -787,6 +1117,7 @@ class _$OpenSessionImpl implements _OpenSession {
     this.minLevel,
     this.maxLevel,
     required this.pricePerPerson,
+    this.pricing,
     this.description,
     final List<String> participantNames = const [],
     this.status = OpenSessionStatus.open,
@@ -833,8 +1164,18 @@ class _$OpenSessionImpl implements _OpenSession {
   final LevelTier? minLevel;
   @override
   final LevelTier? maxLevel;
+
+  /// Legacy alias for `pricing.effective_price`. Prefer reading
+  /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
+  /// credit requirement, or currency.
   @override
   final int pricePerPerson;
+
+  /// Resolved pricing block — source of truth for display. Nullable
+  /// because mock fixtures may omit it; consumers fall back to
+  /// `pricePerPerson` + tenant currency.
+  @override
+  final SessionPricing? pricing;
   @override
   final String? description;
   final List<String> _participantNames;
@@ -873,7 +1214,7 @@ class _$OpenSessionImpl implements _OpenSession {
 
   @override
   String toString() {
-    return 'OpenSession(id: $id, title: $title, sport: $sport, hostId: $hostId, hostName: $hostName, venueName: $venueName, venueId: $venueId, date: $date, startTime: $startTime, endTime: $endTime, currentPlayers: $currentPlayers, maxPlayers: $maxPlayers, minLevel: $minLevel, maxLevel: $maxLevel, pricePerPerson: $pricePerPerson, description: $description, participantNames: $participantNames, status: $status, joinDeadline: $joinDeadline, pricingModel: $pricingModel, visibility: $visibility, courtCost: $courtCost, coachCost: $coachCost, organizerFeePerPerson: $organizerFeePerPerson, settlementStatus: $settlementStatus, health: $health)';
+    return 'OpenSession(id: $id, title: $title, sport: $sport, hostId: $hostId, hostName: $hostName, venueName: $venueName, venueId: $venueId, date: $date, startTime: $startTime, endTime: $endTime, currentPlayers: $currentPlayers, maxPlayers: $maxPlayers, minLevel: $minLevel, maxLevel: $maxLevel, pricePerPerson: $pricePerPerson, pricing: $pricing, description: $description, participantNames: $participantNames, status: $status, joinDeadline: $joinDeadline, pricingModel: $pricingModel, visibility: $visibility, courtCost: $courtCost, coachCost: $coachCost, organizerFeePerPerson: $organizerFeePerPerson, settlementStatus: $settlementStatus, health: $health)';
   }
 
   @override
@@ -904,6 +1245,7 @@ class _$OpenSessionImpl implements _OpenSession {
                 other.maxLevel == maxLevel) &&
             (identical(other.pricePerPerson, pricePerPerson) ||
                 other.pricePerPerson == pricePerPerson) &&
+            (identical(other.pricing, pricing) || other.pricing == pricing) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             const DeepCollectionEquality().equals(
@@ -947,6 +1289,7 @@ class _$OpenSessionImpl implements _OpenSession {
     minLevel,
     maxLevel,
     pricePerPerson,
+    pricing,
     description,
     const DeepCollectionEquality().hash(_participantNames),
     status,
@@ -991,6 +1334,7 @@ abstract class _OpenSession implements OpenSession {
     final LevelTier? minLevel,
     final LevelTier? maxLevel,
     required final int pricePerPerson,
+    final SessionPricing? pricing,
     final String? description,
     final List<String> participantNames,
     final OpenSessionStatus status,
@@ -1035,8 +1379,18 @@ abstract class _OpenSession implements OpenSession {
   LevelTier? get minLevel;
   @override
   LevelTier? get maxLevel;
+
+  /// Legacy alias for `pricing.effective_price`. Prefer reading
+  /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
+  /// credit requirement, or currency.
   @override
   int get pricePerPerson;
+
+  /// Resolved pricing block — source of truth for display. Nullable
+  /// because mock fixtures may omit it; consumers fall back to
+  /// `pricePerPerson` + tenant currency.
+  @override
+  SessionPricing? get pricing;
   @override
   String? get description;
   @override

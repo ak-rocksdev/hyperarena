@@ -361,21 +361,19 @@ class OrganizerSessionCard extends ConsumerWidget {
   }
 
   Widget _priceLabel(String currency) {
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: Formatters.formatCurrency(session.pricePerPerson, currency),
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          TextSpan(
-            text: '/orang',
-            style: AppTypography.caption,
-          ),
-        ],
-      ),
+    final label = Formatters.sessionPriceLabel(
+      effectivePrice: session.pricing?.effectivePrice,
+      paymentMode: session.pricing?.paymentMode,
+      creditRequired: session.pricing?.creditRequired,
+      currency: session.pricing?.currency,
+      fallbackAmount: session.pricePerPerson,
+      tenantCurrency: currency,
+    );
+    return Text(
+      label,
+      style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

@@ -31,6 +31,27 @@ Map<String, dynamic> _$$SessionHealthImplToJson(_$SessionHealthImpl instance) =>
       'time_to_start': _healthDurationToJson(instance.timeToStart),
     };
 
+_$SessionPricingImpl _$$SessionPricingImplFromJson(Map<String, dynamic> json) =>
+    _$SessionPricingImpl(
+      effectivePrice: (json['effective_price'] as num?)?.toInt(),
+      currency: json['currency'] as String? ?? 'IDR',
+      paymentMode: json['payment_mode'] as String? ?? 'unconfigured',
+      creditRequired: (json['credit_required'] as num?)?.toInt(),
+      source: json['source'] as String?,
+      productId: (json['product_id'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$$SessionPricingImplToJson(
+  _$SessionPricingImpl instance,
+) => <String, dynamic>{
+  'effective_price': instance.effectivePrice,
+  'currency': instance.currency,
+  'payment_mode': instance.paymentMode,
+  'credit_required': instance.creditRequired,
+  'source': instance.source,
+  'product_id': instance.productId,
+};
+
 _$OpenSessionImpl _$$OpenSessionImplFromJson(Map<String, dynamic> json) =>
     _$OpenSessionImpl(
       id: json['id'] as String,
@@ -48,6 +69,9 @@ _$OpenSessionImpl _$$OpenSessionImplFromJson(Map<String, dynamic> json) =>
       minLevel: $enumDecodeNullable(_$LevelTierEnumMap, json['min_level']),
       maxLevel: $enumDecodeNullable(_$LevelTierEnumMap, json['max_level']),
       pricePerPerson: (json['price_per_person'] as num).toInt(),
+      pricing: json['pricing'] == null
+          ? null
+          : SessionPricing.fromJson(json['pricing'] as Map<String, dynamic>),
       description: json['description'] as String?,
       participantNames:
           (json['participant_names'] as List<dynamic>?)
@@ -101,6 +125,7 @@ Map<String, dynamic> _$$OpenSessionImplToJson(_$OpenSessionImpl instance) =>
       'min_level': _$LevelTierEnumMap[instance.minLevel],
       'max_level': _$LevelTierEnumMap[instance.maxLevel],
       'price_per_person': instance.pricePerPerson,
+      'pricing': instance.pricing,
       'description': instance.description,
       'participant_names': instance.participantNames,
       'status': _$OpenSessionStatusEnumMap[instance.status]!,

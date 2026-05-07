@@ -4,6 +4,7 @@ import 'package:hyperarena/features/organizer/data/models/create_session_draft.d
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
+import 'package:hyperarena/features/organizer/data/models/session_financial.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
 
@@ -65,6 +66,7 @@ abstract class OrganizerRepository {
 
   Future<OrganizerEarningsSummary> getEarningsSummary();
   Future<OrganizerSessionSettlement> getSessionSettlement(String sessionId);
+  Future<SessionFinancial> getSessionFinancial(String sessionId);
 
   Future<ClubProfile> getClubProfile();
   Future<List<ClubMember>> getClubMembers();

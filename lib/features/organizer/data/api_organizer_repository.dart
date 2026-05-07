@@ -8,6 +8,7 @@ import 'package:hyperarena/features/organizer/data/models/create_session_draft.d
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
+import 'package:hyperarena/features/organizer/data/models/session_financial.dart';
 import 'package:hyperarena/features/organizer/data/organizer_repository.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
@@ -366,6 +367,21 @@ class ApiOrganizerRepository implements OrganizerRepository {
         disputeHoldBalance:
             (data['dispute_hold_balance'] as num?)?.toInt() ?? 0,
       );
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  /// Per-session financial snapshot (revenue / cost / net + custom entries).
+  /// Endpoint requires `view-finances` permission server-side.
+  @override
+  Future<SessionFinancial> getSessionFinancial(String sessionId) async {
+    try {
+      final response = await _apiClient
+          .get('/v1/marketplace/organizer/sessions/$sessionId/financial');
+      final data = (response.data as Map<String, dynamic>)['data']
+          as Map<String, dynamic>;
+      return SessionFinancial.fromJson(data);
     } on DioException catch (e) {
       rethrowDio(e);
     }

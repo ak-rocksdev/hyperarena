@@ -106,7 +106,7 @@ class _SessionListScreenState extends ConsumerState<SessionListScreen> {
               height: MediaQuery.of(context).size.height * 0.6,
               child: EmptyState(
                 icon: Icons.event_outlined,
-                message: 'Belum ada sesi mendatang.\n'
+                message: 'Belum ada sesi.\n'
                     'Sesi yang sudah dijadwalkan oleh admin akan muncul di sini.',
                 actionLabel: 'Muat ulang',
                 onAction: reload,
@@ -169,53 +169,40 @@ class _MarketplaceSessionCard extends ConsumerWidget {
         sessionTenantSlug != null &&
         sessionTenantSlug != userTenantSlug;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(
-          AppRoutes.marketplaceSession(session.id),
-          extra: session,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 16:9 hero — falls back to tenant logo when no session photo.
-            // Pass session.tenant?.brandColor so cross-tenant cards render
-            // the right brand color in fallback mode.
-            SessionHero(
-              photoUrls: session.photoUrls,
-              photoPath: session.photoPath,
-              size: SessionHeroSize.md,
-              brandColor: session.tenant?.brandColor,
-              borderRadius: 0,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppDimensions.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+    final pill = _resolveStatusPill(session);
+    final ended = _isEnded(session);
+
+    return Opacity(
+      opacity: ended ? 0.65 : 1.0,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => context.push(
+            AppRoutes.marketplaceSession(session.id),
+            extra: session,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SessionHero(
+                photoUrls: session.photoUrls,
+                photoPath: session.photoPath,
+                size: SessionHeroSize.md,
+                brandColor: session.tenant?.brandColor,
+                borderRadius: 0,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppDimensions.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
               Row(
                 children: [
                   Expanded(
                     child: Text(session.safeTitle,
                         style: theme.textTheme.titleMedium),
                   ),
-                  // Status pill — "Sedang berlangsung" when start ≤ now < end,
-                  // else "Terdaftar" if user enrolled. Computed client-side
-                  // because the BE filter relaxes to include ongoing sessions
-                  // (Issue 2026-05-07 — was strict start_at > now()).
-                  if (_isOngoing(session))
-                    _StatusPill(
-                      label: 'Sedang berlangsung',
-                      icon: Icons.play_circle_outline,
-                      color: AppColors.warning,
-                    )
-                  else if (session.isEnrolled)
-                    _StatusPill(
-                      label: 'Terdaftar',
-                      icon: Icons.check_circle,
-                      color: AppColors.success,
-                    ),
+                  ?pill,
                 ],
               ),
               if (session.tenant != null) ...[
@@ -281,19 +268,61 @@ class _MarketplaceSessionCard extends ConsumerWidget {
           ],
         ),
       ),
+      ),
     );
   }
 
-  /// True when the session has started but not yet ended. Compares against
-  /// `DateTime.now()` (device-local) — the wall-clock-naive `startAt` from
-  /// `tenantWallClockFromJson` carries the tenant's wall-clock components,
-  /// so for users in the same tz as the tenant this is exact, and for
-  /// cross-tz users the badge will be approximately right (off by tz delta).
-  bool _isOngoing(MarketplaceSession session) {
-    final start = session.startAt;
-    final end = start.add(Duration(minutes: session.durationMinutes));
+  /// `startAt` carries tenant wall-clock components (offset stripped by
+  /// `tenantWallClockFromJson`). Comparing to device-local `DateTime.now()`
+  /// is exact for same-tz users and off by the tz delta for cross-tz —
+  /// acceptable for a status pill, not for booking-time validation.
+  bool _isOngoing(MarketplaceSession s) {
     final now = DateTime.now();
-    return !now.isBefore(start) && now.isBefore(end);
+    final end = s.startAt.add(Duration(minutes: s.durationMinutes));
+    return !now.isBefore(s.startAt) && now.isBefore(end);
+  }
+
+  bool _isEnded(MarketplaceSession s) {
+    final end = s.startAt.add(Duration(minutes: s.durationMinutes));
+    return !DateTime.now().isBefore(end);
+  }
+
+  bool _isFull(MarketplaceSession s) => s.bookedCount >= s.capacity;
+
+  /// Single pill priority: ongoing > selesai > terdaftar > penuh > none.
+  /// Past sessions surface 'Selesai' regardless of enrollment so the
+  /// pill matches reading tense — the date next to it already tells the
+  /// user it's history.
+  Widget? _resolveStatusPill(MarketplaceSession s) {
+    if (_isOngoing(s)) {
+      return _StatusPill(
+        label: 'Sedang berlangsung',
+        icon: Icons.play_circle_outline,
+        color: AppColors.warning,
+      );
+    }
+    if (_isEnded(s)) {
+      return _StatusPill(
+        label: 'Selesai',
+        icon: Icons.check_circle_outline,
+        color: AppColors.neutral500,
+      );
+    }
+    if (s.isEnrolled) {
+      return _StatusPill(
+        label: 'Terdaftar',
+        icon: Icons.check_circle,
+        color: AppColors.success,
+      );
+    }
+    if (_isFull(s)) {
+      return _StatusPill(
+        label: 'Penuh',
+        icon: Icons.block,
+        color: AppColors.error,
+      );
+    }
+    return null;
   }
 }
 

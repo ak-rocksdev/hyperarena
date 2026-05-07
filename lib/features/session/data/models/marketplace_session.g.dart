@@ -14,7 +14,7 @@ _$MarketplaceSessionImpl _$$MarketplaceSessionImplFromJson(
   type: json['type'] as String?,
   startAt: tenantWallClockFromJson(json['start_at'] as String),
   durationMinutes: (json['duration_minutes'] as num).toInt(),
-  capacity: (json['capacity'] as num).toInt(),
+  capacity: (json['capacity'] as num?)?.toInt() ?? 0,
   bookedCount: (json['booked_count'] as num?)?.toInt() ?? 0,
   notes: json['notes'] as String?,
   tenant: json['tenant'] == null

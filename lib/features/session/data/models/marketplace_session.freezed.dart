@@ -28,7 +28,10 @@ mixin _$MarketplaceSession {
   @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   DateTime get startAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'duration_minutes')
-  int get durationMinutes => throw _privateConstructorUsedError;
+  int get durationMinutes => throw _privateConstructorUsedError; // Default 0 so a legacy row with null capacity (one historical row
+  // surfaced after dropping the end-time filter) doesn't crash the
+  // whole list. Card renders "0/N peserta" — visually wrong but
+  // recoverable; whole-screen failure is not.
   int get capacity => throw _privateConstructorUsedError;
   @JsonKey(name: 'booked_count')
   int get bookedCount => throw _privateConstructorUsedError;
@@ -379,7 +382,7 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
     required this.startAt,
     @JsonKey(name: 'duration_minutes') required this.durationMinutes,
-    required this.capacity,
+    this.capacity = 0,
     @JsonKey(name: 'booked_count') this.bookedCount = 0,
     this.notes,
     this.tenant,
@@ -412,7 +415,12 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
   @override
   @JsonKey(name: 'duration_minutes')
   final int durationMinutes;
+  // Default 0 so a legacy row with null capacity (one historical row
+  // surfaced after dropping the end-time filter) doesn't crash the
+  // whole list. Card renders "0/N peserta" — visually wrong but
+  // recoverable; whole-screen failure is not.
   @override
+  @JsonKey()
   final int capacity;
   @override
   @JsonKey(name: 'booked_count')
@@ -552,7 +560,7 @@ abstract class _MarketplaceSession implements MarketplaceSession {
     @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
     required final DateTime startAt,
     @JsonKey(name: 'duration_minutes') required final int durationMinutes,
-    required final int capacity,
+    final int capacity,
     @JsonKey(name: 'booked_count') final int bookedCount,
     final String? notes,
     final SessionTenant? tenant,
@@ -581,7 +589,10 @@ abstract class _MarketplaceSession implements MarketplaceSession {
   DateTime get startAt;
   @override
   @JsonKey(name: 'duration_minutes')
-  int get durationMinutes;
+  int get durationMinutes; // Default 0 so a legacy row with null capacity (one historical row
+  // surfaced after dropping the end-time filter) doesn't crash the
+  // whole list. Card renders "0/N peserta" — visually wrong but
+  // recoverable; whole-screen failure is not.
   @override
   int get capacity;
   @override

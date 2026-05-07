@@ -17,7 +17,11 @@ class MarketplaceSession with _$MarketplaceSession {
     @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
     required DateTime startAt,
     @JsonKey(name: 'duration_minutes') required int durationMinutes,
-    required int capacity,
+    // Default 0 so a legacy row with null capacity (one historical row
+    // surfaced after dropping the end-time filter) doesn't crash the
+    // whole list. Card renders "0/N peserta" — visually wrong but
+    // recoverable; whole-screen failure is not.
+    @Default(0) int capacity,
     @JsonKey(name: 'booked_count') @Default(0) int bookedCount,
     String? notes,
     SessionTenant? tenant,

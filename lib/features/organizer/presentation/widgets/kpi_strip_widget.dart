@@ -6,6 +6,7 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 
@@ -17,6 +18,7 @@ class KpiStripWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeFilter = ref.watch(dashboardFilterProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     final tiles = [
       _KpiTile(
@@ -31,7 +33,7 @@ class KpiStripWidget extends ConsumerWidget {
         label: 'Belum Bayar',
         value: '${stats.pendingPayments}',
         subtitle: stats.totalUnpaidAmount > 0
-            ? '(${Formatters.formatRupiahCompact(stats.totalUnpaidAmount)})'
+            ? '(${Formatters.formatCurrencyCompact(stats.totalUnpaidAmount, currency)})'
             : null,
         icon: Icons.payment,
         color: AppColors.warning,
@@ -54,7 +56,7 @@ class KpiStripWidget extends ConsumerWidget {
       ),
       _KpiTile(
         label: 'Pendapatan',
-        value: Formatters.formatRupiahCompact(stats.monthlyEarnings),
+        value: Formatters.formatCurrencyCompact(stats.monthlyEarnings, currency),
         icon: Icons.account_balance_wallet,
         color: AppColors.success,
         isActive: false,

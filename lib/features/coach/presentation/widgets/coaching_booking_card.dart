@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
@@ -8,11 +9,12 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 
 /// Card widget for displaying a coaching booking entry.
 /// Reused in both coach dashboard and schedule screens.
-class CoachingBookingCard extends StatelessWidget {
+class CoachingBookingCard extends ConsumerWidget {
   final CoachingBooking booking;
   final VoidCallback? onTap;
 
@@ -29,10 +31,11 @@ class CoachingBookingCard extends StatelessWidget {
       };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
     final statusTheme =
         Theme.of(context).extension<BookingStatusThemeExtension>()!;
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Material(
       color: Colors.transparent,
@@ -161,7 +164,7 @@ class CoachingBookingCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            Formatters.formatRupiah(booking.amount),
+                            Formatters.formatCurrency(booking.amount, currency),
                             style: AppTypography.caption.copyWith(
                               color: AppColors.primary,
                             ),

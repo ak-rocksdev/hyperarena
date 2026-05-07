@@ -15,6 +15,7 @@ import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/core/mocks/mock_venues.dart';
 import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart'
@@ -32,6 +33,7 @@ class SessionDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionAsync = ref.watch(sessionListProvider);
     final joinState = ref.watch(sessionJoinProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Sesi')),
@@ -228,7 +230,7 @@ class SessionDetailScreen extends ConsumerWidget {
                         Text('Biaya per orang',
                             style: AppTypography.caption),
                         Text(
-                          Formatters.formatRupiah(session.pricePerPerson),
+                          Formatters.formatCurrency(session.pricePerPerson, currency),
                           style: AppTypography.priceLarge,
                         ),
                       ],

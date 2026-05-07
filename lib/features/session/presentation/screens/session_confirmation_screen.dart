@@ -52,6 +52,7 @@ class _SessionConfirmationScreenState
   Widget build(BuildContext context) {
     final joinState = ref.watch(sessionJoinProvider);
     final session = joinState.session;
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -131,7 +132,7 @@ class _SessionConfirmationScreenState
                       ),
                       const SizedBox(height: AppDimensions.sm),
                       Text(
-                        Formatters.formatRupiah(session.pricePerPerson),
+                        Formatters.formatCurrency(session.pricePerPerson, currency),
                         style: AppTypography.priceLarge,
                       ),
                     ],

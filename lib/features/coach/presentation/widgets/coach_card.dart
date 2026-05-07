@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -8,17 +9,19 @@ import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/coach/data/models/coach.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
-class CoachCard extends StatelessWidget {
+class CoachCard extends ConsumerWidget {
   final Coach coach;
 
   const CoachCard({super.key, required this.coach});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -118,7 +121,7 @@ class CoachCard extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '${Formatters.formatRupiah(coach.hourlyRate)}/jam',
+                        '${Formatters.formatCurrency(coach.hourlyRate, currency)}/jam',
                         style: AppTypography.priceSmall,
                       ),
                     ],

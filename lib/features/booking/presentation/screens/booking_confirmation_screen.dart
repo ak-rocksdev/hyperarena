@@ -53,6 +53,7 @@ class _BookingConfirmationScreenState
   @override
   Widget build(BuildContext context) {
     final flow = ref.watch(bookingFlowProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -135,7 +136,7 @@ class _BookingConfirmationScreenState
                       ),
                       const SizedBox(height: AppDimensions.sm),
                       Text(
-                        Formatters.formatRupiah(flow.totalAmount),
+                        Formatters.formatCurrency(flow.totalAmount, currency),
                         style: AppTypography.priceLarge,
                       ),
                     ],

@@ -62,6 +62,7 @@ class _CoachBookingConfirmationScreenState
   @override
   Widget build(BuildContext context) {
     final bookingState = ref.watch(coachBookingProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
     final coach = bookingState.coach;
     final package = bookingState.package;
 
@@ -172,7 +173,7 @@ class _CoachBookingConfirmationScreenState
                     ],
                     const SizedBox(height: AppDimensions.sm),
                     Text(
-                      Formatters.formatRupiah(bookingState.totalAmount),
+                      Formatters.formatCurrency(bookingState.totalAmount, currency),
                       style: AppTypography.priceLarge,
                     ),
                   ],

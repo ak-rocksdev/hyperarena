@@ -11,6 +11,7 @@ import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_stepper.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
@@ -28,6 +29,7 @@ class BookingDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookingAsync = ref.watch(bookingDetailProvider(bookingId));
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Booking')),
@@ -131,8 +133,8 @@ class BookingDetailScreen extends ConsumerWidget {
                                 Text('Total',
                                     style: AppTypography.titleSmall),
                                 Text(
-                                  Formatters.formatRupiah(
-                                      booking.totalAmount),
+                                  Formatters.formatCurrency(
+                                      booking.totalAmount, currency),
                                   style: AppTypography.priceLarge,
                                 ),
                               ],

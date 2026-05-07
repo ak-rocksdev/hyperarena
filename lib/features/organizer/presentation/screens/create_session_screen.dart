@@ -12,6 +12,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
@@ -594,7 +595,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                   ' - '
                   '${_maxLevel != null ? _levelLabel(_maxLevel!) : 'Semua'}',
                 ),
-              _summaryRow('Harga', Formatters.formatRupiah(price)),
+              _summaryRow('Harga', Formatters.formatCurrency(
+                  price, ref.read(tenantCurrencyProvider))),
               _summaryRow(
                 'Visibilitas',
                 Formatters.visibilityLabel(_visibility),
@@ -845,7 +847,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
             subtitle: _step > 2
                 ? Text(
                     '$_minPlayers-$_maxPlayers pemain, '
-                    '${Formatters.formatRupiah(int.tryParse(_priceController.text) ?? 0)}',
+                    '${Formatters.formatCurrency(int.tryParse(_priceController.text) ?? 0, ref.read(tenantCurrencyProvider))}',
                     style: AppTypography.caption,
                   )
                 : null,

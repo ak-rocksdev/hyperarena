@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
@@ -113,7 +114,7 @@ class _OrganizerEarningsScreenState
 }
 
 // ── Summary Card ──────────────────────────────────────────────────────
-class _SummaryCard extends StatelessWidget {
+class _SummaryCard extends ConsumerWidget {
   const _SummaryCard({
     required this.label,
     required this.amount,
@@ -125,7 +126,8 @@ class _SummaryCard extends StatelessWidget {
   final Color color;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currency = ref.watch(tenantCurrencyProvider);
     return Container(
       padding: const EdgeInsets.all(AppDimensions.base),
       decoration: BoxDecoration(
@@ -139,7 +141,7 @@ class _SummaryCard extends StatelessWidget {
           Text(label, style: AppTypography.caption),
           const SizedBox(height: AppDimensions.xs),
           Text(
-            Formatters.formatRupiah(amount),
+            Formatters.formatCurrency(amount, currency),
             style: AppTypography.titleMedium.copyWith(color: color),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -151,7 +153,7 @@ class _SummaryCard extends StatelessWidget {
 }
 
 // ── Settlement Row ────────────────────────────────────────────────────
-class _SettlementRow extends StatelessWidget {
+class _SettlementRow extends ConsumerWidget {
   const _SettlementRow({required this.settlement});
 
   final OrganizerSessionSettlement settlement;
@@ -169,9 +171,10 @@ class _SettlementRow extends StatelessWidget {
       };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final statusColor = _statusColor(settlement.settlementStatus);
     final statusLabel = _statusLabel(settlement.settlementStatus);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimensions.sm),
@@ -212,7 +215,7 @@ class _SettlementRow extends StatelessWidget {
                   ),
                   // Right: net revenue
                   Text(
-                    Formatters.formatRupiah(settlement.netRevenue),
+                    Formatters.formatCurrency(settlement.netRevenue, currency),
                     style: AppTypography.titleSmall,
                   ),
                 ],

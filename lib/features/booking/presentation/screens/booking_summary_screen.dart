@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -48,6 +49,7 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
   @override
   Widget build(BuildContext context) {
     final flow = ref.watch(bookingFlowProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
     final slots = [...flow.slots]
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
@@ -127,7 +129,7 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                                     style: AppTypography.bodySmall,
                                   ),
                                   Text(
-                                    Formatters.formatRupiah(slot.price),
+                                    Formatters.formatCurrency(slot.price, currency),
                                     style: AppTypography.bodySmall,
                                   ),
                                 ],
@@ -148,7 +150,7 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                               Text('Total',
                                   style: AppTypography.titleMedium),
                               Text(
-                                Formatters.formatRupiah(flow.totalAmount),
+                                Formatters.formatCurrency(flow.totalAmount, currency),
                                 style: AppTypography.priceLarge,
                               ),
                             ],

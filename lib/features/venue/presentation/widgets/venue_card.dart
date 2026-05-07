@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -9,18 +10,20 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/venue/data/models/venue.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
-class VenueCard extends StatelessWidget {
+class VenueCard extends ConsumerWidget {
   final Venue venue;
 
   const VenueCard({super.key, required this.venue});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
     final sports = venue.courts.map((c) => c.sportType).toSet();
+    final currency = ref.watch(tenantCurrencyProvider);
 
     // Calculate price range from courts
     const minPrice = 100000;
@@ -113,7 +116,7 @@ class VenueCard extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '${Formatters.formatRupiah(minPrice)}–${Formatters.formatRupiah(maxPrice)}',
+                        '${Formatters.formatCurrency(minPrice, currency)}–${Formatters.formatCurrency(maxPrice, currency)}',
                         style: AppTypography.priceSmall,
                       ),
                     ],

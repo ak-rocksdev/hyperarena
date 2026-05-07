@@ -94,18 +94,6 @@ abstract final class Formatters {
     return '${spec.symbol}${render(display, '')}';
   }
 
-  /// **Deprecated**: use [formatCurrency] with an explicit currency code.
-  /// Kept for the booking/coach-mock screens that haven't been wired to
-  /// real BE yet — they still operate on hardcoded IDR values. Migration
-  /// tracked under Issue 19 (BE handoff doc).
-  @Deprecated('Use formatCurrency(amount, currency); migration tracked in Issue 19')
-  static String formatRupiah(int amount) => formatCurrency(amount, 'IDR');
-
-  /// **Deprecated**: use [formatCurrencyCompact] with an explicit currency.
-  @Deprecated('Use formatCurrencyCompact(amount, currency); migration tracked in Issue 19')
-  static String formatRupiahCompact(int amount) =>
-      formatCurrencyCompact(amount, 'IDR');
-
   static final _whitespace = RegExp(r'\s+');
   static final _dateLong = DateFormat('EEEE, d MMMM yyyy', 'id');
   static final _timeHm = DateFormat('HH:mm', 'id');

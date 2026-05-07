@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -7,12 +8,13 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 /// Reusable card for displaying an organizer's open session with health
 /// indicators, fill-rate bar, and action button.
-class OrganizerSessionCard extends StatelessWidget {
+class OrganizerSessionCard extends ConsumerWidget {
   const OrganizerSessionCard({
     super.key,
     required this.session,
@@ -75,10 +77,11 @@ class OrganizerSessionCard extends StatelessWidget {
   // ---------------------------------------------------------------------------
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportExt = Theme.of(context).extension<SportThemeExtension>()!;
     final sportColor = sportExt.color(session.sport);
     final accentBarColor = _hasCriticalIssues ? AppColors.error : sportColor;
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Material(
       color: Colors.transparent,
@@ -119,10 +122,10 @@ class OrganizerSessionCard extends StatelessWidget {
                       _buildFillRateBar(sportColor),
                       if (_hasHealthProblems) ...[
                         const SizedBox(height: AppDimensions.sm),
-                        _buildHealthChips(),
+                        _buildHealthChips(currency),
                       ],
                       const SizedBox(height: AppDimensions.sm),
-                      _buildBottomRow(context),
+                      _buildBottomRow(context, currency),
                     ],
                   ),
                 ),
@@ -229,13 +232,13 @@ class OrganizerSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHealthChips() {
+  Widget _buildHealthChips(String currency) {
     final chips = <Widget>[];
     final h = session.health;
 
     if (h.pendingPayments > 0) {
       final amountStr = h.pendingPaymentAmount > 0
-          ? ' (${Formatters.formatRupiahCompact(h.pendingPaymentAmount)})'
+          ? ' (${Formatters.formatCurrencyCompact(h.pendingPaymentAmount, currency)})'
           : '';
       chips.add(_healthChip(
         '${h.pendingPayments} belum bayar$amountStr',
@@ -284,12 +287,12 @@ class OrganizerSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomRow(BuildContext context) {
+  Widget _buildBottomRow(BuildContext context, String currency) {
     if (session.status == OpenSessionStatus.cancelled) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _priceLabel(),
+          _priceLabel(currency),
           Text(
             'Dibatalkan',
             style: AppTypography.caption.copyWith(color: AppColors.neutral400),
@@ -300,7 +303,7 @@ class OrganizerSessionCard extends StatelessWidget {
 
     return Row(
       children: [
-        _priceLabel(),
+        _priceLabel(currency),
         const Spacer(),
         // Quick action: Undang (share invite)
         _QuickActionButton(
@@ -357,12 +360,12 @@ class OrganizerSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _priceLabel() {
+  Widget _priceLabel(String currency) {
     return Text.rich(
       TextSpan(
         children: [
           TextSpan(
-            text: Formatters.formatRupiah(session.pricePerPerson),
+            text: Formatters.formatCurrency(session.pricePerPerson, currency),
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w600,
             ),

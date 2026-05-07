@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:hyperarena/features/owner/providers/owner_providers.dart';
 
@@ -128,6 +129,7 @@ class _BookingQueueCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currency = ref.watch(tenantCurrencyProvider);
     return Container(
       padding: const EdgeInsets.all(AppDimensions.base),
       decoration: BoxDecoration(
@@ -171,7 +173,7 @@ class _BookingQueueCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    Formatters.formatRupiah(booking.totalAmount),
+                    Formatters.formatCurrency(booking.totalAmount, currency),
                     style: AppTypography.titleSmall,
                   ),
                   const SizedBox(height: AppDimensions.xs),
@@ -233,6 +235,7 @@ class _PendingActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actions = ref.read(ownerActionsProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Column(
       children: [
@@ -240,7 +243,7 @@ class _PendingActions extends ConsumerWidget {
           children: [
             Expanded(
               child: FilledButton(
-                onPressed: () => _showConfirmSheet(context, actions),
+                onPressed: () => _showConfirmSheet(context, actions, currency),
                 child: const Text('Konfirmasi Diterima'),
               ),
             ),
@@ -271,6 +274,7 @@ class _PendingActions extends ConsumerWidget {
   void _showConfirmSheet(
     BuildContext context,
     OwnerActionsController actions,
+    String currency,
   ) {
     showModalBottomSheet<void>(
       context: context,
@@ -298,7 +302,7 @@ class _PendingActions extends ConsumerWidget {
             ),
             const SizedBox(height: AppDimensions.xs),
             Text(
-              'Jumlah: ${Formatters.formatRupiah(booking.totalAmount)}',
+              'Jumlah: ${Formatters.formatCurrency(booking.totalAmount, currency)}',
               style: AppTypography.titleSmall,
             ),
             const SizedBox(height: AppDimensions.base),

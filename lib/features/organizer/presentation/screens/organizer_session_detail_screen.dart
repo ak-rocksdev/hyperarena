@@ -11,6 +11,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/organizer/providers/participant_management_provider.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
@@ -78,16 +79,17 @@ class OrganizerSessionDetailScreen extends ConsumerWidget {
 
 // ── 1. Session Header Card ──────────────────────────────────────────────────
 
-class _SessionHeaderCard extends StatelessWidget {
+class _SessionHeaderCard extends ConsumerWidget {
   const _SessionHeaderCard({required this.session});
 
   final OpenSession session;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
     final sportColor = sportTheme.color(session.sport);
     final sportBg = sportTheme.backgroundColor(session.sport);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Container(
       padding: const EdgeInsets.all(AppDimensions.base),
@@ -163,7 +165,7 @@ class _SessionHeaderCard extends StatelessWidget {
           const SizedBox(height: AppDimensions.xs),
           _InfoRow(
             icon: Icons.attach_money_outlined,
-            text: '${Formatters.formatRupiah(session.pricePerPerson)} / orang',
+            text: '${Formatters.formatCurrency(session.pricePerPerson, currency)} / orang',
           ),
         ],
       ),
@@ -910,6 +912,7 @@ class _SettlementSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final earningsAsync = ref.watch(organizerEarningsProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -942,13 +945,14 @@ class _SettlementSection extends ConsumerWidget {
                 children: [
                   _SettlementRow(
                     label: 'Pendapatan Kotor',
-                    value: Formatters.formatRupiah(settlement.grossRevenue),
+                    value: Formatters.formatCurrency(
+                        settlement.grossRevenue, currency),
                   ),
                   const SizedBox(height: AppDimensions.xs),
                   _SettlementRow(
                     label: 'Estimasi Biaya',
                     value:
-                        '- ${Formatters.formatRupiah(settlement.estimatedCost)}',
+                        '- ${Formatters.formatCurrency(settlement.estimatedCost, currency)}',
                     valueColor: AppColors.error,
                   ),
                   const Padding(
@@ -965,7 +969,8 @@ class _SettlementSection extends ConsumerWidget {
                         style: AppTypography.titleSmall,
                       ),
                       Text(
-                        Formatters.formatRupiah(settlement.netRevenue),
+                        Formatters.formatCurrency(
+                            settlement.netRevenue, currency),
                         style: AppTypography.titleMedium,
                       ),
                     ],

@@ -105,7 +105,8 @@ class MarketplaceCoachDetailScreen extends StatelessWidget {
                                     color: AppColors.textSecondary,
                                   )),
                               Text(
-                                Formatters.formatRupiah(coach.ratePerSession!),
+                                Formatters.formatCurrency(
+                                    coach.ratePerSession!, coach.currency ?? 'IDR'),
                                 style: AppTypography.titleMedium.copyWith(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w700,

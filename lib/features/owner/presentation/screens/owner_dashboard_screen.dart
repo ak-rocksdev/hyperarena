@@ -8,6 +8,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/owner/providers/owner_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -192,13 +193,14 @@ class _PendingBanner extends StatelessWidget {
 
 // ── Today's Overview Row ──────────────────────────────────────────────────────
 
-class _TodayOverviewRow extends StatelessWidget {
+class _TodayOverviewRow extends ConsumerWidget {
   const _TodayOverviewRow({required this.stats});
 
   final dynamic stats;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currency = ref.watch(tenantCurrencyProvider);
     return Row(
       children: [
         Expanded(
@@ -220,7 +222,8 @@ class _TodayOverviewRow extends StatelessWidget {
         Expanded(
           child: _OverviewStatCard(
             icon: Icons.account_balance_wallet_outlined,
-            value: Formatters.formatRupiah(stats.todayRevenue as int),
+            value: Formatters.formatCurrency(
+                stats.todayRevenue as int, currency),
             label: 'Pendapatan Hari Ini',
           ),
         ),

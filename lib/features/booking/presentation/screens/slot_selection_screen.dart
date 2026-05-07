@@ -11,6 +11,7 @@ import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/slot_grid.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
 import 'package:hyperarena/features/venue/data/models/court_slot.dart';
@@ -47,6 +48,7 @@ class _SlotSelectionScreenState extends ConsumerState<SlotSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final flow = ref.watch(bookingFlowProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
     final courtId = flow.court?.id ?? '';
     final date = flow.date ?? DateTime.now();
 
@@ -129,7 +131,7 @@ class _SlotSelectionScreenState extends ConsumerState<SlotSelectionScreen> {
                         style: AppTypography.caption,
                       ),
                       Text(
-                        Formatters.formatRupiah(_totalAmount),
+                        Formatters.formatCurrency(_totalAmount, currency),
                         style: AppTypography.priceLarge,
                       ),
                     ],

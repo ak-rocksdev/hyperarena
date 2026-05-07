@@ -10,6 +10,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -62,6 +63,7 @@ class _CoachBookingPaymentScreenState
   @override
   Widget build(BuildContext context) {
     final bookingState = ref.watch(coachBookingProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
     final amount = bookingState.totalAmount;
     final packageName = bookingState.package?.name ?? '';
 
@@ -99,7 +101,7 @@ class _CoachBookingPaymentScreenState
                   ),
                   const SizedBox(height: AppDimensions.xs),
                   Text(
-                    Formatters.formatRupiah(amount),
+                    Formatters.formatCurrency(amount, currency),
                     style: AppTypography.priceLarge,
                   ),
                   if (packageName.isNotEmpty)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -8,18 +9,20 @@ import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
-class SessionCard extends StatelessWidget {
+class SessionCard extends ConsumerWidget {
   final OpenSession session;
 
   const SessionCard({super.key, required this.session});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
     final sportColor = sportTheme.color(session.sport);
+    final currency = ref.watch(tenantCurrencyProvider);
     final isFull = session.currentPlayers >= session.maxPlayers;
     final playerProgress =
         session.currentPlayers / session.maxPlayers;
@@ -156,7 +159,7 @@ class SessionCard extends StatelessWidget {
                           ),
                         const Spacer(),
                         Text(
-                          Formatters.formatRupiah(session.pricePerPerson),
+                          Formatters.formatCurrency(session.pricePerPerson, currency),
                           style: AppTypography.priceSmall,
                         ),
                       ],

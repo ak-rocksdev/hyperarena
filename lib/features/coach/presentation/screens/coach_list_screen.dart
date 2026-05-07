@@ -197,7 +197,7 @@ class _MarketplaceCoachCard extends ConsumerWidget {
                   if (coach.ratePerSession != null) ...[
                     const SizedBox(height: AppDimensions.xs),
                     Text(
-                      '${Formatters.formatRupiah(coach.ratePerSession!)}/sesi',
+                      '${Formatters.formatCurrency(coach.ratePerSession!, coach.currency ?? 'IDR')}/sesi',
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w600,

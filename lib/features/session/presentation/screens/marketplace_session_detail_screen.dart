@@ -5,6 +5,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session_detail.dart';
@@ -436,6 +437,7 @@ class _BottomBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final joinState = ref.watch(marketplaceSessionJoinProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
     final isFull = session.bookedCount >= session.capacity;
 
     return Container(
@@ -464,7 +466,7 @@ class _BottomBar extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  Formatters.formatRupiah(pricing.price),
+                  Formatters.formatCurrency(pricing.price, currency),
                   style: AppTypography.price,
                 ),
               ],

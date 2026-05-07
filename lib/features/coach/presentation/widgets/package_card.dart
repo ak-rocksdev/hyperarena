@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
@@ -6,18 +7,20 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/coach/data/models/coach_package.dart';
 
-class PackageCard extends StatelessWidget {
+class PackageCard extends ConsumerWidget {
   final CoachPackage package;
   final VoidCallback? onSelect;
 
   const PackageCard({super.key, required this.package, this.onSelect});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
     final sportColor = sportTheme.color(package.sport);
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -81,7 +84,7 @@ class PackageCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              Formatters.formatRupiah(package.pricePerSession),
+                              Formatters.formatCurrency(package.pricePerSession, currency),
                               style: AppTypography.priceLarge,
                             ),
                             Text('/sesi', style: AppTypography.caption),

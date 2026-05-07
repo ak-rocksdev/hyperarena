@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/venue/data/models/court_slot.dart';
 
-class SlotGrid extends StatelessWidget {
+class SlotGrid extends ConsumerWidget {
   final List<CourtSlot> slots;
   final Set<String> selectedSlotIds;
   final ValueChanged<CourtSlot> onSlotToggle;
@@ -20,7 +22,8 @@ class SlotGrid extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currency = ref.watch(tenantCurrencyProvider);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -77,7 +80,7 @@ class SlotGrid extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  Formatters.formatRupiah(slot.price),
+                  Formatters.formatCurrency(slot.price, currency),
                   style: AppTypography.priceSmall.copyWith(
                     color: isAvailable ? null : AppColors.textDisabled,
                   ),

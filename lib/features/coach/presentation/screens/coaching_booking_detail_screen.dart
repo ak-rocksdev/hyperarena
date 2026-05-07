@@ -11,6 +11,7 @@ import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/routing/app_routes.dart';
@@ -53,16 +54,17 @@ class CoachingBookingDetailScreen extends ConsumerWidget {
   }
 }
 
-class _BookingContent extends StatelessWidget {
+class _BookingContent extends ConsumerWidget {
   final CoachingBooking booking;
 
   const _BookingContent({required this.booking});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
     final statusTheme =
         Theme.of(context).extension<BookingStatusThemeExtension>()!;
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return Column(
       children: [
@@ -244,7 +246,7 @@ class _BookingContent extends StatelessWidget {
                     children: [
                       Text('Total', style: AppTypography.titleSmall),
                       Text(
-                        Formatters.formatRupiah(booking.amount),
+                        Formatters.formatCurrency(booking.amount, currency),
                         style: AppTypography.priceLarge,
                       ),
                     ],

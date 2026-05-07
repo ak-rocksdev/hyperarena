@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -6,21 +7,23 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 /// Groups action items by category and renders each group as a collapsible
 /// task card with a primary action button.
-class ActionQueueWidget extends StatelessWidget {
+class ActionQueueWidget extends ConsumerWidget {
   const ActionQueueWidget({super.key, required this.items});
 
   final List<OrganizerActionItem> items;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final groups = _groupItems(items);
+    final currency = ref.watch(tenantCurrencyProvider);
+    final groups = _groupItems(items, currency);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -34,7 +37,8 @@ class ActionQueueWidget extends StatelessWidget {
     );
   }
 
-  List<_ActionGroup> _groupItems(List<OrganizerActionItem> items) {
+  List<_ActionGroup> _groupItems(
+      List<OrganizerActionItem> items, String currency) {
     final paymentItems = items
         .where((i) => i.type == OrganizerActionType.confirmPayment)
         .toList();
@@ -53,7 +57,7 @@ class ActionQueueWidget extends StatelessWidget {
         color: AppColors.warning,
         count: paymentItems.length,
         impactText: totalAmount > 0
-            ? '${_totalParticipantCount(paymentItems)} pemain · ${Formatters.formatRupiahCompact(totalAmount)}'
+            ? '${_totalParticipantCount(paymentItems)} pemain · ${Formatters.formatCurrencyCompact(totalAmount, currency)}'
             : '${paymentItems.length} sesi',
         actionLabel: 'Ingatkan Semua',
         items: paymentItems,
@@ -241,15 +245,16 @@ class _ActionGroupCardState extends State<_ActionGroupCard> {
   }
 }
 
-class _ActionItemDetail extends StatelessWidget {
+class _ActionItemDetail extends ConsumerWidget {
   const _ActionItemDetail({required this.item, required this.color});
 
   final OrganizerActionItem item;
   final Color color;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sessionId = item.sessionId;
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return InkWell(
       onTap: sessionId != null
@@ -282,7 +287,7 @@ class _ActionItemDetail extends StatelessWidget {
                     ),
                   if (item.amountImpact != null && item.amountImpact! > 0)
                     Text(
-                      Formatters.formatRupiahCompact(item.amountImpact!),
+                      Formatters.formatCurrencyCompact(item.amountImpact!, currency),
                       style: AppTypography.caption.copyWith(color: color),
                     ),
                 ],

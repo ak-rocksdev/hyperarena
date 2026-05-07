@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/date_picker_strip.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
@@ -66,6 +67,7 @@ class _CoachBookingScreenState extends ConsumerState<CoachBookingScreen> {
   @override
   Widget build(BuildContext context) {
     final bookingState = ref.watch(coachBookingProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
     final notifier = ref.read(coachBookingProvider.notifier);
     final coach = bookingState.coach;
     final package = bookingState.package;
@@ -154,7 +156,7 @@ class _CoachBookingScreenState extends ConsumerState<CoachBookingScreen> {
                           ),
                           const SizedBox(height: AppDimensions.sm),
                           Text(
-                            '${Formatters.formatRupiah(package.pricePerSession)}/sesi',
+                            '${Formatters.formatCurrency(package.pricePerSession, currency)}/sesi',
                             style: AppTypography.price,
                           ),
                         ],
@@ -373,7 +375,7 @@ class _CoachBookingScreenState extends ConsumerState<CoachBookingScreen> {
                           style: AppTypography.caption,
                         ),
                         Text(
-                          Formatters.formatRupiah(bookingState.totalAmount),
+                          Formatters.formatCurrency(bookingState.totalAmount, currency),
                           style: AppTypography.priceLarge,
                         ),
                       ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -6,6 +7,7 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -75,7 +77,7 @@ class EarningsSnapshotCard extends StatelessWidget {
   }
 }
 
-class _EarningsRow extends StatelessWidget {
+class _EarningsRow extends ConsumerWidget {
   const _EarningsRow({
     required this.label,
     required this.amount,
@@ -87,7 +89,8 @@ class _EarningsRow extends StatelessWidget {
   final Color color;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currency = ref.watch(tenantCurrencyProvider);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -107,7 +110,7 @@ class _EarningsRow extends StatelessWidget {
           ],
         ),
         Text(
-          Formatters.formatRupiah(amount),
+          Formatters.formatCurrency(amount, currency),
           style: AppTypography.titleSmall.copyWith(color: color),
         ),
       ],

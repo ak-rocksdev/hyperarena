@@ -10,6 +10,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/providers/session_join_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -63,6 +64,7 @@ class _SessionPaymentScreenState extends ConsumerState<SessionPaymentScreen> {
     final joinState = ref.watch(sessionJoinProvider);
     final session = joinState.session;
     final amount = session?.pricePerPerson ?? 0;
+    final currency = ref.watch(tenantCurrencyProvider);
 
     return DefaultTabController(
       length: 2,
@@ -99,7 +101,7 @@ class _SessionPaymentScreenState extends ConsumerState<SessionPaymentScreen> {
                   ),
                   const SizedBox(height: AppDimensions.xs),
                   Text(
-                    Formatters.formatRupiah(amount),
+                    Formatters.formatCurrency(amount, currency),
                     style: AppTypography.priceLarge,
                   ),
                   if (session != null)

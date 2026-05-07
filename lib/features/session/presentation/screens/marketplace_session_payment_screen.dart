@@ -13,6 +13,7 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/data/models/session_join_response.dart';
 import 'package:hyperarena/features/session/data/models/tenant_payment_info.dart';
 import 'package:hyperarena/features/session/providers/marketplace_session_join_provider.dart';
@@ -191,7 +192,8 @@ class _MarketplaceSessionPaymentScreenState
                 Text(_sessionName, style: AppTypography.bodyMedium),
                 const SizedBox(height: AppDimensions.xs),
                 Text(
-                  Formatters.formatRupiah(_price),
+                  Formatters.formatCurrency(
+                      _price, ref.watch(tenantCurrencyProvider)),
                   style: AppTypography.priceLarge,
                 ),
               ],

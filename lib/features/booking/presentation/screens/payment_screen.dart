@@ -13,6 +13,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -64,6 +65,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final flow = ref.watch(bookingFlowProvider);
+    final currency = ref.watch(tenantCurrencyProvider);
     final venueId = flow.venue?.id ?? '';
     final paymentMethods = MockVenues.paymentMethods[venueId] ?? [];
     final paymentMethod = flow.paymentMethod;
@@ -104,7 +106,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   ),
                   const SizedBox(height: AppDimensions.xs),
                   Text(
-                    Formatters.formatRupiah(flow.totalAmount),
+                    Formatters.formatCurrency(flow.totalAmount, currency),
                     style: AppTypography.priceLarge,
                   ),
                 ],

@@ -106,7 +106,8 @@ class _SessionListScreenState extends ConsumerState<SessionListScreen> {
               height: MediaQuery.of(context).size.height * 0.6,
               child: EmptyState(
                 icon: Icons.event_outlined,
-                message: 'Belum ada sesi.\n'
+                message:
+                    'Belum ada sesi.\n'
                     'Sesi yang sudah dijadwalkan oleh admin akan muncul di sini.',
                 actionLabel: 'Muat ulang',
                 onAction: reload,
@@ -165,7 +166,8 @@ class _MarketplaceSessionCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final userTenantSlug = ref.watch(authNotifierProvider)?.tenantSlug;
     final sessionTenantSlug = session.tenant?.slug;
-    final isOtherTenant = userTenantSlug != null &&
+    final isOtherTenant =
+        userTenantSlug != null &&
         sessionTenantSlug != null &&
         sessionTenantSlug != userTenantSlug;
 
@@ -174,91 +176,99 @@ class _MarketplaceSessionCard extends ConsumerWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-          onTap: () => context.push(
-            AppRoutes.marketplaceSession(session.id),
-            extra: session,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SessionHero(
-                photoUrls: session.photoUrls,
-                photoPath: session.photoPath,
-                size: SessionHeroSize.md,
-                brandColor: session.tenant?.brandColor,
-                borderRadius: 0,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(AppDimensions.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-              Row(
+        onTap: () => context.push(
+          AppRoutes.marketplaceSession(session.id),
+          extra: session,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SessionHero(
+              photoUrls: session.photoUrls,
+              photoPath: session.photoPath,
+              size: SessionHeroSize.md,
+              brandColor: session.tenant?.brandColor,
+              borderRadius: 0,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(session.safeTitle,
-                        style: theme.textTheme.titleMedium),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          session.safeTitle,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      ?pill,
+                    ],
                   ),
-                  ?pill,
-                ],
-              ),
-              if (session.tenant != null) ...[
-                const SizedBox(height: AppDimensions.xs),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'oleh ${session.tenant!.name}',
-                        style: theme.textTheme.bodySmall?.copyWith(
+                  if (session.tenant != null) ...[
+                    const SizedBox(height: AppDimensions.xs),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'oleh ${session.tenant!.name}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (isOtherTenant) ...[
+                          const SizedBox(width: AppDimensions.xs),
+                          const OtherTenantCaption(),
+                        ],
+                      ],
+                    ),
+                  ],
+                  if (session.venue != null) ...[
+                    const SizedBox(height: AppDimensions.xs),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
                           color: theme.colorScheme.outline,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            session.venue!.name,
+                            style: theme.textTheme.bodySmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                    if (isOtherTenant) ...[
-                      const SizedBox(width: AppDimensions.xs),
-                      const OtherTenantCaption(),
-                    ],
                   ],
-                ),
-              ],
-              if (session.venue != null) ...[
-                const SizedBox(height: AppDimensions.xs),
-                Row(
-                  children: [
-                    Icon(Icons.location_on_outlined,
-                        size: 14, color: theme.colorScheme.outline),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        session.venue!.name,
+                  const SizedBox(height: AppDimensions.sm),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule,
+                        size: 14,
+                        color: theme.colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        Formatters.formatDateTimeCompact(session.startAt),
                         style: theme.textTheme.bodySmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: AppDimensions.sm),
-              Row(
-                children: [
-                  Icon(Icons.schedule,
-                      size: 14, color: theme.colorScheme.outline),
-                  const SizedBox(width: 4),
-                  Text(
-                    Formatters.formatDateTimeCompact(session.startAt),
-                    style: theme.textTheme.bodySmall,
+                      const Spacer(),
+                      Text(
+                        '${session.bookedCount}/${session.capacity} peserta',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  Text(
-                    '${session.bookedCount}/${session.capacity} peserta',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
                 ],
               ),
             ),
@@ -268,51 +278,44 @@ class _MarketplaceSessionCard extends ConsumerWidget {
     );
   }
 
-  /// `startAt` carries tenant wall-clock components (offset stripped by
-  /// `tenantWallClockFromJson`). Comparing to device-local `DateTime.now()`
-  /// is exact for same-tz users and off by the tz delta for cross-tz —
-  /// acceptable for a status pill, not for booking-time validation.
   bool _isOngoing(MarketplaceSession s) {
     final now = DateTime.now();
-    final end = s.startAt.add(Duration(minutes: s.durationMinutes));
-    return !now.isBefore(s.startAt) && now.isBefore(end);
+    return !now.isBefore(s.startAt) && now.isBefore(s.endAt);
   }
 
-  bool _isEnded(MarketplaceSession s) {
-    final end = s.startAt.add(Duration(minutes: s.durationMinutes));
-    return !DateTime.now().isBefore(end);
-  }
+  bool _isEnded(MarketplaceSession s) => !DateTime.now().isBefore(s.endAt);
 
-  bool _isFull(MarketplaceSession s) => s.bookedCount >= s.capacity;
+  /// Capacity 0 is the defensive default for legacy rows with null
+  /// capacity in the DB — never treat that as "full".
+  bool _isFull(MarketplaceSession s) =>
+      s.capacity > 0 && s.bookedCount >= s.capacity;
 
-  /// Single pill priority: ongoing > selesai > terdaftar > penuh > none.
-  /// Past sessions surface 'Selesai' regardless of enrollment so the
-  /// pill matches reading tense — the date next to it already tells the
-  /// user it's history.
+  /// Precedence: ongoing > ended > enrolled > full. Past sessions show
+  /// "Sesi Selesai" even when enrolled, since the row is read-only history.
   Widget? _resolveStatusPill(MarketplaceSession s) {
     if (_isOngoing(s)) {
-      return _StatusPill(
+      return const _StatusPill(
         label: 'Sedang berlangsung',
         icon: Icons.play_circle_outline,
         color: AppColors.warning,
       );
     }
     if (_isEnded(s)) {
-      return _StatusPill(
+      return const _StatusPill(
         label: 'Sesi Selesai',
         icon: Icons.check_circle_outline,
         color: AppColors.neutral500,
       );
     }
     if (s.isEnrolled) {
-      return _StatusPill(
+      return const _StatusPill(
         label: 'Terdaftar',
         icon: Icons.check_circle,
         color: AppColors.success,
       );
     }
     if (_isFull(s)) {
-      return _StatusPill(
+      return const _StatusPill(
         label: 'Penuh',
         icon: Icons.block,
         color: AppColors.error,
@@ -337,7 +340,9 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.sm, vertical: 2),
+        horizontal: AppDimensions.sm,
+        vertical: 2,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
@@ -350,9 +355,9 @@ class _StatusPill extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

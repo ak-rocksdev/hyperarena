@@ -170,13 +170,10 @@ class _MarketplaceSessionCard extends ConsumerWidget {
         sessionTenantSlug != userTenantSlug;
 
     final pill = _resolveStatusPill(session);
-    final ended = _isEnded(session);
 
-    return Opacity(
-      opacity: ended ? 0.65 : 1.0,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
           onTap: () => context.push(
             AppRoutes.marketplaceSession(session.id),
             extra: session,
@@ -268,7 +265,6 @@ class _MarketplaceSessionCard extends ConsumerWidget {
           ],
         ),
       ),
-      ),
     );
   }
 
@@ -303,7 +299,7 @@ class _MarketplaceSessionCard extends ConsumerWidget {
     }
     if (_isEnded(s)) {
       return _StatusPill(
-        label: 'Selesai',
+        label: 'Sesi Selesai',
         icon: Icons.check_circle_outline,
         color: AppColors.neutral500,
       );

@@ -34,6 +34,15 @@ class MarketplaceSession with _$MarketplaceSession {
       _$MarketplaceSessionFromJson(json);
 }
 
+extension MarketplaceSessionTitleX on MarketplaceSession {
+  /// User-facing heading. Prefers [displayTitle] (post-feature BE),
+  /// falls back to [name] (pre-feature BE auto-name). Always non-null.
+  String get safeTitle =>
+      (displayTitle != null && displayTitle!.isNotEmpty)
+          ? displayTitle!
+          : name;
+}
+
 @freezed
 class SessionTenant with _$SessionTenant {
   const factory SessionTenant({

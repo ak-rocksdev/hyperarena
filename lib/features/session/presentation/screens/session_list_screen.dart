@@ -10,6 +10,7 @@ import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
 import 'package:hyperarena/shared/widgets/other_tenant_caption.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:go_router/go_router.dart';
 
@@ -148,15 +149,28 @@ class _MarketplaceSessionCard extends ConsumerWidget {
           AppRoutes.marketplaceSession(session.id),
           extra: session,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 16:9 hero — falls back to tenant logo when no session photo.
+            // Pass session.tenant?.brandColor so cross-tenant cards render
+            // the right brand color in fallback mode.
+            SessionHero(
+              photoUrls: session.photoUrls,
+              photoPath: session.photoPath,
+              size: SessionHeroSize.md,
+              brandColor: session.tenant?.brandColor,
+              borderRadius: 0,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               Row(
                 children: [
                   Expanded(
-                    child: Text(session.name,
+                    child: Text(session.safeTitle,
                         style: theme.textTheme.titleMedium),
                   ),
                   if (session.isEnrolled)
@@ -245,8 +259,10 @@ class _MarketplaceSessionCard extends ConsumerWidget {
                   ),
                 ],
               ),
-            ],
-          ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -14,6 +14,7 @@ import 'package:hyperarena/features/session/presentation/widgets/credit_confirma
 import 'package:hyperarena/features/session/providers/marketplace_session_join_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 
@@ -95,35 +96,19 @@ class _DetailBody extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 200,
+            expandedHeight: 220,
             pinned: true,
             backgroundColor: AppColors.primary700,
             foregroundColor: Colors.white,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppSurfaces.primaryGradient,
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: AppDimensions.huge),
-                      Icon(
-                        session.type == 'private' ? Icons.person : Icons.groups,
-                        size: 56,
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                      const SizedBox(height: AppDimensions.sm),
-                      Text(
-                        session.type == 'private' ? 'Sesi Privat' : 'Sesi Grup',
-                        style: AppTypography.titleMedium.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              background: SessionHero(
+                photoUrls: session.photoUrls,
+                photoPath: session.photoPath,
+                size: SessionHeroSize.lg,
+                brandColor: session.tenant?.brandColor,
+                borderRadius: 0,
+                enableZoom: true,
+                heroTag: 'marketplace-session-hero-$sessionId',
               ),
             ),
           ),
@@ -133,8 +118,7 @@ class _DetailBody extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Session name
-                  Text(session.name, style: AppTypography.headingLarge),
+                  Text(session.safeTitle, style: AppTypography.headingLarge),
 
                   if (session.tenant != null) ...[
                     const SizedBox(height: AppDimensions.xs),

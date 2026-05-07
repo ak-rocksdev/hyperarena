@@ -14,6 +14,7 @@ import 'package:hyperarena/features/coach/data/models/session_recommendation.dar
 import 'package:hyperarena/features/coach/presentation/widgets/enrollment_dialog.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/student_grading_panel.dart';
 import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
 
 class CoachSessionDetailScreen extends ConsumerStatefulWidget {
@@ -164,79 +165,101 @@ class _CoachSessionDetailScreenState
           slivers: [
             // ── Header ─────────────────────────────────────
             SliverAppBar(
-              expandedHeight: 180,
+              expandedHeight: 220,
               pinned: true,
               backgroundColor: AppColors.primary700,
               foregroundColor: Colors.white,
               flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: AppSurfaces.primaryGradient,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: AppDimensions.screenHorizontal,
-                      right: AppDimensions.screenHorizontal,
-                      bottom: AppDimensions.lg,
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    SessionHero(
+                      photoUrls: session.photoUrls,
+                      photoPath: session.photoPath,
+                      size: SessionHeroSize.lg,
+                      borderRadius: 0,
+                      enableZoom: true,
+                      heroTag: 'coach-session-hero-${session.id}',
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Session type chip
-                        if (session.type != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppDimensions.sm,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(
-                                  AppDimensions.radiusSm),
-                            ),
-                            child: Text(
-                              _sessionTypeLabel(session.type!),
-                              style: AppTypography.labelSmall.copyWith(
+                    // Gradient scrim so the title stays readable on light photos.
+                    const IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Color(0xCC000000)],
+                            stops: [0.4, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: AppDimensions.screenHorizontal,
+                        right: AppDimensions.screenHorizontal,
+                        bottom: AppDimensions.lg,
+                      ),
+                      child: IgnorePointer(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (session.type != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppDimensions.sm,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(
+                                      AppDimensions.radiusSm),
+                                ),
+                                child: Text(
+                                  _sessionTypeLabel(session.type!),
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: AppDimensions.sm),
+                            Text(
+                              session.safeTitle,
+                              style: AppTypography.headingLarge.copyWith(
                                 color: Colors.white,
                               ),
                             ),
-                          ),
-                        const SizedBox(height: AppDimensions.sm),
-                        Text(
-                          session.name,
-                          style: AppTypography.headingLarge.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: AppDimensions.xs),
-                        Row(
-                          children: [
-                            const Icon(Icons.schedule,
-                                size: 16, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text(
-                              Formatters.formatDateTimeCompact(
-                                  session.startAt.toLocal()),
-                              style: AppTypography.bodySmall.copyWith(
-                                color: Colors.white70,
-                              ),
-                            ),
-                            const SizedBox(width: AppDimensions.md),
-                            const Icon(Icons.timer_outlined,
-                                size: 16, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${session.durationMinutes} menit',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: Colors.white70,
-                              ),
+                            const SizedBox(height: AppDimensions.xs),
+                            Row(
+                              children: [
+                                const Icon(Icons.schedule,
+                                    size: 16, color: Colors.white70),
+                                const SizedBox(width: 4),
+                                Text(
+                                  Formatters.formatDateTimeCompact(
+                                      session.startAt.toLocal()),
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                const SizedBox(width: AppDimensions.md),
+                                const Icon(Icons.timer_outlined,
+                                    size: 16, color: Colors.white70),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${session.durationMinutes} menit',
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),

@@ -39,6 +39,12 @@ _$CoachSessionImpl _$$CoachSessionImplFromJson(
           )
           .toList() ??
       const [],
+  title: json['title'] as String?,
+  displayTitle: json['display_title'] as String?,
+  photoPath: json['photo_path'] as String?,
+  photoUrls: (json['photo_urls'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(k, e as String),
+  ),
 );
 
 Map<String, dynamic> _$$CoachSessionImplToJson(_$CoachSessionImpl instance) =>
@@ -57,6 +63,10 @@ Map<String, dynamic> _$$CoachSessionImplToJson(_$CoachSessionImpl instance) =>
       'coaches': instance.coaches,
       'session_students': instance.sessionStudents,
       'attendances': instance.attendances,
+      'title': instance.title,
+      'display_title': instance.displayTitle,
+      'photo_path': instance.photoPath,
+      'photo_urls': instance.photoUrls,
     };
 
 _$CoachSessionVenueImpl _$$CoachSessionVenueImplFromJson(

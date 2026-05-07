@@ -12,6 +12,7 @@ import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 
 class SessionCard extends ConsumerWidget {
   final OpenSession session;
@@ -34,12 +35,23 @@ class SessionCard extends ConsumerWidget {
         boxShadow: AppShadows.sm,
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            // Sport-colored accent bar
-            Container(width: 4, color: sportColor),
-            // Content
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 16:9 hero — falls back to tenant logo when session has no
+          // photo. Listing card uses md (640×360) per BE size guidance.
+          SessionHero(
+            photoUrls: session.photoUrls,
+            photoPath: session.photoPath,
+            size: SessionHeroSize.md,
+            borderRadius: 0,
+          ),
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                // Sport-colored accent bar
+                Container(width: 4, color: sportColor),
+                // Content
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(AppDimensions.base),
@@ -185,9 +197,11 @@ class SessionCard extends ConsumerWidget {
                   ],
                 ),
               ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

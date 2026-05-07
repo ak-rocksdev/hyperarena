@@ -8,6 +8,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/coach/data/models/coach_session.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
@@ -182,18 +183,29 @@ class _CoachSessionCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push(AppRoutes.coachSessionDetail(session.id)),
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title + type chip
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 16:9 hero — falls back to tenant logo when session has no
+            // photo. Listing card uses md (640×360) per BE size guidance.
+            SessionHero(
+              photoUrls: session.photoUrls,
+              photoPath: session.photoPath,
+              size: SessionHeroSize.md,
+              borderRadius: 0,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(session.name,
-                        style: AppTypography.titleMedium),
-                  ),
+                  // Title + type chip
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(session.safeTitle,
+                            style: AppTypography.titleMedium),
+                      ),
                   if (session.type != null)
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -261,8 +273,10 @@ class _CoachSessionCard extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
-          ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

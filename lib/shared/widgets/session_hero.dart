@@ -55,8 +55,20 @@ class SessionHero extends ConsumerWidget {
   /// edge-to-edge.
   final double borderRadius;
 
-  /// Optional tap callback — wraps the hero in an [InkWell].
+  /// Optional tap callback — wraps the hero in an [InkWell]. Mutually
+  /// exclusive with [enableZoom]; if both are passed, [onTap] wins.
   final VoidCallback? onTap;
+
+  /// When true AND this is a real session photo (not fallback), tapping
+  /// opens a fullscreen Hero-animated InteractiveViewer using the `xl`
+  /// URL (or the largest available). No effect on fallback mode (the
+  /// tenant logo is square + already small, pinch-zoom adds nothing).
+  final bool enableZoom;
+
+  /// Hero tag for the fullscreen viewer. Required when [enableZoom] is
+  /// true so the open/close animation has continuity. Pass a
+  /// per-session unique tag like `'session-hero-${session.id}'`.
+  final String? heroTag;
 
   const SessionHero({
     super.key,
@@ -66,9 +78,13 @@ class SessionHero extends ConsumerWidget {
     this.brandColor,
     this.borderRadius = AppDimensions.radiusMd,
     this.onTap,
+    this.enableZoom = false,
+    this.heroTag,
   });
 
   String? get _url => photoUrls?[size.name];
+  String? get _xlUrl =>
+      photoUrls?['xl'] ?? photoUrls?['lg'] ?? photoUrls?['md'];
   bool get _isFallback => photoUrls != null && photoPath == null;
 
   @override
@@ -87,20 +103,40 @@ class SessionHero extends ConsumerWidget {
         borderRadius: borderRadius,
       );
     } else {
-      content = _Cover(url: url, borderRadius: borderRadius);
+      content = _Cover(
+        url: url,
+        borderRadius: borderRadius,
+        heroTag: enableZoom ? heroTag : null,
+      );
     }
 
-    if (onTap != null) {
+    final canZoom = enableZoom && !_isFallback && _xlUrl != null;
+    final effectiveTap = onTap ??
+        (canZoom
+            ? () => _openZoom(context, _xlUrl!, heroTag ?? _xlUrl!)
+            : null);
+
+    if (effectiveTap != null) {
       content = Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: effectiveTap,
           borderRadius: radius,
           child: content,
         ),
       );
     }
     return AspectRatio(aspectRatio: 16 / 9, child: content);
+  }
+
+  void _openZoom(BuildContext context, String xlUrl, String tag) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black87,
+        pageBuilder: (_, _, _) => _FullscreenViewer(url: xlUrl, heroTag: tag),
+      ),
+    );
   }
 
   static Color _parseHex(String hex) {
@@ -113,17 +149,71 @@ class SessionHero extends ConsumerWidget {
 class _Cover extends StatelessWidget {
   final String url;
   final double borderRadius;
-  const _Cover({required this.url, required this.borderRadius});
+  final String? heroTag;
+  const _Cover({required this.url, required this.borderRadius, this.heroTag});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
+    final image = CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.cover,
+      placeholder: (_, _) => Container(color: AppColors.neutral100),
+      errorWidget: (_, _, _) => _Empty(borderRadius: borderRadius),
+    );
+    final clipped = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
-      child: CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.cover,
-        placeholder: (_, _) => Container(color: AppColors.neutral100),
-        errorWidget: (_, _, _) => _Empty(borderRadius: borderRadius),
+      child: image,
+    );
+    if (heroTag == null) return clipped;
+    return Hero(tag: heroTag!, child: clipped);
+  }
+}
+
+class _FullscreenViewer extends StatelessWidget {
+  final String url;
+  final String heroTag;
+
+  const _FullscreenViewer({required this.url, required this.heroTag});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            Center(
+              child: Hero(
+                tag: heroTag,
+                child: InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: CachedNetworkImage(
+                    imageUrl: url,
+                    fit: BoxFit.contain,
+                    placeholder: (_, _) => const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                    errorWidget: (_, _, _) => Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white.withValues(alpha: 0.6),
+                      size: 64,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

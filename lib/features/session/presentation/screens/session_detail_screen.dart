@@ -22,6 +22,7 @@ import 'package:hyperarena/features/session/data/models/open_session.dart'
     show OpenSessionStatus, OpenSessionTitleX;
 import 'package:hyperarena/features/session/providers/session_join_provider.dart';
 import 'package:hyperarena/features/session/providers/session_providers.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
 
 class SessionDetailScreen extends ConsumerWidget {
@@ -70,11 +71,23 @@ class SessionDetailScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding:
-                      const EdgeInsets.all(AppDimensions.screenHorizontal),
+                  padding: EdgeInsets.zero,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      SessionHero(
+                        photoUrls: session.photoUrls,
+                        photoPath: session.photoPath,
+                        size: SessionHeroSize.lg,
+                        borderRadius: 0,
+                        enableZoom: true,
+                        heroTag: 'session-hero-${session.id}',
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                       // Sport badge + title
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -209,6 +222,9 @@ class SessionDetailScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: AppDimensions.xxl),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),

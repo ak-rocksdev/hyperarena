@@ -50,6 +50,23 @@ mixin _$CoachSession {
   List<CoachSessionAttendance> get attendances =>
       throw _privateConstructorUsedError;
 
+  /// Raw editable title — null means use [displayTitle] or [name].
+  String? get title => throw _privateConstructorUsedError;
+
+  /// `title ?? auto-name` from BE; always non-null on real responses.
+  @JsonKey(name: 'display_title')
+  String? get displayTitle => throw _privateConstructorUsedError;
+
+  /// 8-char hash, null → fallback to tenant logo via [photoUrls].
+  @JsonKey(name: 'photo_path')
+  String? get photoPath => throw _privateConstructorUsedError;
+
+  /// 16:9 hero in 4 sizes (sm/md/lg/xl). When [photoPath] is null these
+  /// point at the tenant logo (square) — `SessionHero` widget renders
+  /// the centered-on-brand-color fallback layout in that case.
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls => throw _privateConstructorUsedError;
+
   /// Serializes this CoachSession to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -83,6 +100,10 @@ abstract class $CoachSessionCopyWith<$Res> {
     @JsonKey(name: 'session_students')
     List<CoachSessionStudent> sessionStudents,
     List<CoachSessionAttendance> attendances,
+    String? title,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   });
 
   $CoachSessionVenueCopyWith<$Res>? get venue;
@@ -117,6 +138,10 @@ class _$CoachSessionCopyWithImpl<$Res, $Val extends CoachSession>
     Object? coaches = null,
     Object? sessionStudents = null,
     Object? attendances = null,
+    Object? title = freezed,
+    Object? displayTitle = freezed,
+    Object? photoPath = freezed,
+    Object? photoUrls = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -176,6 +201,22 @@ class _$CoachSessionCopyWithImpl<$Res, $Val extends CoachSession>
                 ? _value.attendances
                 : attendances // ignore: cast_nullable_to_non_nullable
                       as List<CoachSessionAttendance>,
+            title: freezed == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            displayTitle: freezed == displayTitle
+                ? _value.displayTitle
+                : displayTitle // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoPath: freezed == photoPath
+                ? _value.photoPath
+                : photoPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoUrls: freezed == photoUrls
+                ? _value.photoUrls
+                : photoUrls // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>?,
           )
           as $Val,
     );
@@ -221,6 +262,10 @@ abstract class _$$CoachSessionImplCopyWith<$Res>
     @JsonKey(name: 'session_students')
     List<CoachSessionStudent> sessionStudents,
     List<CoachSessionAttendance> attendances,
+    String? title,
+    @JsonKey(name: 'display_title') String? displayTitle,
+    @JsonKey(name: 'photo_path') String? photoPath,
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   });
 
   @override
@@ -255,6 +300,10 @@ class __$$CoachSessionImplCopyWithImpl<$Res>
     Object? coaches = null,
     Object? sessionStudents = null,
     Object? attendances = null,
+    Object? title = freezed,
+    Object? displayTitle = freezed,
+    Object? photoPath = freezed,
+    Object? photoUrls = freezed,
   }) {
     return _then(
       _$CoachSessionImpl(
@@ -314,6 +363,22 @@ class __$$CoachSessionImplCopyWithImpl<$Res>
             ? _value._attendances
             : attendances // ignore: cast_nullable_to_non_nullable
                   as List<CoachSessionAttendance>,
+        title: freezed == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        displayTitle: freezed == displayTitle
+            ? _value.displayTitle
+            : displayTitle // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoPath: freezed == photoPath
+            ? _value.photoPath
+            : photoPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoUrls: freezed == photoUrls
+            ? _value._photoUrls
+            : photoUrls // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>?,
       ),
     );
   }
@@ -338,9 +403,14 @@ class _$CoachSessionImpl implements _CoachSession {
     @JsonKey(name: 'session_students')
     final List<CoachSessionStudent> sessionStudents = const [],
     final List<CoachSessionAttendance> attendances = const [],
+    this.title,
+    @JsonKey(name: 'display_title') this.displayTitle,
+    @JsonKey(name: 'photo_path') this.photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
   }) : _coaches = coaches,
        _sessionStudents = sessionStudents,
-       _attendances = attendances;
+       _attendances = attendances,
+       _photoUrls = photoUrls;
 
   factory _$CoachSessionImpl.fromJson(Map<String, dynamic> json) =>
       _$$CoachSessionImplFromJson(json);
@@ -408,9 +478,41 @@ class _$CoachSessionImpl implements _CoachSession {
     return EqualUnmodifiableListView(_attendances);
   }
 
+  /// Raw editable title — null means use [displayTitle] or [name].
+  @override
+  final String? title;
+
+  /// `title ?? auto-name` from BE; always non-null on real responses.
+  @override
+  @JsonKey(name: 'display_title')
+  final String? displayTitle;
+
+  /// 8-char hash, null → fallback to tenant logo via [photoUrls].
+  @override
+  @JsonKey(name: 'photo_path')
+  final String? photoPath;
+
+  /// 16:9 hero in 4 sizes (sm/md/lg/xl). When [photoPath] is null these
+  /// point at the tenant logo (square) — `SessionHero` widget renders
+  /// the centered-on-brand-color fallback layout in that case.
+  final Map<String, String>? _photoUrls;
+
+  /// 16:9 hero in 4 sizes (sm/md/lg/xl). When [photoPath] is null these
+  /// point at the tenant logo (square) — `SessionHero` widget renders
+  /// the centered-on-brand-color fallback layout in that case.
+  @override
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls {
+    final value = _photoUrls;
+    if (value == null) return null;
+    if (_photoUrls is EqualUnmodifiableMapView) return _photoUrls;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'CoachSession(id: $id, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, status: $status, notes: $notes, name: $name, completionState: $completionState, bookedStudentsCount: $bookedStudentsCount, venue: $venue, coaches: $coaches, sessionStudents: $sessionStudents, attendances: $attendances)';
+    return 'CoachSession(id: $id, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, status: $status, notes: $notes, name: $name, completionState: $completionState, bookedStudentsCount: $bookedStudentsCount, venue: $venue, coaches: $coaches, sessionStudents: $sessionStudents, attendances: $attendances, title: $title, displayTitle: $displayTitle, photoPath: $photoPath, photoUrls: $photoUrls)';
   }
 
   @override
@@ -441,6 +543,15 @@ class _$CoachSessionImpl implements _CoachSession {
             const DeepCollectionEquality().equals(
               other._attendances,
               _attendances,
+            ) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.displayTitle, displayTitle) ||
+                other.displayTitle == displayTitle) &&
+            (identical(other.photoPath, photoPath) ||
+                other.photoPath == photoPath) &&
+            const DeepCollectionEquality().equals(
+              other._photoUrls,
+              _photoUrls,
             ));
   }
 
@@ -462,6 +573,10 @@ class _$CoachSessionImpl implements _CoachSession {
     const DeepCollectionEquality().hash(_coaches),
     const DeepCollectionEquality().hash(_sessionStudents),
     const DeepCollectionEquality().hash(_attendances),
+    title,
+    displayTitle,
+    photoPath,
+    const DeepCollectionEquality().hash(_photoUrls),
   );
 
   /// Create a copy of CoachSession
@@ -495,6 +610,10 @@ abstract class _CoachSession implements CoachSession {
     @JsonKey(name: 'session_students')
     final List<CoachSessionStudent> sessionStudents,
     final List<CoachSessionAttendance> attendances,
+    final String? title,
+    @JsonKey(name: 'display_title') final String? displayTitle,
+    @JsonKey(name: 'photo_path') final String? photoPath,
+    @JsonKey(name: 'photo_urls') final Map<String, String>? photoUrls,
   }) = _$CoachSessionImpl;
 
   factory _CoachSession.fromJson(Map<String, dynamic> json) =
@@ -539,6 +658,27 @@ abstract class _CoachSession implements CoachSession {
   List<CoachSessionStudent> get sessionStudents;
   @override
   List<CoachSessionAttendance> get attendances;
+
+  /// Raw editable title — null means use [displayTitle] or [name].
+  @override
+  String? get title;
+
+  /// `title ?? auto-name` from BE; always non-null on real responses.
+  @override
+  @JsonKey(name: 'display_title')
+  String? get displayTitle;
+
+  /// 8-char hash, null → fallback to tenant logo via [photoUrls].
+  @override
+  @JsonKey(name: 'photo_path')
+  String? get photoPath;
+
+  /// 16:9 hero in 4 sizes (sm/md/lg/xl). When [photoPath] is null these
+  /// point at the tenant logo (square) — `SessionHero` widget renders
+  /// the centered-on-brand-color fallback layout in that case.
+  @override
+  @JsonKey(name: 'photo_urls')
+  Map<String, String>? get photoUrls;
 
   /// Create a copy of CoachSession
   /// with the given fields replaced by the non-null parameter values.

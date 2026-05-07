@@ -18,6 +18,7 @@ import 'package:hyperarena/features/organizer/providers/participant_management_p
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/session_hero.dart';
 
 class OrganizerSessionDetailScreen extends ConsumerWidget {
   const OrganizerSessionDetailScreen({super.key, required this.sessionId});
@@ -93,15 +94,29 @@ class _SessionHeaderCard extends ConsumerWidget {
     final currency = ref.watch(tenantCurrencyProvider);
 
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.base),
       decoration: BoxDecoration(
         color: AppSurfaces.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         boxShadow: AppShadows.sm,
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Hero — tappable for fullscreen on real photos.
+          SessionHero(
+            photoUrls: session.photoUrls,
+            photoPath: session.photoPath,
+            size: SessionHeroSize.lg,
+            borderRadius: 0,
+            enableZoom: true,
+            heroTag: 'organizer-session-hero-${session.id}',
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppDimensions.base),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           // Top row: sport badge + edit icon
           Row(
             children: [
@@ -173,6 +188,9 @@ class _SessionHeaderCard extends ConsumerWidget {
               currency: session.pricing?.currency,
               fallbackAmount: session.pricePerPerson,
               tenantCurrency: currency,
+            ),
+          ),
+              ],
             ),
           ),
         ],

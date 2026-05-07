@@ -36,10 +36,29 @@ class CoachSession with _$CoachSession {
     @Default([])
     List<CoachSessionStudent> sessionStudents,
     @Default([]) List<CoachSessionAttendance> attendances,
+    /// Raw editable title — null means use [displayTitle] or [name].
+    String? title,
+    /// `title ?? auto-name` from BE; always non-null on real responses.
+    @JsonKey(name: 'display_title') String? displayTitle,
+    /// 8-char hash, null → fallback to tenant logo via [photoUrls].
+    @JsonKey(name: 'photo_path') String? photoPath,
+    /// 16:9 hero in 4 sizes (sm/md/lg/xl). When [photoPath] is null these
+    /// point at the tenant logo (square) — `SessionHero` widget renders
+    /// the centered-on-brand-color fallback layout in that case.
+    @JsonKey(name: 'photo_urls') Map<String, String>? photoUrls,
   }) = _CoachSession;
 
   factory CoachSession.fromJson(Map<String, dynamic> json) =>
       _$CoachSessionFromJson(json);
+}
+
+extension CoachSessionTitleX on CoachSession {
+  /// User-facing heading. Prefers [displayTitle] (post-feature BE),
+  /// falls back to [name] (pre-feature BE auto-name). Always non-null.
+  String get safeTitle =>
+      (displayTitle != null && displayTitle!.isNotEmpty)
+          ? displayTitle!
+          : name;
 }
 
 @freezed

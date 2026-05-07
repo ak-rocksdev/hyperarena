@@ -15,7 +15,8 @@ class CoachSession with _$CoachSession {
   const factory CoachSession({
     @JsonKey(fromJson: idFromJson) required String id,
     String? type,
-    @JsonKey(name: 'start_at') required DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required DateTime startAt,
     @JsonKey(name: 'duration_minutes') @Default(0) int durationMinutes,
     @Default(0) int capacity,
     String? status,

@@ -11,7 +11,7 @@ _$CoachSessionImpl _$$CoachSessionImplFromJson(
 ) => _$CoachSessionImpl(
   id: idFromJson(json['id']),
   type: json['type'] as String?,
-  startAt: DateTime.parse(json['start_at'] as String),
+  startAt: tenantWallClockFromJson(json['start_at'] as String),
   durationMinutes: (json['duration_minutes'] as num?)?.toInt() ?? 0,
   capacity: (json['capacity'] as num?)?.toInt() ?? 0,
   status: json['status'] as String?,

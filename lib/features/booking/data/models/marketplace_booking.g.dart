@@ -10,7 +10,7 @@ _$MarketplaceBookingImpl _$$MarketplaceBookingImplFromJson(
   Map<String, dynamic> json,
 ) => _$MarketplaceBookingImpl(
   bookingId: idFromJson(json['booking_id']),
-  bookedAt: DateTime.parse(json['booked_at'] as String),
+  bookedAt: tenantWallClockFromJson(json['booked_at'] as String),
   paymentStatus: json['payment_status'] as String?,
   session: BookingSession.fromJson(json['session'] as Map<String, dynamic>),
   canReview: json['can_review'] as bool? ?? false,
@@ -33,7 +33,7 @@ _$BookingSessionImpl _$$BookingSessionImplFromJson(Map<String, dynamic> json) =>
       id: idFromJson(json['id']),
       name: json['name'] as String,
       type: json['type'] as String?,
-      startAt: DateTime.parse(json['start_at'] as String),
+      startAt: tenantWallClockFromJson(json['start_at'] as String),
       durationMinutes: (json['duration_minutes'] as num).toInt(),
       tenant: json['tenant'] == null
           ? null

@@ -87,7 +87,7 @@ class _CoachSessionDetailScreenState
   /// Coach may edit attendance any time once the session has started — no
   /// upper bound. Filling attendance late is the primary use case.
   bool _canEditAttendance(CoachSession session) {
-    return DateTime.now().isAfter(session.startAt.toLocal());
+    return DateTime.now().isAfter(session.startAt);
   }
 
   Widget _buildShimmer() {
@@ -238,7 +238,7 @@ class _CoachSessionDetailScreenState
                                 const SizedBox(width: 4),
                                 Text(
                                   Formatters.formatDateTimeCompact(
-                                      session.startAt.toLocal()),
+                                      session.startAt),
                                   style: AppTypography.bodySmall.copyWith(
                                     color: Colors.white70,
                                   ),

@@ -247,7 +247,7 @@ class _MarketplaceSessionCard extends ConsumerWidget {
                       size: 14, color: theme.colorScheme.outline),
                   const SizedBox(width: 4),
                   Text(
-                    Formatters.formatDateTimeCompact(session.startAt.toLocal()),
+                    Formatters.formatDateTimeCompact(session.startAt),
                     style: theme.textTheme.bodySmall,
                   ),
                   const Spacer(),

@@ -12,7 +12,7 @@ _$MarketplaceSessionImpl _$$MarketplaceSessionImplFromJson(
   id: idFromJson(json['id']),
   name: json['name'] as String? ?? 'Sesi Latihan',
   type: json['type'] as String?,
-  startAt: DateTime.parse(json['start_at'] as String),
+  startAt: tenantWallClockFromJson(json['start_at'] as String),
   durationMinutes: (json['duration_minutes'] as num).toInt(),
   capacity: (json['capacity'] as num).toInt(),
   bookedCount: (json['booked_count'] as num?)?.toInt() ?? 0,

@@ -25,7 +25,7 @@ mixin _$MarketplaceSession {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get type => throw _privateConstructorUsedError;
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   DateTime get startAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'duration_minutes')
   int get durationMinutes => throw _privateConstructorUsedError;
@@ -68,7 +68,8 @@ abstract class $MarketplaceSessionCopyWith<$Res> {
     @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? type,
-    @JsonKey(name: 'start_at') DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    DateTime startAt,
     @JsonKey(name: 'duration_minutes') int durationMinutes,
     int capacity,
     @JsonKey(name: 'booked_count') int bookedCount,
@@ -238,7 +239,8 @@ abstract class _$$MarketplaceSessionImplCopyWith<$Res>
     @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? type,
-    @JsonKey(name: 'start_at') DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    DateTime startAt,
     @JsonKey(name: 'duration_minutes') int durationMinutes,
     int capacity,
     @JsonKey(name: 'booked_count') int bookedCount,
@@ -374,7 +376,8 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     @JsonKey(fromJson: idFromJson) required this.id,
     this.name = 'Sesi Latihan',
     this.type,
-    @JsonKey(name: 'start_at') required this.startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required this.startAt,
     @JsonKey(name: 'duration_minutes') required this.durationMinutes,
     required this.capacity,
     @JsonKey(name: 'booked_count') this.bookedCount = 0,
@@ -404,7 +407,7 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
   @override
   final String? type;
   @override
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   final DateTime startAt;
   @override
   @JsonKey(name: 'duration_minutes')
@@ -546,7 +549,8 @@ abstract class _MarketplaceSession implements MarketplaceSession {
     @JsonKey(fromJson: idFromJson) required final String id,
     final String name,
     final String? type,
-    @JsonKey(name: 'start_at') required final DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required final DateTime startAt,
     @JsonKey(name: 'duration_minutes') required final int durationMinutes,
     required final int capacity,
     @JsonKey(name: 'booked_count') final int bookedCount,
@@ -573,7 +577,7 @@ abstract class _MarketplaceSession implements MarketplaceSession {
   @override
   String? get type;
   @override
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   DateTime get startAt;
   @override
   @JsonKey(name: 'duration_minutes')

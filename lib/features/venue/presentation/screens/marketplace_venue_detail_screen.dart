@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
@@ -57,7 +58,7 @@ class _VenueDetailBody extends StatelessWidget {
 
     return CustomScrollView(
       slivers: [
-        // Photo app bar
+        // Photo app bar — first photo as hero, tap opens fullscreen viewer.
         SliverAppBar(
           expandedHeight: 250,
           pinned: true,
@@ -66,12 +67,24 @@ class _VenueDetailBody extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 if (hasPhotos)
-                  Image.network(
-                    venue.photos.first.url,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      color: AppColors.neutral100,
-                      child: const Icon(Icons.image, size: 48),
+                  GestureDetector(
+                    onTap: () => _showPhotoViewer(
+                      context,
+                      venue.photos.map((p) => p.url).toList(),
+                      0,
+                    ),
+                    child: Hero(
+                      tag: 'venue-photo-${venue.id}-0',
+                      child: CachedNetworkImage(
+                        imageUrl: venue.photos.first.url,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) =>
+                            Container(color: AppColors.neutral100),
+                        errorWidget: (_, _, _) => Container(
+                          color: AppColors.neutral100,
+                          child: const Icon(Icons.image, size: 48),
+                        ),
+                      ),
                     ),
                   )
                 else
@@ -84,9 +97,11 @@ class _VenueDetailBody extends StatelessWidget {
                   right: 0,
                   bottom: 0,
                   height: 80,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: AppSurfaces.darkOverlay,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: AppSurfaces.darkOverlay,
+                      ),
                     ),
                   ),
                 ),
@@ -131,20 +146,26 @@ class _VenueDetailBody extends StatelessWidget {
                             venue.photos.map((p) => p.url).toList(),
                             i,
                           ),
-                          child: Container(
-                            width: 120,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                  AppDimensions.radiusMd),
-                              boxShadow: AppShadows.xs,
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Image.network(
-                              venue.photos[i].url,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => Container(
-                                color: AppColors.neutral100,
-                                child: const Icon(Icons.image, size: 24),
+                          child: Hero(
+                            tag: 'venue-photo-${venue.id}-$i',
+                            child: Container(
+                              width: 120,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.radiusMd),
+                                boxShadow: AppShadows.xs,
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: CachedNetworkImage(
+                                imageUrl: venue.photos[i].url,
+                                fit: BoxFit.cover,
+                                placeholder: (_, _) => Container(
+                                  color: AppColors.neutral100,
+                                ),
+                                errorWidget: (_, _, _) => Container(
+                                  color: AppColors.neutral100,
+                                  child: const Icon(Icons.image, size: 24),
+                                ),
                               ),
                             ),
                           ),
@@ -175,11 +196,15 @@ class _VenueDetailBody extends StatelessWidget {
 
   void _showPhotoViewer(
       BuildContext context, List<String> photos, int initialIndex) {
-    showDialog(
-      context: context,
-      builder: (_) => _PhotoViewerDialog(
-        photos: photos,
-        initialIndex: initialIndex,
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black,
+        pageBuilder: (_, _, _) => _PhotoViewerDialog(
+          photos: photos,
+          initialIndex: initialIndex,
+          venueId: venue.id,
+        ),
       ),
     );
   }
@@ -188,10 +213,12 @@ class _VenueDetailBody extends StatelessWidget {
 class _PhotoViewerDialog extends StatefulWidget {
   final List<String> photos;
   final int initialIndex;
+  final String venueId;
 
   const _PhotoViewerDialog({
     required this.photos,
     required this.initialIndex,
+    required this.venueId,
   });
 
   @override
@@ -217,23 +244,31 @@ class _PhotoViewerDialogState extends State<_PhotoViewerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog.fullscreen(
+    return Scaffold(
       backgroundColor: Colors.black,
-      child: Stack(
+      body: Stack(
         children: [
           PageView.builder(
             controller: _pageController,
             itemCount: widget.photos.length,
             onPageChanged: (i) => setState(() => _currentIndex = i),
             itemBuilder: (_, i) => InteractiveViewer(
+              minScale: 1,
+              maxScale: 4,
               child: Center(
-                child: Image.network(
-                  widget.photos[i],
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => Icon(
-                    Icons.image,
-                    size: 48,
-                    color: AppColors.neutral400,
+                child: Hero(
+                  tag: 'venue-photo-${widget.venueId}-$i',
+                  child: CachedNetworkImage(
+                    imageUrl: widget.photos[i],
+                    fit: BoxFit.contain,
+                    placeholder: (_, _) => const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                    errorWidget: (_, _, _) => Icon(
+                      Icons.broken_image_outlined,
+                      size: 48,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
                   ),
                 ),
               ),

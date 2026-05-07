@@ -136,7 +136,11 @@ class _BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = booking.session;
     final coach = session.coaches.isNotEmpty ? session.coaches.first : null;
-    final localStart = session.startAt.toLocal();
+    // BE serializes start_at with the tenant's offset; the
+    // `tenantWallClockFromJson` converter strips the offset and stores
+    // the wall-clock components directly, so no .toLocal() needed —
+    // the DateTime already has the right hour/minute for display.
+    final localStart = session.startAt;
 
     return InkWell(
       borderRadius: BorderRadius.circular(AppDimensions.radiusLg),

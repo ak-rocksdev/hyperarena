@@ -23,7 +23,7 @@ MarketplaceBooking _$MarketplaceBookingFromJson(Map<String, dynamic> json) {
 mixin _$MarketplaceBooking {
   @JsonKey(name: 'booking_id', fromJson: idFromJson)
   String get bookingId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'booked_at')
+  @JsonKey(name: 'booked_at', fromJson: tenantWallClockFromJson)
   DateTime get bookedAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_status')
   String? get paymentStatus => throw _privateConstructorUsedError;
@@ -52,7 +52,8 @@ abstract class $MarketplaceBookingCopyWith<$Res> {
   @useResult
   $Res call({
     @JsonKey(name: 'booking_id', fromJson: idFromJson) String bookingId,
-    @JsonKey(name: 'booked_at') DateTime bookedAt,
+    @JsonKey(name: 'booked_at', fromJson: tenantWallClockFromJson)
+    DateTime bookedAt,
     @JsonKey(name: 'payment_status') String? paymentStatus,
     BookingSession session,
     @JsonKey(name: 'can_review') bool canReview,
@@ -137,7 +138,8 @@ abstract class _$$MarketplaceBookingImplCopyWith<$Res>
   @useResult
   $Res call({
     @JsonKey(name: 'booking_id', fromJson: idFromJson) String bookingId,
-    @JsonKey(name: 'booked_at') DateTime bookedAt,
+    @JsonKey(name: 'booked_at', fromJson: tenantWallClockFromJson)
+    DateTime bookedAt,
     @JsonKey(name: 'payment_status') String? paymentStatus,
     BookingSession session,
     @JsonKey(name: 'can_review') bool canReview,
@@ -205,7 +207,8 @@ class __$$MarketplaceBookingImplCopyWithImpl<$Res>
 class _$MarketplaceBookingImpl implements _MarketplaceBooking {
   const _$MarketplaceBookingImpl({
     @JsonKey(name: 'booking_id', fromJson: idFromJson) required this.bookingId,
-    @JsonKey(name: 'booked_at') required this.bookedAt,
+    @JsonKey(name: 'booked_at', fromJson: tenantWallClockFromJson)
+    required this.bookedAt,
     @JsonKey(name: 'payment_status') this.paymentStatus,
     required this.session,
     @JsonKey(name: 'can_review') this.canReview = false,
@@ -219,7 +222,7 @@ class _$MarketplaceBookingImpl implements _MarketplaceBooking {
   @JsonKey(name: 'booking_id', fromJson: idFromJson)
   final String bookingId;
   @override
-  @JsonKey(name: 'booked_at')
+  @JsonKey(name: 'booked_at', fromJson: tenantWallClockFromJson)
   final DateTime bookedAt;
   @override
   @JsonKey(name: 'payment_status')
@@ -289,7 +292,8 @@ abstract class _MarketplaceBooking implements MarketplaceBooking {
   const factory _MarketplaceBooking({
     @JsonKey(name: 'booking_id', fromJson: idFromJson)
     required final String bookingId,
-    @JsonKey(name: 'booked_at') required final DateTime bookedAt,
+    @JsonKey(name: 'booked_at', fromJson: tenantWallClockFromJson)
+    required final DateTime bookedAt,
     @JsonKey(name: 'payment_status') final String? paymentStatus,
     required final BookingSession session,
     @JsonKey(name: 'can_review') final bool canReview,
@@ -303,7 +307,7 @@ abstract class _MarketplaceBooking implements MarketplaceBooking {
   @JsonKey(name: 'booking_id', fromJson: idFromJson)
   String get bookingId;
   @override
-  @JsonKey(name: 'booked_at')
+  @JsonKey(name: 'booked_at', fromJson: tenantWallClockFromJson)
   DateTime get bookedAt;
   @override
   @JsonKey(name: 'payment_status')
@@ -335,7 +339,7 @@ mixin _$BookingSession {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get type => throw _privateConstructorUsedError;
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   DateTime get startAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'duration_minutes')
   int get durationMinutes => throw _privateConstructorUsedError;
@@ -371,7 +375,8 @@ abstract class $BookingSessionCopyWith<$Res> {
     @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? type,
-    @JsonKey(name: 'start_at') DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    DateTime startAt,
     @JsonKey(name: 'duration_minutes') int durationMinutes,
     BookingTenant? tenant,
     BookingVenue? venue,
@@ -511,7 +516,8 @@ abstract class _$$BookingSessionImplCopyWith<$Res>
     @JsonKey(fromJson: idFromJson) String id,
     String name,
     String? type,
-    @JsonKey(name: 'start_at') DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    DateTime startAt,
     @JsonKey(name: 'duration_minutes') int durationMinutes,
     BookingTenant? tenant,
     BookingVenue? venue,
@@ -617,7 +623,8 @@ class _$BookingSessionImpl implements _BookingSession {
     @JsonKey(fromJson: idFromJson) required this.id,
     required this.name,
     this.type,
-    @JsonKey(name: 'start_at') required this.startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required this.startAt,
     @JsonKey(name: 'duration_minutes') required this.durationMinutes,
     this.tenant,
     this.venue,
@@ -640,7 +647,7 @@ class _$BookingSessionImpl implements _BookingSession {
   @override
   final String? type;
   @override
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   final DateTime startAt;
   @override
   @JsonKey(name: 'duration_minutes')
@@ -747,7 +754,8 @@ abstract class _BookingSession implements BookingSession {
     @JsonKey(fromJson: idFromJson) required final String id,
     required final String name,
     final String? type,
-    @JsonKey(name: 'start_at') required final DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required final DateTime startAt,
     @JsonKey(name: 'duration_minutes') required final int durationMinutes,
     final BookingTenant? tenant,
     final BookingVenue? venue,
@@ -769,7 +777,7 @@ abstract class _BookingSession implements BookingSession {
   @override
   String? get type;
   @override
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   DateTime get startAt;
   @override
   @JsonKey(name: 'duration_minutes')

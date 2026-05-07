@@ -14,7 +14,8 @@ class MarketplaceBooking with _$MarketplaceBooking {
   const factory MarketplaceBooking({
     @JsonKey(name: 'booking_id', fromJson: idFromJson)
     required String bookingId,
-    @JsonKey(name: 'booked_at') required DateTime bookedAt,
+    @JsonKey(name: 'booked_at', fromJson: tenantWallClockFromJson)
+    required DateTime bookedAt,
     @JsonKey(name: 'payment_status') String? paymentStatus,
     required BookingSession session,
     @JsonKey(name: 'can_review') @Default(false) bool canReview,
@@ -31,7 +32,8 @@ class BookingSession with _$BookingSession {
     @JsonKey(fromJson: idFromJson) required String id,
     required String name,
     String? type,
-    @JsonKey(name: 'start_at') required DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required DateTime startAt,
     @JsonKey(name: 'duration_minutes') required int durationMinutes,
     BookingTenant? tenant,
     BookingVenue? venue,

@@ -88,7 +88,7 @@ class _DetailBody extends ConsumerWidget {
     final pricing = detail.pricing;
     final userStatus = detail.userStatus;
 
-    final localStart = session.startAt.toLocal();
+    final localStart = session.startAt;
     final localEnd = localStart.add(Duration(minutes: session.durationMinutes));
     final spotsLeft = session.capacity - session.bookedCount;
 

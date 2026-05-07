@@ -14,7 +14,8 @@ class MarketplaceSession with _$MarketplaceSession {
     @JsonKey(fromJson: idFromJson) required String id,
     @Default('Sesi Latihan') String name,
     String? type,
-    @JsonKey(name: 'start_at') required DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required DateTime startAt,
     @JsonKey(name: 'duration_minutes') required int durationMinutes,
     required int capacity,
     @JsonKey(name: 'booked_count') @Default(0) int bookedCount,

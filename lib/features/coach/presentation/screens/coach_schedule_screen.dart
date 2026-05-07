@@ -256,8 +256,9 @@ class _CoachSessionCard extends StatelessWidget {
                       size: 14, color: AppColors.textTertiary),
                   const SizedBox(width: 4),
                   Text(
-                    Formatters.formatDateTimeCompact(
-                        session.startAt.toLocal()),
+                    // session.startAt is already in tenant wall-clock —
+                    // tenantWallClockFromJson preserves BE's offset components.
+                    Formatters.formatDateTimeCompact(session.startAt),
                     style: AppTypography.bodySmall,
                   ),
                   const Spacer(),

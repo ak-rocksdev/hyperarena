@@ -24,7 +24,7 @@ mixin _$CoachSession {
   @JsonKey(fromJson: idFromJson)
   String get id => throw _privateConstructorUsedError;
   String? get type => throw _privateConstructorUsedError;
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   DateTime get startAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'duration_minutes')
   int get durationMinutes => throw _privateConstructorUsedError;
@@ -87,7 +87,8 @@ abstract class $CoachSessionCopyWith<$Res> {
   $Res call({
     @JsonKey(fromJson: idFromJson) String id,
     String? type,
-    @JsonKey(name: 'start_at') DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    DateTime startAt,
     @JsonKey(name: 'duration_minutes') int durationMinutes,
     int capacity,
     String? status,
@@ -249,7 +250,8 @@ abstract class _$$CoachSessionImplCopyWith<$Res>
   $Res call({
     @JsonKey(fromJson: idFromJson) String id,
     String? type,
-    @JsonKey(name: 'start_at') DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    DateTime startAt,
     @JsonKey(name: 'duration_minutes') int durationMinutes,
     int capacity,
     String? status,
@@ -390,7 +392,8 @@ class _$CoachSessionImpl implements _CoachSession {
   const _$CoachSessionImpl({
     @JsonKey(fromJson: idFromJson) required this.id,
     this.type,
-    @JsonKey(name: 'start_at') required this.startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required this.startAt,
     @JsonKey(name: 'duration_minutes') this.durationMinutes = 0,
     this.capacity = 0,
     this.status,
@@ -421,7 +424,7 @@ class _$CoachSessionImpl implements _CoachSession {
   @override
   final String? type;
   @override
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   final DateTime startAt;
   @override
   @JsonKey(name: 'duration_minutes')
@@ -597,7 +600,8 @@ abstract class _CoachSession implements CoachSession {
   const factory _CoachSession({
     @JsonKey(fromJson: idFromJson) required final String id,
     final String? type,
-    @JsonKey(name: 'start_at') required final DateTime startAt,
+    @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
+    required final DateTime startAt,
     @JsonKey(name: 'duration_minutes') final int durationMinutes,
     final int capacity,
     final String? status,
@@ -625,7 +629,7 @@ abstract class _CoachSession implements CoachSession {
   @override
   String? get type;
   @override
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   DateTime get startAt;
   @override
   @JsonKey(name: 'duration_minutes')

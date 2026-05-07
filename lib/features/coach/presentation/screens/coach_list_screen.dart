@@ -10,6 +10,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
+import 'package:hyperarena/shared/widgets/load_more_error_tile.dart';
 import 'package:hyperarena/shared/widgets/other_tenant_caption.dart';
 
 class CoachListScreen extends ConsumerStatefulWidget {
@@ -109,6 +110,7 @@ class _CoachListScreenState extends ConsumerState<CoachListScreen> {
     }
 
     final items = state.items;
+    final hasFooter = state.isLoadingMore || state.loadMoreError != null;
     return RefreshIndicator(
       onRefresh: reload,
       child: ListView.builder(
@@ -117,9 +119,16 @@ class _CoachListScreenState extends ConsumerState<CoachListScreen> {
         padding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.screenHorizontal,
         ),
-        itemCount: items.length + (state.isLoadingMore ? 1 : 0),
+        itemCount: items.length + (hasFooter ? 1 : 0),
         itemBuilder: (context, i) {
           if (i >= items.length) {
+            if (state.loadMoreError != null) {
+              return LoadMoreErrorTile(
+                onRetry: () => ref
+                    .read(marketplaceCoachListProvider.notifier)
+                    .retryLoadMore(),
+              );
+            }
             return const ListLoadingIndicator();
           }
           final coach = items[i];
@@ -155,84 +164,83 @@ class _MarketplaceCoachCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final userTenantId = ref.watch(authNotifierProvider)?.tenantId;
-    final isOtherTenant = userTenantId != null &&
+    final isOtherTenant =
+        userTenantId != null &&
         coach.tenantId != null &&
         coach.tenantId != userTenantId;
 
     return Card(
       child: InkWell(
-        onTap: () => context.push(
-          AppRoutes.marketplaceCoach(coach.id),
-          extra: coach,
-        ),
+        onTap: () =>
+            context.push(AppRoutes.marketplaceCoach(coach.id), extra: coach),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Row(
             children: [
               // Avatar
               CircleAvatar(
-              radius: 28,
-              backgroundImage: coach.user?.photoUrls?['md'] != null
-                  ? NetworkImage(coach.user!.photoUrls!['md']!)
-                  : null,
-              child: coach.user?.photoUrls == null
-                  ? const Icon(Icons.person, size: 28)
-                  : null,
-            ),
-            const SizedBox(width: AppDimensions.md),
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          coach.user?.name ?? 'Coach',
-                          style: theme.textTheme.titleMedium,
-                          overflow: TextOverflow.ellipsis,
+                radius: 28,
+                backgroundImage: coach.user?.photoUrls?['md'] != null
+                    ? NetworkImage(coach.user!.photoUrls!['md']!)
+                    : null,
+                child: coach.user?.photoUrls == null
+                    ? const Icon(Icons.person, size: 28)
+                    : null,
+              ),
+              const SizedBox(width: AppDimensions.md),
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            coach.user?.name ?? 'Coach',
+                            style: theme.textTheme.titleMedium,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (isOtherTenant) ...[
+                          const SizedBox(width: AppDimensions.xs),
+                          const OtherTenantCaption(),
+                        ],
+                      ],
+                    ),
+                    if (coach.sport != null) ...[
+                      const SizedBox(height: AppDimensions.xs),
+                      Text(
+                        coach.sport!.name,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
                         ),
                       ),
-                      if (isOtherTenant) ...[
-                        const SizedBox(width: AppDimensions.xs),
-                        const OtherTenantCaption(),
-                      ],
                     ],
-                  ),
-                  if (coach.sport != null) ...[
-                    const SizedBox(height: AppDimensions.xs),
-                    Text(
-                      coach.sport!.name,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
+                    if (coach.bio != null && coach.bio!.isNotEmpty) ...[
+                      const SizedBox(height: AppDimensions.xs),
+                      Text(
+                        coach.bio!,
+                        style: theme.textTheme.bodySmall,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                  if (coach.bio != null && coach.bio!.isNotEmpty) ...[
-                    const SizedBox(height: AppDimensions.xs),
-                    Text(
-                      coach.bio!,
-                      style: theme.textTheme.bodySmall,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  if (coach.ratePerSession != null) ...[
-                    const SizedBox(height: AppDimensions.xs),
-                    Text(
-                      '${Formatters.formatCurrency(coach.ratePerSession!, coach.currency ?? 'IDR')}/sesi',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
+                    ],
+                    if (coach.ratePerSession != null) ...[
+                      const SizedBox(height: AppDimensions.xs),
+                      Text(
+                        '${Formatters.formatCurrency(coach.ratePerSession!, coach.currency ?? 'IDR')}/sesi',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );

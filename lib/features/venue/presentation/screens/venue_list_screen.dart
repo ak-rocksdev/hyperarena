@@ -10,6 +10,7 @@ import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
+import 'package:hyperarena/shared/widgets/load_more_error_tile.dart';
 import 'package:hyperarena/shared/widgets/other_tenant_caption.dart';
 
 class VenueListScreen extends ConsumerStatefulWidget {
@@ -109,6 +110,7 @@ class _VenueListScreenState extends ConsumerState<VenueListScreen> {
     }
 
     final items = state.items;
+    final hasFooter = state.isLoadingMore || state.loadMoreError != null;
     return RefreshIndicator(
       onRefresh: reload,
       child: ListView.builder(
@@ -117,9 +119,16 @@ class _VenueListScreenState extends ConsumerState<VenueListScreen> {
         padding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.screenHorizontal,
         ),
-        itemCount: items.length + (state.isLoadingMore ? 1 : 0),
+        itemCount: items.length + (hasFooter ? 1 : 0),
         itemBuilder: (context, i) {
           if (i >= items.length) {
+            if (state.loadMoreError != null) {
+              return LoadMoreErrorTile(
+                onRetry: () => ref
+                    .read(marketplaceVenueListProvider.notifier)
+                    .retryLoadMore(),
+              );
+            }
             return const ListLoadingIndicator();
           }
           final venue = items[i];
@@ -155,7 +164,8 @@ class _MarketplaceVenueCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final userTenantId = ref.watch(authNotifierProvider)?.tenantId;
-    final isOtherTenant = userTenantId != null &&
+    final isOtherTenant =
+        userTenantId != null &&
         venue.tenantId != null &&
         venue.tenantId != userTenantId;
     return Card(
@@ -163,85 +173,89 @@ class _MarketplaceVenueCard extends ConsumerWidget {
       child: InkWell(
         onTap: () => context.push(AppRoutes.marketplaceVenue(venue.id)),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Photo or placeholder
-          if (venue.photos.isNotEmpty)
-            CachedNetworkImage(
-              imageUrl: venue.photos.first.url,
-              height: 140,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              placeholder: (_, _) => Container(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Photo or placeholder. `coverImageUrl` is the BE-resolved
+            // fallback chain (uploaded photo → Street View → null). The
+            // legacy `photos.first.url` path stays as a last resort for
+            // pre-feature-deploy responses that don't carry the new field.
+            if (venue.coverImageUrl != null || venue.photos.isNotEmpty)
+              CachedNetworkImage(
+                imageUrl: venue.coverImageUrl ?? venue.photos.first.url,
                 height: 140,
-                color: theme.colorScheme.surfaceContainerHighest,
-              ),
-              errorWidget: (_, _, _) => Container(
-                height: 140,
-                color: theme.colorScheme.surfaceContainerHighest,
-                child: const Center(child: Icon(Icons.image_not_supported)),
-              ),
-            )
-          else
-            Container(
-              height: 140,
-              color: theme.colorScheme.surfaceContainerHighest,
-              child: const Center(
-                child: Icon(Icons.sports, size: 48),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(AppDimensions.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        venue.name,
-                        style: theme.textTheme.titleMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (isOtherTenant) ...[
-                      const SizedBox(width: AppDimensions.xs),
-                      const OtherTenantCaption(),
-                    ],
-                  ],
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (_, _) => Container(
+                  height: 140,
+                  color: theme.colorScheme.surfaceContainerHighest,
                 ),
-                if (venue.sport != null) ...[
-                  const SizedBox(height: AppDimensions.xs),
-                  Text(
-                    venue.sport!.name,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ],
-                if (venue.location != null) ...[
-                  const SizedBox(height: AppDimensions.xs),
+                errorWidget: (_, _, _) => Container(
+                  height: 140,
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: const Center(child: Icon(Icons.image_not_supported)),
+                ),
+              )
+            else
+              Container(
+                height: 140,
+                color: theme.colorScheme.surfaceContainerHighest,
+                child: const Center(child: Icon(Icons.sports, size: 48)),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Row(
                     children: [
-                      Icon(Icons.location_on_outlined,
-                          size: 14, color: theme.colorScheme.outline),
-                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          venue.location!.name,
-                          style: theme.textTheme.bodySmall,
-                          maxLines: 1,
+                          venue.name,
+                          style: theme.textTheme.titleMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (isOtherTenant) ...[
+                        const SizedBox(width: AppDimensions.xs),
+                        const OtherTenantCaption(),
+                      ],
                     ],
                   ),
+                  if (venue.sport != null) ...[
+                    const SizedBox(height: AppDimensions.xs),
+                    Text(
+                      venue.sport!.name,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                  if (venue.location != null) ...[
+                    const SizedBox(height: AppDimensions.xs),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: theme.colorScheme.outline,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            venue.location!.name,
+                            style: theme.textTheme.bodySmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

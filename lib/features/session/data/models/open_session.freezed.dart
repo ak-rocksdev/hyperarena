@@ -647,7 +647,9 @@ mixin _$OpenSession {
 
   /// Legacy alias for `pricing.effective_price`. Prefer reading
   /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
-  /// credit requirement, or currency.
+  /// credit requirement, or currency. Defaulted to 0 so a legacy
+  /// null-priced row degrades to a free-looking card instead of
+  /// failing the whole list parse.
   int get pricePerPerson => throw _privateConstructorUsedError;
 
   /// Resolved pricing block — source of truth for display. Nullable
@@ -1178,7 +1180,7 @@ class _$OpenSessionImpl implements _OpenSession {
     this.maxPlayers = 1,
     this.minLevel,
     this.maxLevel,
-    required this.pricePerPerson,
+    this.pricePerPerson = 0,
     this.pricing,
     @JsonKey(name: 'display_title') this.displayTitle,
     @JsonKey(name: 'photo_path') this.photoPath,
@@ -1238,8 +1240,11 @@ class _$OpenSessionImpl implements _OpenSession {
 
   /// Legacy alias for `pricing.effective_price`. Prefer reading
   /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
-  /// credit requirement, or currency.
+  /// credit requirement, or currency. Defaulted to 0 so a legacy
+  /// null-priced row degrades to a free-looking card instead of
+  /// failing the whole list parse.
   @override
+  @JsonKey()
   final int pricePerPerson;
 
   /// Resolved pricing block — source of truth for display. Nullable
@@ -1452,7 +1457,7 @@ abstract class _OpenSession implements OpenSession {
     final int maxPlayers,
     final LevelTier? minLevel,
     final LevelTier? maxLevel,
-    required final int pricePerPerson,
+    final int pricePerPerson,
     final SessionPricing? pricing,
     @JsonKey(name: 'display_title') final String? displayTitle,
     @JsonKey(name: 'photo_path') final String? photoPath,
@@ -1509,7 +1514,9 @@ abstract class _OpenSession implements OpenSession {
 
   /// Legacy alias for `pricing.effective_price`. Prefer reading
   /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
-  /// credit requirement, or currency.
+  /// credit requirement, or currency. Defaulted to 0 so a legacy
+  /// null-priced row degrades to a free-looking card instead of
+  /// failing the whole list parse.
   @override
   int get pricePerPerson;
 

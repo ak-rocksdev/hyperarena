@@ -64,16 +64,16 @@ extension OpenSessionTitleX on OpenSession {
   /// User-facing heading. Prefers [displayTitle] (post-feature-deploy BE
   /// always sets this), falls back to legacy [title] (pre-deploy auto-
   /// name), then to a generic placeholder. Always non-null.
-  String get safeTitle =>
-      (displayTitle != null && displayTitle!.isNotEmpty)
-          ? displayTitle!
-          : (title != null && title!.isNotEmpty ? title! : 'Sesi Latihan');
+  String get safeTitle => (displayTitle != null && displayTitle!.isNotEmpty)
+      ? displayTitle!
+      : (title != null && title!.isNotEmpty ? title! : 'Sesi Latihan');
 }
 
 @freezed
 class OpenSession with _$OpenSession {
   const factory OpenSession({
     required String id,
+
     /// Raw editable title (nullable post-Issue 2026-05-07-session-title).
     /// Pre-feature-deploy BE sent auto-name here; consumers should read
     /// [displayTitle] (or use the `safeTitle` extension) which handles
@@ -91,24 +91,31 @@ class OpenSession with _$OpenSession {
     @Default(1) int maxPlayers,
     LevelTier? minLevel,
     LevelTier? maxLevel,
+
     /// Legacy alias for `pricing.effective_price`. Prefer reading
     /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
-    /// credit requirement, or currency.
-    required int pricePerPerson,
+    /// credit requirement, or currency. Defaulted to 0 so a legacy
+    /// null-priced row degrades to a free-looking card instead of
+    /// failing the whole list parse.
+    @Default(0) int pricePerPerson,
+
     /// Resolved pricing block — source of truth for display. Nullable
     /// because mock fixtures may omit it; consumers fall back to
     /// `pricePerPerson` + tenant currency.
     SessionPricing? pricing,
+
     /// `title ?? auto-name` from BE. Always non-null on a real response;
     /// nullable here so pre-feature-deploy responses (which omit this
     /// field) still parse — use the `safeTitle` extension at call sites.
     @JsonKey(name: 'display_title') String? displayTitle,
+
     /// 8-char hash, null when no session-specific photo set. Used to
     /// distinguish "real session photo" (rectangular 16:9) from
     /// "fallback to tenant logo" (square) — when [photoUrls] is non-null
     /// but [photoPath] is null, the URLs point at the tenant logo and
     /// caller renders the centered-on-brand-color fallback layout.
     @JsonKey(name: 'photo_path') String? photoPath,
+
     /// Hero photo URLs in 4 sizes (sm/md/lg/xl). When [photoPath] is set
     /// these are 16:9 session photos; otherwise BE returns the tenant
     /// `logo_urls` map (square) as the fallback. Null when neither

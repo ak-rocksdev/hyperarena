@@ -12,20 +12,22 @@ import 'package:hyperarena/shared/providers/network_providers.dart';
 
 // ── Repository providers ──────────────────────────────────
 
-final marketplaceVenueRepoProvider =
-    Provider<ApiMarketplaceVenueRepository>((ref) {
+final marketplaceVenueRepoProvider = Provider<ApiMarketplaceVenueRepository>((
+  ref,
+) {
   final apiClient = ref.watch(apiClientProvider);
   return ApiMarketplaceVenueRepository(apiClient);
 });
 
 final marketplaceSessionRepoProvider =
     Provider<ApiMarketplaceSessionRepository>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return ApiMarketplaceSessionRepository(apiClient);
-});
+      final apiClient = ref.watch(apiClientProvider);
+      return ApiMarketplaceSessionRepository(apiClient);
+    });
 
-final marketplaceCoachRepoProvider =
-    Provider<ApiMarketplaceCoachRepository>((ref) {
+final marketplaceCoachRepoProvider = Provider<ApiMarketplaceCoachRepository>((
+  ref,
+) {
   final apiClient = ref.watch(apiClientProvider);
   return ApiMarketplaceCoachRepository(apiClient);
 });
@@ -40,7 +42,8 @@ final sportRepoProvider = Provider<ApiSportRepository>((ref) {
 
 final sportFiltersProvider =
     AsyncNotifierProvider<SportFiltersNotifier, List<SportFilter>>(
-        SportFiltersNotifier.new);
+      SportFiltersNotifier.new,
+    );
 
 class SportFiltersNotifier extends AsyncNotifier<List<SportFilter>> {
   @override
@@ -50,9 +53,12 @@ class SportFiltersNotifier extends AsyncNotifier<List<SportFilter>> {
     final cached = repo.getCached();
     if (cached.isNotEmpty) {
       // Fire-and-forget refresh
-      repo.fetchAndCache().then((fresh) {
-        if (state.hasValue) state = AsyncData(fresh);
-      }).catchError((_) {});
+      repo
+          .fetchAndCache()
+          .then((fresh) {
+            if (state.hasValue) state = AsyncData(fresh);
+          })
+          .catchError((_) {});
       return cached;
     }
     return repo.fetchAndCache();
@@ -71,12 +77,17 @@ class MarketplaceListState<T> {
   final bool isLoadingMore;
   final String? error;
 
+  /// Set when a `loadMore` page fails. Surfaces as a retry tile at the
+  /// list footer; the next successful `loadMore` clears it.
+  final String? loadMoreError;
+
   const MarketplaceListState({
     this.items = const [],
     this.nextCursor,
     this.isLoading = false,
     this.isLoadingMore = false,
     this.error,
+    this.loadMoreError,
   });
 
   bool get hasMore => nextCursor != null;
@@ -88,6 +99,7 @@ class MarketplaceListState<T> {
     bool? isLoading,
     bool? isLoadingMore,
     String? Function()? error,
+    String? Function()? loadMoreError,
   }) {
     return MarketplaceListState(
       items: items ?? this.items,
@@ -95,6 +107,9 @@ class MarketplaceListState<T> {
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       error: error != null ? error() : this.error,
+      loadMoreError: loadMoreError != null
+          ? loadMoreError()
+          : this.loadMoreError,
     );
   }
 }
@@ -103,23 +118,25 @@ class MarketplaceListState<T> {
 
 final marketplaceSessionDetailProvider =
     FutureProvider.family<MarketplaceSessionDetail, String>((ref, id) async {
-  final repo = ref.watch(marketplaceSessionRepoProvider);
-  return repo.getSessionDetail(int.parse(id));
-});
+      final repo = ref.watch(marketplaceSessionRepoProvider);
+      return repo.getSessionDetail(int.parse(id));
+    });
 
 // ── Venue detail ─────────────────────────────────────────
 
 final marketplaceVenueDetailProvider =
     FutureProvider.family<MarketplaceVenue, String>((ref, id) async {
-  final repo = ref.watch(marketplaceVenueRepoProvider);
-  return repo.getVenueDetail(int.parse(id));
-});
+      final repo = ref.watch(marketplaceVenueRepoProvider);
+      return repo.getVenueDetail(int.parse(id));
+    });
 
 // ── Venue list notifier ───────────────────────────────────
 
-final marketplaceVenueListProvider = NotifierProvider<
-    MarketplaceVenueListNotifier,
-    MarketplaceListState<MarketplaceVenue>>(MarketplaceVenueListNotifier.new);
+final marketplaceVenueListProvider =
+    NotifierProvider<
+      MarketplaceVenueListNotifier,
+      MarketplaceListState<MarketplaceVenue>
+    >(MarketplaceVenueListNotifier.new);
 
 class MarketplaceVenueListNotifier
     extends Notifier<MarketplaceListState<MarketplaceVenue>> {
@@ -153,8 +170,21 @@ class MarketplaceVenueListNotifier
     }
   }
 
+  Future<void> retryLoadMore() async {
+    state = state.copyWith(loadMoreError: () => null);
+    await loadMore();
+  }
+
   Future<void> loadMore() async {
-    if (state.isLoadingMore || !state.hasMore) return;
+    // Gate on loadMoreError so the scroll listener doesn't silently
+    // re-fire the same failing request — caller must call
+    // [retryLoadMore] (wired to the footer "Coba lagi" button) to clear
+    // it explicitly.
+    if (state.isLoadingMore ||
+        !state.hasMore ||
+        state.loadMoreError != null) {
+      return;
+    }
     state = state.copyWith(isLoadingMore: true);
     try {
       final sportId = ref.read(selectedSportIdProvider);
@@ -170,17 +200,21 @@ class MarketplaceVenueListNotifier
         isLoadingMore: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoadingMore: false);
+      state = state.copyWith(
+        isLoadingMore: false,
+        loadMoreError: () => e.toString(),
+      );
     }
   }
 }
 
 // ── Session list notifier ─────────────────────────────────
 
-final marketplaceSessionListProvider = NotifierProvider<
-    MarketplaceSessionListNotifier,
-    MarketplaceListState<MarketplaceSession>>(
-    MarketplaceSessionListNotifier.new);
+final marketplaceSessionListProvider =
+    NotifierProvider<
+      MarketplaceSessionListNotifier,
+      MarketplaceListState<MarketplaceSession>
+    >(MarketplaceSessionListNotifier.new);
 
 class MarketplaceSessionListNotifier
     extends Notifier<MarketplaceListState<MarketplaceSession>> {
@@ -213,8 +247,21 @@ class MarketplaceSessionListNotifier
     }
   }
 
+  Future<void> retryLoadMore() async {
+    state = state.copyWith(loadMoreError: () => null);
+    await loadMore();
+  }
+
   Future<void> loadMore() async {
-    if (state.isLoadingMore || !state.hasMore) return;
+    // Gate on loadMoreError so the scroll listener doesn't silently
+    // re-fire the same failing request — caller must call
+    // [retryLoadMore] (wired to the footer "Coba lagi" button) to clear
+    // it explicitly.
+    if (state.isLoadingMore ||
+        !state.hasMore ||
+        state.loadMoreError != null) {
+      return;
+    }
     state = state.copyWith(isLoadingMore: true);
     try {
       final sportId = ref.read(selectedSportIdProvider);
@@ -230,16 +277,21 @@ class MarketplaceSessionListNotifier
         isLoadingMore: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoadingMore: false);
+      state = state.copyWith(
+        isLoadingMore: false,
+        loadMoreError: () => e.toString(),
+      );
     }
   }
 }
 
 // ── Coach list notifier ───────────────────────────────────
 
-final marketplaceCoachListProvider = NotifierProvider<
-    MarketplaceCoachListNotifier,
-    MarketplaceListState<MarketplaceCoach>>(MarketplaceCoachListNotifier.new);
+final marketplaceCoachListProvider =
+    NotifierProvider<
+      MarketplaceCoachListNotifier,
+      MarketplaceListState<MarketplaceCoach>
+    >(MarketplaceCoachListNotifier.new);
 
 class MarketplaceCoachListNotifier
     extends Notifier<MarketplaceListState<MarketplaceCoach>> {
@@ -272,8 +324,21 @@ class MarketplaceCoachListNotifier
     }
   }
 
+  Future<void> retryLoadMore() async {
+    state = state.copyWith(loadMoreError: () => null);
+    await loadMore();
+  }
+
   Future<void> loadMore() async {
-    if (state.isLoadingMore || !state.hasMore) return;
+    // Gate on loadMoreError so the scroll listener doesn't silently
+    // re-fire the same failing request — caller must call
+    // [retryLoadMore] (wired to the footer "Coba lagi" button) to clear
+    // it explicitly.
+    if (state.isLoadingMore ||
+        !state.hasMore ||
+        state.loadMoreError != null) {
+      return;
+    }
     state = state.copyWith(isLoadingMore: true);
     try {
       final sportId = ref.read(selectedSportIdProvider);
@@ -289,7 +354,10 @@ class MarketplaceCoachListNotifier
         isLoadingMore: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoadingMore: false);
+      state = state.copyWith(
+        isLoadingMore: false,
+        loadMoreError: () => e.toString(),
+      );
     }
   }
 }

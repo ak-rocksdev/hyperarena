@@ -68,7 +68,7 @@ _$OpenSessionImpl _$$OpenSessionImplFromJson(Map<String, dynamic> json) =>
       maxPlayers: (json['max_players'] as num?)?.toInt() ?? 1,
       minLevel: $enumDecodeNullable(_$LevelTierEnumMap, json['min_level']),
       maxLevel: $enumDecodeNullable(_$LevelTierEnumMap, json['max_level']),
-      pricePerPerson: (json['price_per_person'] as num).toInt(),
+      pricePerPerson: (json['price_per_person'] as num?)?.toInt() ?? 0,
       pricing: json['pricing'] == null
           ? null
           : SessionPricing.fromJson(json['pricing'] as Map<String, dynamic>),

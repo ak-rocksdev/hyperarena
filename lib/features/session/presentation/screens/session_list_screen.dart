@@ -10,9 +10,8 @@ import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
-import 'package:hyperarena/shared/widgets/load_more_error_tile.dart';
 import 'package:hyperarena/shared/widgets/other_tenant_caption.dart';
+import 'package:hyperarena/shared/widgets/paginated_list_view.dart';
 import 'package:hyperarena/shared/widgets/session_hero.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:go_router/go_router.dart';
@@ -33,9 +32,8 @@ class _SessionListScreenState extends ConsumerState<SessionListScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    // Re-evaluate `_isOngoing`/`_isEnded` once a minute so a pill flips
-    // from "Sedang berlangsung" to "Sesi Selesai" while the screen is
-    // open. Cheap rebuild — no provider invalidation, no network.
+    // Flip the pill from "Sedang berlangsung" to "Sesi Selesai" while
+    // the screen is open without waiting for a pull-to-refresh.
     _pillTicker = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -129,34 +127,17 @@ class _SessionListScreenState extends ConsumerState<SessionListScreen> {
       );
     }
 
-    final items = state.items;
-    final hasFooter = state.isLoadingMore || state.loadMoreError != null;
-    return RefreshIndicator(
+    return PaginatedListView<MarketplaceSession>(
+      items: state.items,
+      isLoadingMore: state.isLoadingMore,
+      loadMoreError: state.loadMoreError,
+      controller: _scrollController,
       onRefresh: reload,
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.screenHorizontal,
-        ),
-        itemCount: items.length + (hasFooter ? 1 : 0),
-        itemBuilder: (context, i) {
-          if (i >= items.length) {
-            if (state.loadMoreError != null) {
-              return LoadMoreErrorTile(
-                onRetry: () => ref
-                    .read(marketplaceSessionListProvider.notifier)
-                    .retryLoadMore(),
-              );
-            }
-            return const ListLoadingIndicator();
-          }
-          final session = items[i];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: AppDimensions.md),
-            child: _MarketplaceSessionCard(session: session),
-          );
-        },
+      onRetry: () =>
+          ref.read(marketplaceSessionListProvider.notifier).retryLoadMore(),
+      itemBuilder: (_, session) => Padding(
+        padding: const EdgeInsets.only(bottom: AppDimensions.md),
+        child: _MarketplaceSessionCard(session: session),
       ),
     );
   }

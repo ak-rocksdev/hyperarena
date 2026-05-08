@@ -7,6 +7,7 @@ import 'package:hyperarena/features/session/data/models/marketplace_session_deta
 import 'package:hyperarena/features/venue/data/api_marketplace_venue_repository.dart';
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 import 'package:hyperarena/shared/data/api_sport_repository.dart';
+import 'package:hyperarena/shared/data/models/cursor_page.dart';
 import 'package:hyperarena/shared/data/models/sport_filter.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 
@@ -75,11 +76,11 @@ class MarketplaceListState<T> {
   final String? nextCursor;
   final bool isLoading;
   final bool isLoadingMore;
-  final String? error;
+  final Object? error;
 
   /// Set when a `loadMore` page fails. Surfaces as a retry tile at the
   /// list footer; the next successful `loadMore` clears it.
-  final String? loadMoreError;
+  final Object? loadMoreError;
 
   const MarketplaceListState({
     this.items = const [],
@@ -98,8 +99,8 @@ class MarketplaceListState<T> {
     String? Function()? nextCursor,
     bool? isLoading,
     bool? isLoadingMore,
-    String? Function()? error,
-    String? Function()? loadMoreError,
+    Object? Function()? error,
+    Object? Function()? loadMoreError,
   }) {
     return MarketplaceListState(
       items: items ?? this.items,
@@ -111,6 +112,80 @@ class MarketplaceListState<T> {
           ? loadMoreError()
           : this.loadMoreError,
     );
+  }
+}
+
+/// Base notifier for the 3 marketplace browse lists (Sesi/Lapangan/Coach).
+/// Subclasses only have to bind a [fetchPage] hook to their repo's pagination
+/// method — every other state transition (initial load, load-more, retry,
+/// gating) lives here so the 3 lists can't drift.
+abstract class MarketplaceListNotifier<T>
+    extends Notifier<MarketplaceListState<T>> {
+  String? _searchQuery;
+
+  /// Fetch a single page. `cursor == null` means initial/refresh; the
+  /// `prioritizeTenantSlug` is only honored on the initial page (BE
+  /// rejects it combined with cursor).
+  Future<CursorPage<T>> fetchPage({
+    int? sportId,
+    String? search,
+    String? cursor,
+    String? prioritizeTenantSlug,
+  });
+
+  @override
+  MarketplaceListState<T> build() {
+    ref.watch(selectedSportIdProvider);
+    Future.microtask(loadInitial);
+    return const MarketplaceListState(isLoading: true);
+  }
+
+  Future<void> loadInitial({String? search}) async {
+    if (search != null) _searchQuery = search;
+    state = const MarketplaceListState(isLoading: true);
+    try {
+      final page = await fetchPage(
+        sportId: ref.read(selectedSportIdProvider),
+        search: _searchQuery,
+        prioritizeTenantSlug: ref.read(tenantSlugProvider),
+      );
+      state = MarketplaceListState(
+        items: page.items,
+        nextCursor: page.nextCursor,
+      );
+    } catch (e) {
+      state = MarketplaceListState(error: e);
+    }
+  }
+
+  /// User-driven retry (footer "Coba Lagi" button). Clears the gate so
+  /// [loadMore] can fire again.
+  Future<void> retryLoadMore() async {
+    state = state.copyWith(loadMoreError: () => null);
+    await loadMore();
+  }
+
+  Future<void> loadMore() async {
+    // Gate on loadMoreError so the scroll listener can't silently
+    // re-fire the same failing request — only [retryLoadMore] clears it.
+    if (state.isLoadingMore || !state.hasMore || state.loadMoreError != null) {
+      return;
+    }
+    state = state.copyWith(isLoadingMore: true);
+    try {
+      final page = await fetchPage(
+        sportId: ref.read(selectedSportIdProvider),
+        search: _searchQuery,
+        cursor: state.nextCursor,
+      );
+      state = state.copyWith(
+        items: [...state.items, ...page.items],
+        nextCursor: () => page.nextCursor,
+        isLoadingMore: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoadingMore: false, loadMoreError: () => e);
+    }
   }
 }
 
@@ -139,73 +214,21 @@ final marketplaceVenueListProvider =
     >(MarketplaceVenueListNotifier.new);
 
 class MarketplaceVenueListNotifier
-    extends Notifier<MarketplaceListState<MarketplaceVenue>> {
-  String? _searchQuery;
-
+    extends MarketplaceListNotifier<MarketplaceVenue> {
   @override
-  MarketplaceListState<MarketplaceVenue> build() {
-    // Auto-refresh when sport filter changes
-    ref.watch(selectedSportIdProvider);
-    Future.microtask(() => loadInitial());
-    return const MarketplaceListState(isLoading: true);
-  }
-
-  Future<void> loadInitial({String? search}) async {
-    if (search != null) _searchQuery = search;
-    state = const MarketplaceListState(isLoading: true);
-    try {
-      final sportId = ref.read(selectedSportIdProvider);
-      final repo = ref.read(marketplaceVenueRepoProvider);
-      final page = await repo.getVenues(
+  Future<CursorPage<MarketplaceVenue>> fetchPage({
+    int? sportId,
+    String? search,
+    String? cursor,
+    String? prioritizeTenantSlug,
+  }) => ref
+      .read(marketplaceVenueRepoProvider)
+      .getVenues(
         sportId: sportId,
-        search: _searchQuery,
-        prioritizeTenantSlug: ref.read(tenantSlugProvider),
+        search: search,
+        cursor: cursor,
+        prioritizeTenantSlug: prioritizeTenantSlug,
       );
-      state = MarketplaceListState(
-        items: page.items,
-        nextCursor: page.nextCursor,
-      );
-    } catch (e) {
-      state = MarketplaceListState(error: e.toString());
-    }
-  }
-
-  Future<void> retryLoadMore() async {
-    state = state.copyWith(loadMoreError: () => null);
-    await loadMore();
-  }
-
-  Future<void> loadMore() async {
-    // Gate on loadMoreError so the scroll listener doesn't silently
-    // re-fire the same failing request — caller must call
-    // [retryLoadMore] (wired to the footer "Coba lagi" button) to clear
-    // it explicitly.
-    if (state.isLoadingMore ||
-        !state.hasMore ||
-        state.loadMoreError != null) {
-      return;
-    }
-    state = state.copyWith(isLoadingMore: true);
-    try {
-      final sportId = ref.read(selectedSportIdProvider);
-      final repo = ref.read(marketplaceVenueRepoProvider);
-      final page = await repo.getVenues(
-        sportId: sportId,
-        search: _searchQuery,
-        cursor: state.nextCursor,
-      );
-      state = state.copyWith(
-        items: [...state.items, ...page.items],
-        nextCursor: () => page.nextCursor,
-        isLoadingMore: false,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        loadMoreError: () => e.toString(),
-      );
-    }
-  }
 }
 
 // ── Session list notifier ─────────────────────────────────
@@ -217,72 +240,21 @@ final marketplaceSessionListProvider =
     >(MarketplaceSessionListNotifier.new);
 
 class MarketplaceSessionListNotifier
-    extends Notifier<MarketplaceListState<MarketplaceSession>> {
-  String? _searchQuery;
-
+    extends MarketplaceListNotifier<MarketplaceSession> {
   @override
-  MarketplaceListState<MarketplaceSession> build() {
-    ref.watch(selectedSportIdProvider);
-    Future.microtask(() => loadInitial());
-    return const MarketplaceListState(isLoading: true);
-  }
-
-  Future<void> loadInitial({String? search}) async {
-    if (search != null) _searchQuery = search;
-    state = const MarketplaceListState(isLoading: true);
-    try {
-      final sportId = ref.read(selectedSportIdProvider);
-      final repo = ref.read(marketplaceSessionRepoProvider);
-      final page = await repo.getSessions(
+  Future<CursorPage<MarketplaceSession>> fetchPage({
+    int? sportId,
+    String? search,
+    String? cursor,
+    String? prioritizeTenantSlug,
+  }) => ref
+      .read(marketplaceSessionRepoProvider)
+      .getSessions(
         sportId: sportId,
-        search: _searchQuery,
-        prioritizeTenantSlug: ref.read(tenantSlugProvider),
+        search: search,
+        cursor: cursor,
+        prioritizeTenantSlug: prioritizeTenantSlug,
       );
-      state = MarketplaceListState(
-        items: page.items,
-        nextCursor: page.nextCursor,
-      );
-    } catch (e) {
-      state = MarketplaceListState(error: e.toString());
-    }
-  }
-
-  Future<void> retryLoadMore() async {
-    state = state.copyWith(loadMoreError: () => null);
-    await loadMore();
-  }
-
-  Future<void> loadMore() async {
-    // Gate on loadMoreError so the scroll listener doesn't silently
-    // re-fire the same failing request — caller must call
-    // [retryLoadMore] (wired to the footer "Coba lagi" button) to clear
-    // it explicitly.
-    if (state.isLoadingMore ||
-        !state.hasMore ||
-        state.loadMoreError != null) {
-      return;
-    }
-    state = state.copyWith(isLoadingMore: true);
-    try {
-      final sportId = ref.read(selectedSportIdProvider);
-      final repo = ref.read(marketplaceSessionRepoProvider);
-      final page = await repo.getSessions(
-        sportId: sportId,
-        search: _searchQuery,
-        cursor: state.nextCursor,
-      );
-      state = state.copyWith(
-        items: [...state.items, ...page.items],
-        nextCursor: () => page.nextCursor,
-        isLoadingMore: false,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        loadMoreError: () => e.toString(),
-      );
-    }
-  }
 }
 
 // ── Coach list notifier ───────────────────────────────────
@@ -294,70 +266,19 @@ final marketplaceCoachListProvider =
     >(MarketplaceCoachListNotifier.new);
 
 class MarketplaceCoachListNotifier
-    extends Notifier<MarketplaceListState<MarketplaceCoach>> {
-  String? _searchQuery;
-
+    extends MarketplaceListNotifier<MarketplaceCoach> {
   @override
-  MarketplaceListState<MarketplaceCoach> build() {
-    ref.watch(selectedSportIdProvider);
-    Future.microtask(() => loadInitial());
-    return const MarketplaceListState(isLoading: true);
-  }
-
-  Future<void> loadInitial({String? search}) async {
-    if (search != null) _searchQuery = search;
-    state = const MarketplaceListState(isLoading: true);
-    try {
-      final sportId = ref.read(selectedSportIdProvider);
-      final repo = ref.read(marketplaceCoachRepoProvider);
-      final page = await repo.getCoaches(
+  Future<CursorPage<MarketplaceCoach>> fetchPage({
+    int? sportId,
+    String? search,
+    String? cursor,
+    String? prioritizeTenantSlug,
+  }) => ref
+      .read(marketplaceCoachRepoProvider)
+      .getCoaches(
         sportId: sportId,
-        search: _searchQuery,
-        prioritizeTenantSlug: ref.read(tenantSlugProvider),
+        search: search,
+        cursor: cursor,
+        prioritizeTenantSlug: prioritizeTenantSlug,
       );
-      state = MarketplaceListState(
-        items: page.items,
-        nextCursor: page.nextCursor,
-      );
-    } catch (e) {
-      state = MarketplaceListState(error: e.toString());
-    }
-  }
-
-  Future<void> retryLoadMore() async {
-    state = state.copyWith(loadMoreError: () => null);
-    await loadMore();
-  }
-
-  Future<void> loadMore() async {
-    // Gate on loadMoreError so the scroll listener doesn't silently
-    // re-fire the same failing request — caller must call
-    // [retryLoadMore] (wired to the footer "Coba lagi" button) to clear
-    // it explicitly.
-    if (state.isLoadingMore ||
-        !state.hasMore ||
-        state.loadMoreError != null) {
-      return;
-    }
-    state = state.copyWith(isLoadingMore: true);
-    try {
-      final sportId = ref.read(selectedSportIdProvider);
-      final repo = ref.read(marketplaceCoachRepoProvider);
-      final page = await repo.getCoaches(
-        sportId: sportId,
-        search: _searchQuery,
-        cursor: state.nextCursor,
-      );
-      state = state.copyWith(
-        items: [...state.items, ...page.items],
-        nextCursor: () => page.nextCursor,
-        isLoadingMore: false,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        loadMoreError: () => e.toString(),
-      );
-    }
-  }
 }

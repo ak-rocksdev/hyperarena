@@ -92,11 +92,9 @@ class OpenSession with _$OpenSession {
     LevelTier? minLevel,
     LevelTier? maxLevel,
 
-    /// Legacy alias for `pricing.effective_price`. Prefer reading
-    /// `pricing` directly — `pricePerPerson` doesn't carry payment mode,
-    /// credit requirement, or currency. Defaulted to 0 so a legacy
-    /// null-priced row degrades to a free-looking card instead of
-    /// failing the whole list parse.
+    /// Legacy alias for `pricing.effective_price` — prefer reading
+    /// `pricing` (carries payment mode + currency). Defaulted to 0 so a
+    /// null-priced legacy row doesn't fail the whole list parse.
     @Default(0) int pricePerPerson,
 
     /// Resolved pricing block — source of truth for display. Nullable

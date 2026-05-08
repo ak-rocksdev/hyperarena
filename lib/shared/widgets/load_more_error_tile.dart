@@ -28,7 +28,7 @@ class LoadMoreErrorTile extends StatelessWidget {
               style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
-          TextButton(onPressed: onRetry, child: const Text('Coba lagi')),
+          TextButton(onPressed: onRetry, child: const Text('Coba Lagi')),
         ],
       ),
     );

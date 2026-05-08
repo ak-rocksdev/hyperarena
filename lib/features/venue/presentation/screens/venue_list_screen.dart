@@ -9,9 +9,8 @@ import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
-import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
-import 'package:hyperarena/shared/widgets/load_more_error_tile.dart';
 import 'package:hyperarena/shared/widgets/other_tenant_caption.dart';
+import 'package:hyperarena/shared/widgets/paginated_list_view.dart';
 
 class VenueListScreen extends ConsumerStatefulWidget {
   final String searchQuery;
@@ -109,34 +108,17 @@ class _VenueListScreenState extends ConsumerState<VenueListScreen> {
       );
     }
 
-    final items = state.items;
-    final hasFooter = state.isLoadingMore || state.loadMoreError != null;
-    return RefreshIndicator(
+    return PaginatedListView<MarketplaceVenue>(
+      items: state.items,
+      isLoadingMore: state.isLoadingMore,
+      loadMoreError: state.loadMoreError,
+      controller: _scrollController,
       onRefresh: reload,
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.screenHorizontal,
-        ),
-        itemCount: items.length + (hasFooter ? 1 : 0),
-        itemBuilder: (context, i) {
-          if (i >= items.length) {
-            if (state.loadMoreError != null) {
-              return LoadMoreErrorTile(
-                onRetry: () => ref
-                    .read(marketplaceVenueListProvider.notifier)
-                    .retryLoadMore(),
-              );
-            }
-            return const ListLoadingIndicator();
-          }
-          final venue = items[i];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: AppDimensions.md),
-            child: _MarketplaceVenueCard(venue: venue),
-          );
-        },
+      onRetry: () =>
+          ref.read(marketplaceVenueListProvider.notifier).retryLoadMore(),
+      itemBuilder: (_, venue) => Padding(
+        padding: const EdgeInsets.only(bottom: AppDimensions.md),
+        child: _MarketplaceVenueCard(venue: venue),
       ),
     );
   }

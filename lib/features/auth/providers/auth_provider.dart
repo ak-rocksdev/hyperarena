@@ -53,8 +53,11 @@ final authNotifierProvider = NotifierProvider<AuthNotifier, User?>(
   AuthNotifier.new,
 );
 
-/// True while a role switch API call is in flight.
-final isSwitchingRoleProvider = StateProvider<bool>((ref) => false);
+/// The role the user is switching to, while the API call is in flight.
+/// Null means no switch in progress. Type carries the target role so the
+/// UI can show the in-tile spinner on the right tile (rather than a
+/// generic "something is loading" boolean).
+final isSwitchingRoleProvider = StateProvider<UserRole?>((ref) => null);
 
 /// The current tenant's display currency code (e.g. `'IDR'`, `'MYR'`).
 final tenantCurrencyProvider = Provider<String>(

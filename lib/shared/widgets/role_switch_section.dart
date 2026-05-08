@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
@@ -12,6 +13,11 @@ import 'package:hyperarena/features/auth/data/models/user.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
+/// Minimum time the in-tile spinner stays visible. Without this floor, a
+/// fast (~50ms) API response causes the spinner to flicker for one frame
+/// — feels like a glitch rather than a deliberate transition.
+const _kMinLoadingDisplay = Duration(milliseconds: 200);
+
 /// A section that shows role-switching buttons when the user has multiple roles.
 ///
 /// Only renders when [user.availableRoles] contains more than one distinct
@@ -24,15 +30,13 @@ class RoleSwitchSection extends ConsumerWidget {
     final user = ref.watch(authNotifierProvider);
     if (user == null) return const SizedBox.shrink();
 
-    final isSwitching = ref.watch(isSwitchingRoleProvider);
+    final switchingTo = ref.watch(isSwitchingRoleProvider);
 
-    // Map backend role names to UserRole, deduplicate
     final mappedRoles = user.availableRoles
         .map(mapBackendRole)
         .toSet()
         .toList();
 
-    // Only show when there are multiple distinct roles
     if (mappedRoles.length <= 1) return const SizedBox.shrink();
 
     return Padding(
@@ -55,10 +59,10 @@ class RoleSwitchSection extends ConsumerWidget {
                 for (var i = 0; i < mappedRoles.length; i++) ...[
                   _RoleTile(
                     role: mappedRoles[i],
-                    isActive: mappedRoles[i] == user.role,
-                    onTap: isSwitching
-                        ? null
-                        : () => _onRoleTap(context, ref, user, mappedRoles[i]),
+                    activeRole: user.role,
+                    switchingTo: switchingTo,
+                    onTap: () =>
+                        _onRoleTap(context, ref, user, mappedRoles[i]),
                   ),
                   if (i < mappedRoles.length - 1)
                     const Divider(height: 1, indent: 56),
@@ -78,12 +82,24 @@ class RoleSwitchSection extends ConsumerWidget {
     User user,
     UserRole newRole,
   ) async {
+    // Haptic confirms the tap was received even before the spinner paints —
+    // tactile feedback prevents users from re-tapping a "dead-feeling" button.
+    HapticFeedback.lightImpact();
+
     if (newRole == user.role) return;
+    // Already switching — haptic above is enough; don't fire a second call.
+    if (ref.read(isSwitchingRoleProvider) != null) return;
 
-    ref.read(isSwitchingRoleProvider.notifier).state = true;
+    ref.read(isSwitchingRoleProvider.notifier).state = newRole;
 
+    final stopwatch = Stopwatch()..start();
     try {
       await ref.read(authNotifierProvider.notifier).switchRole(newRole);
+      // Floor the loading display so the spinner doesn't flicker.
+      final elapsed = stopwatch.elapsed;
+      if (elapsed < _kMinLoadingDisplay) {
+        await Future.delayed(_kMinLoadingDisplay - elapsed);
+      }
       if (context.mounted) {
         context.go(AppRoutes.home(newRole));
       }
@@ -92,90 +108,105 @@ class RoleSwitchSection extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal beralih peran: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
     } finally {
-      ref.read(isSwitchingRoleProvider.notifier).state = false;
+      ref.read(isSwitchingRoleProvider.notifier).state = null;
     }
   }
 }
 
 class _RoleTile extends StatelessWidget {
   final UserRole role;
-  final bool isActive;
-  final VoidCallback? onTap;
+  final UserRole activeRole;
+  final UserRole? switchingTo;
+  final VoidCallback onTap;
 
   const _RoleTile({
     required this.role,
-    required this.isActive,
+    required this.activeRole,
+    required this.switchingTo,
     required this.onTap,
   });
 
+  bool get _isActive => role == activeRole;
+  bool get _isLoading => switchingTo == role;
+  bool get _isOtherDimmed => switchingTo != null && switchingTo != role;
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.base,
-            vertical: AppDimensions.md,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isActive
-                      ? AppColors.primary.withValues(alpha: 0.1)
-                      : AppColors.neutral100,
-                ),
-                child: Icon(
-                  _roleIcon(role),
-                  size: 20,
-                  color: isActive ? AppColors.primary : AppColors.neutral500,
-                ),
-              ),
-              const SizedBox(width: AppDimensions.md),
-              Expanded(
-                child: Text(
-                  _roleLabel(role),
-                  style: AppTypography.bodyLarge.copyWith(
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                    color: isActive
-                        ? AppColors.primary
-                        : AppColors.textPrimary,
-                  ),
-                ),
-              ),
-              if (isActive)
+    // Tile being switched TO previews the active styling so the transition
+    // into the new role's home screen feels continuous (the tile reads
+    // "becoming active" rather than "loading something opaque").
+    final showActiveStyling = _isActive || _isLoading;
+
+    return Opacity(
+      opacity: _isOtherDimmed ? 0.4 : 1.0,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          // Suppress onTap on dimmed tiles AND on the loading tile itself
+          // so a re-tap doesn't fire a duplicate API call.
+          onTap: switchingTo != null ? null : onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.base,
+              vertical: AppDimensions.md,
+            ),
+            child: Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(
-                      AppDimensions.radiusFull,
-                    ),
+                    shape: BoxShape.circle,
+                    color: showActiveStyling
+                        ? AppColors.primary.withValues(alpha: 0.1)
+                        : AppColors.neutral100,
                   ),
+                  alignment: Alignment.center,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primary,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          _roleIcon(role),
+                          size: 20,
+                          color: showActiveStyling
+                              ? AppColors.primary
+                              : AppColors.neutral500,
+                        ),
+                ),
+                const SizedBox(width: AppDimensions.md),
+                Expanded(
                   child: Text(
-                    'Aktif',
-                    style: AppTypography.caption.copyWith(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                    _roleLabel(role),
+                    style: AppTypography.bodyLarge.copyWith(
+                      fontWeight: showActiveStyling
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: showActiveStyling
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
                     ),
                   ),
                 ),
-            ],
+                if (_isLoading)
+                  _StatusPill(label: 'Beralih…')
+                else if (_isActive)
+                  _StatusPill(label: 'Aktif'),
+              ],
+            ),
           ),
         ),
       ),
@@ -195,4 +226,28 @@ class _RoleTile extends StatelessWidget {
         UserRole.organizer => 'Organizer',
         UserRole.courtOwner => 'Pemilik Venue',
       };
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+  const _StatusPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
 }

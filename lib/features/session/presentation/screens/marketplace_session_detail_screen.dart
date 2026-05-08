@@ -5,6 +5,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
@@ -178,7 +179,7 @@ class _DetailBody extends ConsumerWidget {
                       sessionId: sessionId,
                       coachId: session.coaches.first.id,
                       coachName: session.coaches.first.user?.name ?? 'Coach',
-                      sessionTitle: session.name,
+                      sessionTitle: session.safeTitle,
                       canReview: userStatus.canReview,
                       blockedReason: userStatus.reviewBlockedReason,
                     ),
@@ -605,6 +606,7 @@ class _BottomBar extends ConsumerWidget {
   }
 
   Future<void> _onJoinTap(BuildContext context, WidgetRef ref) async {
+    AppHaptics.tap();
     if (userStatus.creditBalance >= 1) {
       // Show credit confirmation sheet
       final confirmed = await showCreditConfirmationSheet(
@@ -634,7 +636,7 @@ class _BottomBar extends ConsumerWidget {
       context.go(
         AppRoutes.marketplaceSessionConfirmation(sessionId),
         extra: {
-          'sessionName': session.name,
+          'sessionName': session.safeTitle,
           'price': effectivePrice,
         },
       );
@@ -644,7 +646,7 @@ class _BottomBar extends ConsumerWidget {
         extra: {
           'joinResponse': response,
           'tenantPayment': tenantPayment,
-          'sessionName': session.name,
+          'sessionName': session.safeTitle,
           'price': effectivePrice,
         },
       );

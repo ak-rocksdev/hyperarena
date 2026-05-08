@@ -6,6 +6,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
@@ -462,6 +463,7 @@ class ProfileScreen extends ConsumerWidget {
                         label: 'Keluar',
                         isDestructive: true,
                         onTap: () async {
+                          AppHaptics.tap();
                           await ref
                               .read(authNotifierProvider.notifier)
                               .logout();

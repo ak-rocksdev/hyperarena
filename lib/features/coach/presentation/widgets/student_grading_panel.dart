@@ -4,6 +4,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/features/coach/data/models/enrollment.dart';
 import 'package:hyperarena/features/coach/data/models/level_skill.dart';
 import 'package:hyperarena/features/coach/data/models/scoring_config.dart';
@@ -108,6 +109,7 @@ class _StudentGradingPanelState extends ConsumerState<StudentGradingPanel> {
   }
 
   Future<void> _save(ScoringConfig config) async {
+    AppHaptics.tap();
     if (_saving) return;
     setState(() => _saving = true);
     try {

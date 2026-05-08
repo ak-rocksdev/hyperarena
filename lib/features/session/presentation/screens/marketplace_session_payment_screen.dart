@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 
 import 'package:hyperarena/core/theme/app_colors.dart';
@@ -99,6 +100,7 @@ class _MarketplaceSessionPaymentScreenState
   }
 
   Future<void> _pickAndUploadProof() async {
+    AppHaptics.tap();
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.gallery,

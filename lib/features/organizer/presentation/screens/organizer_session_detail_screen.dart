@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
@@ -1298,6 +1299,7 @@ Future<void> _showReasonDialog(
         ),
         FilledButton(
           onPressed: () async {
+            AppHaptics.tap();
             final reason = controller.text.trim();
             if (reason.isEmpty) return;
             Navigator.pop(ctx);

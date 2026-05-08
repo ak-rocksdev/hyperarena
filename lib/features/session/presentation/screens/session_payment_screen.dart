@@ -8,6 +8,7 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
@@ -47,6 +48,7 @@ class _SessionPaymentScreenState extends ConsumerState<SessionPaymentScreen> {
   }
 
   Future<void> _confirmPayment() async {
+    AppHaptics.tap();
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {

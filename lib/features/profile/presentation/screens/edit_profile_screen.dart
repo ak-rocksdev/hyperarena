@@ -7,6 +7,7 @@ import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
@@ -79,6 +80,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
 
   Future<void> _handleSave() async {
+    AppHaptics.tap();
     if (_saving) return;
     setState(() => _saving = true);
     try {

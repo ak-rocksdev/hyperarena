@@ -4,6 +4,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
@@ -509,6 +510,7 @@ class _CoachSessionDetailScreenState
   }
 
   Future<void> _handleSave(CoachSession session) async {
+    AppHaptics.tap();
     if (_saving) return;
     setState(() => _saving = true);
 

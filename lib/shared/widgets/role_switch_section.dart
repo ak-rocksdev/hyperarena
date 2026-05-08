@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
@@ -82,13 +82,7 @@ class RoleSwitchSection extends ConsumerWidget {
     User user,
     UserRole newRole,
   ) async {
-    // Haptic confirms the tap was received even before the spinner paints —
-    // tactile feedback prevents users from re-tapping a "dead-feeling" button.
-    // vibrate() — explicit ~50ms pulse instead of HapticFeedback.*Impact()
-    // because Samsung OEMs route the impact constants through their own
-    // haptic engine which renders them at near-zero intensity even when
-    // the system Touch-Vibration toggle is on.
-    HapticFeedback.vibrate();
+    AppHaptics.tap();
 
     if (newRole == user.role) return;
     // Already switching — haptic above is enough; don't fire a second call.
@@ -104,10 +98,17 @@ class RoleSwitchSection extends ConsumerWidget {
       if (elapsed < _kMinLoadingDisplay) {
         await Future.delayed(_kMinLoadingDisplay - elapsed);
       }
+      // Clear loading state BEFORE the route swap. Once `context.go`
+      // tears down this branch's widget tree, the WidgetRef is dead and
+      // a post-navigation `ref.read(...).state = null` silently no-ops
+      // — the new role's Profile screen would then subscribe to a
+      // stale `switchingTo` and render a stuck spinner forever.
+      ref.read(isSwitchingRoleProvider.notifier).state = null;
       if (context.mounted) {
         context.go(AppRoutes.home(newRole));
       }
     } catch (e) {
+      ref.read(isSwitchingRoleProvider.notifier).state = null;
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -116,8 +117,6 @@ class RoleSwitchSection extends ConsumerWidget {
           ),
         );
       }
-    } finally {
-      ref.read(isSwitchingRoleProvider.notifier).state = null;
     }
   }
 }

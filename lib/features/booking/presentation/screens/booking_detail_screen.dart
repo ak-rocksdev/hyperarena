@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
@@ -210,6 +211,7 @@ class BookingDetailScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
+              AppHaptics.tap();
               Navigator.pop(ctx);
               await ref
                   .read(bookingRepositoryProvider)

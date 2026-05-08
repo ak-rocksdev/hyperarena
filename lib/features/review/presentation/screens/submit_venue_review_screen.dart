@@ -6,6 +6,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/review/presentation/widgets/rating_stars.dart';
@@ -34,6 +35,7 @@ class _SubmitVenueReviewScreenState
   }
 
   Future<void> _submit() async {
+    AppHaptics.tap();
     if (_rating == 0) return;
     setState(() => _isSubmitting = true);
 

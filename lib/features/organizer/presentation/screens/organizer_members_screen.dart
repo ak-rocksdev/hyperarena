@@ -17,6 +17,7 @@ import 'package:hyperarena/features/organizer/presentation/widgets/club_hero.dar
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/utils/debouncer.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
+import 'package:hyperarena/shared/widgets/pinned_list_header.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
 /// Anggota Klub — tenant-wide roster for the organizer. 3-layer dashboard:
@@ -31,11 +32,17 @@ class OrganizerMembersScreen extends ConsumerStatefulWidget {
       _OrganizerMembersScreenState();
 }
 
+/// Quick-filter chip for the roster. `outstanding` is the financial-collection
+/// shortcut every organizer reaches for first; `noCoach` and `unrated` surface
+/// roster gaps the organizer is responsible for closing.
+enum _RosterFilter { all, outstanding, noCoach, unrated }
+
 class _OrganizerMembersScreenState
     extends ConsumerState<OrganizerMembersScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   final _debouncer = Debouncer();
+  _RosterFilter _filter = _RosterFilter.all;
 
   @override
   void initState() {
@@ -110,11 +117,24 @@ class _OrganizerMembersScreenState
                 ),
               ),
             ),
-            SliverToBoxAdapter(child: _buildSectionLabel(listState)),
-            SliverToBoxAdapter(child: _buildSearch()),
+            // Section label + search + filter chips pin to the top once
+            // scrolled past, so the count + search + filter stay reachable
+            // while the user browses deep into the roster. Height fits
+            // worst case (filter row visible).
+            PinnedListHeader(
+              height: 156,
+              background: AppColors.neutral50,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildSectionLabel(listState),
+                  _buildSearch(),
+                  _buildFilterRow(listState),
+                ],
+              ),
+            ),
             ..._buildList(listState, currency),
-            const SliverToBoxAdapter(
-                child: SizedBox(height: AppDimensions.lg)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppDimensions.lg)),
           ],
         ),
       ),
@@ -162,8 +182,10 @@ class _OrganizerMembersScreenState
           const SizedBox(height: AppDimensions.xs),
           TextButton(
             onPressed: () => ref.invalidate(clubSummaryProvider),
-            child: const Text('Coba lagi',
-                style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Coba lagi',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -210,9 +232,11 @@ class _OrganizerMembersScreenState
           if (state.items.isNotEmpty) ...[
             const SizedBox(width: AppDimensions.xs),
             Text(
-              '· ${state.items.length}${state.hasMore ? '+' : ''}',
-              style: AppTypography.caption
-                  .copyWith(color: AppColors.textTertiary, fontSize: 10),
+              '· ${state.total ?? state.items.length}',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textTertiary,
+                fontSize: 10,
+              ),
             ),
           ],
           const SizedBox(width: AppDimensions.sm),
@@ -244,13 +268,19 @@ class _OrganizerMembersScreenState
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: 'Cari anggota…',
-              prefixIcon: const Icon(Icons.search,
-                  color: AppColors.textTertiary, size: 18),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: AppColors.textTertiary,
+                size: 18,
+              ),
               suffixIcon: value.text.isEmpty
                   ? null
                   : IconButton(
-                      icon: const Icon(Icons.close,
-                          size: 16, color: AppColors.textTertiary),
+                      icon: const Icon(
+                        Icons.close,
+                        size: 16,
+                        color: AppColors.textTertiary,
+                      ),
                       onPressed: () {
                         _searchController.clear();
                         _onSearchChanged('');
@@ -260,7 +290,8 @@ class _OrganizerMembersScreenState
                     ),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.md),
+                horizontal: AppDimensions.md,
+              ),
               filled: true,
               fillColor: AppSurfaces.surface,
               border: OutlineInputBorder(
@@ -278,12 +309,89 @@ class _OrganizerMembersScreenState
     );
   }
 
+  /// Client-side filter atop the paginated `state.items`. Counts are only
+  /// over the currently-loaded page — fine for a v1, but the next iteration
+  /// should push these as query params to `GET /v1/admin/students/roster`
+  /// so the count reflects the whole tenant, not just what's been scrolled.
+  List<AdminStudentRosterItem> _applyFilter(List<AdminStudentRosterItem> src) {
+    return switch (_filter) {
+      _RosterFilter.all => src,
+      _RosterFilter.outstanding =>
+        src.where((m) => m.outstandingCount > 0).toList(growable: false),
+      _RosterFilter.noCoach =>
+        src.where((m) => m.assignedCoach?.name == null).toList(growable: false),
+      _RosterFilter.unrated =>
+        src
+            .where((m) => m.latestProgress?.status == null)
+            .toList(growable: false),
+    };
+  }
+
+  Widget _buildFilterRow(AdminRosterListState state) {
+    if (state.isLoading || state.error != null || state.items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final outstanding = state.items.where((m) => m.outstandingCount > 0).length;
+    final noCoach = state.items
+        .where((m) => m.assignedCoach?.name == null)
+        .length;
+    final unrated = state.items
+        .where((m) => m.latestProgress?.status == null)
+        .length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.screenHorizontal,
+        0,
+        AppDimensions.screenHorizontal,
+        AppDimensions.sm,
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: [
+            _RosterFilterChip(
+              label: 'Semua',
+              isSelected: _filter == _RosterFilter.all,
+              onTap: () => setState(() => _filter = _RosterFilter.all),
+            ),
+            const SizedBox(width: AppDimensions.xs),
+            _RosterFilterChip(
+              label: 'Menunggak',
+              count: outstanding,
+              tone: _RosterFilterTone.error,
+              isSelected: _filter == _RosterFilter.outstanding,
+              onTap: () => setState(() => _filter = _RosterFilter.outstanding),
+            ),
+            const SizedBox(width: AppDimensions.xs),
+            _RosterFilterChip(
+              label: 'Tanpa coach',
+              count: noCoach,
+              tone: _RosterFilterTone.warning,
+              isSelected: _filter == _RosterFilter.noCoach,
+              onTap: () => setState(() => _filter = _RosterFilter.noCoach),
+            ),
+            const SizedBox(width: AppDimensions.xs),
+            _RosterFilterChip(
+              label: 'Belum dinilai',
+              count: unrated,
+              tone: _RosterFilterTone.neutral,
+              isSelected: _filter == _RosterFilter.unrated,
+              onTap: () => setState(() => _filter = _RosterFilter.unrated),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Widget> _buildList(AdminRosterListState state, String currency) {
     if (state.isLoading) {
       return [
         SliverPadding(
           padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.screenHorizontal),
+            horizontal: AppDimensions.screenHorizontal,
+          ),
           sliver: SliverList.builder(
             itemCount: 4,
             itemBuilder: (_, _) => Padding(
@@ -322,27 +430,123 @@ class _OrganizerMembersScreenState
         ),
       ];
     }
+    final filtered = _applyFilter(state.items);
+    if (filtered.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.filter_alt_off_outlined,
+            message: switch (_filter) {
+              _RosterFilter.outstanding =>
+                'Tidak ada anggota yang menunggak. Semua lunas pada halaman ini.',
+              _RosterFilter.noCoach =>
+                'Semua anggota di halaman ini sudah punya coach.',
+              _RosterFilter.unrated =>
+                'Semua anggota di halaman ini sudah dinilai.',
+              _RosterFilter.all => 'Tidak ada anggota.',
+            },
+            actionLabel: 'Tampilkan semua',
+            onAction: () => setState(() => _filter = _RosterFilter.all),
+          ),
+        ),
+      ];
+    }
     return [
       SliverPadding(
         padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.screenHorizontal),
+          horizontal: AppDimensions.screenHorizontal,
+        ),
         sliver: SliverList.builder(
-          itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+          itemCount: filtered.length + (state.isLoadingMore ? 1 : 0),
           itemBuilder: (_, i) {
-            if (i >= state.items.length) {
+            if (i >= filtered.length) {
               return const ListLoadingIndicator();
             }
             return Padding(
               padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-              child: _MemberRosterCard(
-                member: state.items[i],
-                currency: currency,
-              ),
+              child: _MemberRosterCard(member: filtered[i], currency: currency),
             );
           },
         ),
       ),
     ];
+  }
+}
+
+enum _RosterFilterTone { neutral, error, warning }
+
+class _RosterFilterChip extends StatelessWidget {
+  final String label;
+  final int? count;
+  final _RosterFilterTone tone;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _RosterFilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    this.count,
+    this.tone = _RosterFilterTone.neutral,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = switch (tone) {
+      _RosterFilterTone.error => AppColors.error,
+      _RosterFilterTone.warning => AppColors.warning,
+      _RosterFilterTone.neutral => AppColors.primary700,
+    };
+    final fg = isSelected ? Colors.white : accent;
+    final bg = isSelected ? accent : AppSurfaces.surface;
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.md,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+            border: Border.all(
+              color: isSelected ? accent : AppColors.neutral200,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: AppTypography.caption.copyWith(
+                  color: fg,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              if (count != null && count! > 0) ...[
+                const SizedBox(width: 6),
+                Text(
+                  count.toString(),
+                  style: AppTypography.caption.copyWith(
+                    color: fg,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -414,14 +618,14 @@ class _ClubStatsCard extends StatelessWidget {
                 label: 'TAGIHAN',
                 value: hasOutstanding
                     ? Formatters.formatCurrencyCompact(
-                        stats.outstandingTotal, currency)
+                        stats.outstandingTotal,
+                        currency,
+                      )
                     : '—',
                 hint: hasOutstanding
                     ? '${stats.outstandingCount} anggota'
                     : 'semua lunas',
-                color: hasOutstanding
-                    ? AppColors.error
-                    : AppColors.success,
+                color: hasOutstanding ? AppColors.error : AppColors.success,
               ),
             ),
           ],
@@ -573,12 +777,13 @@ class _MemberRosterCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      if (hasOutstanding) _OutstandingBanner(
-                        amount: member.outstandingAmount,
-                        count: member.outstandingCount,
-                        oldestAt: member.oldestOutstandingAt,
-                        currency: currency,
-                      ),
+                      if (hasOutstanding)
+                        _OutstandingBanner(
+                          amount: member.outstandingAmount,
+                          count: member.outstandingCount,
+                          oldestAt: member.oldestOutstandingAt,
+                          currency: currency,
+                        ),
                     ],
                   ),
                 ),
@@ -647,7 +852,6 @@ class _MemberRosterCard extends StatelessWidget {
             ],
           ),
         ),
-        Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
       ],
     );
   }
@@ -671,8 +875,8 @@ class _MemberRosterCard extends StatelessWidget {
               program == null
                   ? 'Belum terdaftar di program'
                   : (member.enrollment?.levelName == null
-                      ? program
-                      : '$program · ${member.enrollment!.levelName}'),
+                        ? program
+                        : '$program · ${member.enrollment!.levelName}'),
               style: AppTypography.caption.copyWith(
                 color: program == null
                     ? AppColors.warning
@@ -693,6 +897,9 @@ class _MemberRosterCard extends StatelessWidget {
   }
 
   Widget _buildMetaRow(Color accent) {
+    final lastSession = member.lastSessionAt == null
+        ? 'Belum ada sesi'
+        : Formatters.relativeDate(member.lastSessionAt!);
     return Padding(
       padding: const EdgeInsets.only(left: 56),
       child: Wrap(
@@ -702,7 +909,9 @@ class _MemberRosterCard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.xs, vertical: 2),
+              horizontal: AppDimensions.xs,
+              vertical: 2,
+            ),
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -716,34 +925,12 @@ class _MemberRosterCard extends StatelessWidget {
               ),
             ),
           ),
-          _MetaDot(),
           Text(
-            member.lastSessionAt == null
-                ? 'Belum ada sesi'
-                : Formatters.relativeDate(member.lastSessionAt!),
-            style: AppTypography.caption
-                .copyWith(color: AppColors.textSecondary),
-          ),
-          _MetaDot(),
-          Text(
-            '${member.totalSessions} sesi',
-            style: AppTypography.caption
-                .copyWith(color: AppColors.textSecondary),
-          ),
-          if (member.totalSessions > 0) ...[
-            _MetaDot(),
-            Text(
-              'Hadir ${(member.attendanceRate * 100).round()}%',
-              style: AppTypography.caption.copyWith(
-                color: member.attendanceRate >= 0.85
-                    ? AppColors.success
-                    : member.attendanceRate >= 0.7
-                        ? AppColors.warning
-                        : AppColors.error,
-                fontWeight: FontWeight.w600,
-              ),
+            ' · $lastSession · ${member.totalSessions} sesi',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondary,
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -756,8 +943,10 @@ class _CoachChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shortName = _shortCoachName(name);
+    final initial = Formatters.initials(name).characters.firstOrNull ?? 'C';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      padding: const EdgeInsets.fromLTRB(2, 2, 8, 2),
       decoration: BoxDecoration(
         color: AppColors.primary50,
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -766,12 +955,29 @@ class _CoachChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.sports, size: 10, color: AppColors.primary700),
-          const SizedBox(width: 3),
+          Container(
+            width: 16,
+            height: 16,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.primary700,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              initial.toUpperCase(),
+              style: AppTypography.caption.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 9,
+                height: 1,
+              ),
+            ),
+          ),
+          const SizedBox(width: 5),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 90),
             child: Text(
-              _shortCoachName(name),
+              shortName,
               style: AppTypography.caption.copyWith(
                 color: AppColors.primary700,
                 fontWeight: FontWeight.w600,
@@ -786,12 +992,17 @@ class _CoachChip extends StatelessWidget {
     );
   }
 
-  /// "Haris Mustamsikin" → "Coach Haris". Strips honorific prefixes that
-  /// would otherwise compete for chip width.
+  /// "Haris Mustamsikin" → "Coach Haris". Strips repeated honorific
+  /// prefixes ("Pak Coach Haris" → "Coach Haris") so we never render
+  /// "Coach Coach …".
   String _shortCoachName(String full) {
     final cleaned = full
-        .replaceFirst(RegExp(r'^(Coach|Pelatih|Pak|Bu)\s+', caseSensitive: false), '')
+        .replaceFirst(
+          RegExp(r'^(?:(?:Coach|Pelatih|Pak|Bu)\s+)+', caseSensitive: false),
+          '',
+        )
         .trim();
+    if (cleaned.isEmpty) return 'Coach';
     final firstName = cleaned.split(RegExp(r'\s+')).first;
     return 'Coach $firstName';
   }
@@ -815,20 +1026,23 @@ class _OutstandingBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.md, vertical: AppDimensions.xs),
+        horizontal: AppDimensions.md,
+        vertical: AppDimensions.xs,
+      ),
       decoration: BoxDecoration(
         color: AppColors.error.withValues(alpha: 0.06),
         border: Border(
           top: BorderSide(color: AppColors.error.withValues(alpha: 0.18)),
         ),
+        // bottomLeft is flush against the 4px accent bar, no curve needed.
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(AppDimensions.radiusLg - 1),
+          bottomLeft: Radius.zero,
           bottomRight: Radius.circular(AppDimensions.radiusLg),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, size: 12, color: AppColors.error),
+          Icon(Icons.payments_outlined, size: 13, color: AppColors.error),
           const SizedBox(width: 6),
           Expanded(
             child: Text.rich(
@@ -857,25 +1071,6 @@ class _OutstandingBanner extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _MetaDot extends StatelessWidget {
-  const _MetaDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Container(
-        width: 3,
-        height: 3,
-        decoration: BoxDecoration(
-          color: AppColors.neutral300,
-          shape: BoxShape.circle,
-        ),
       ),
     );
   }

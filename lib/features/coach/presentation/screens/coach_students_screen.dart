@@ -26,8 +26,7 @@ class CoachStudentsScreen extends ConsumerStatefulWidget {
       _CoachStudentsScreenState();
 }
 
-class _CoachStudentsScreenState
-    extends ConsumerState<CoachStudentsScreen> {
+class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   final _debouncer = Debouncer();
@@ -73,20 +72,29 @@ class _CoachStudentsScreenState
         elevation: 0,
         backgroundColor: AppSurfaces.surface,
       ),
-      body: RefreshIndicator(
-        onRefresh: () => ref
-            .read(coachStudentsListProvider.notifier)
-            .loadInitial(search: _searchController.text.trim()),
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverToBoxAdapter(child: _buildHeaderStrip(state)),
-            SliverToBoxAdapter(child: _buildSearch()),
-            ..._buildBody(state),
-            const SliverToBoxAdapter(
-                child: SizedBox(height: AppDimensions.lg)),
-          ],
-        ),
+      // Header strip + search sit OUTSIDE the scrollable area so they
+      // pin while the roster scrolls. Pull-to-refresh lives on the list.
+      body: Column(
+        children: [
+          _buildHeaderStrip(state),
+          _buildSearch(),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => ref
+                  .read(coachStudentsListProvider.notifier)
+                  .loadInitial(search: _searchController.text.trim()),
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  ..._buildBody(state),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: AppDimensions.lg),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -177,7 +185,9 @@ class _CoachStudentsScreenState
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            state.items.length.toString(),
+            // Prefer BE-supplied total; fallback to loaded length while
+            // older BE responses propagate.
+            (state.total ?? state.items.length).toString(),
             style: AppTypography.headingLarge.copyWith(
               color: AppColors.primary900,
               fontWeight: FontWeight.w700,
@@ -201,9 +211,7 @@ class _CoachStudentsScreenState
                   ),
                 ),
                 Text(
-                  state.hasMore
-                      ? 'Terus muat saat scroll'
-                      : 'Berdasarkan sesi yang Anda asuh',
+                  'Berdasarkan sesi yang Anda asuh',
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -234,13 +242,19 @@ class _CoachStudentsScreenState
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: 'Cari murid…',
-              prefixIcon: const Icon(Icons.search,
-                  color: AppColors.textTertiary, size: 18),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: AppColors.textTertiary,
+                size: 18,
+              ),
               suffixIcon: value.text.isEmpty
                   ? null
                   : IconButton(
-                      icon: const Icon(Icons.close,
-                          size: 16, color: AppColors.textTertiary),
+                      icon: const Icon(
+                        Icons.close,
+                        size: 16,
+                        color: AppColors.textTertiary,
+                      ),
                       onPressed: () {
                         _searchController.clear();
                         _onSearchChanged('');
@@ -250,7 +264,8 @@ class _CoachStudentsScreenState
                     ),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.md),
+                horizontal: AppDimensions.md,
+              ),
               filled: true,
               fillColor: AppColors.neutral50,
               border: OutlineInputBorder(
@@ -365,8 +380,7 @@ class _StudentRosterCard extends StatelessWidget {
             ],
           ),
         ),
-        Icon(Icons.chevron_right,
-            size: 18, color: AppColors.textTertiary),
+        Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
       ],
     );
   }
@@ -390,8 +404,7 @@ class _StudentRosterCard extends StatelessWidget {
       padding: const EdgeInsets.only(left: 56),
       child: Row(
         children: [
-          Icon(Icons.book_outlined,
-              size: 12, color: AppColors.textTertiary),
+          Icon(Icons.book_outlined, size: 12, color: AppColors.textTertiary),
           const SizedBox(width: 4),
           Expanded(
             child: Text(
@@ -418,11 +431,12 @@ class _StudentRosterCard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.xs, vertical: 2),
+              horizontal: AppDimensions.xs,
+              vertical: 2,
+            ),
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.12),
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.radiusFull),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
             ),
             child: Text(
               _statusLabel(student.latestProgress?.status),
@@ -438,14 +452,16 @@ class _StudentRosterCard extends StatelessWidget {
             student.lastSessionAt == null
                 ? 'Belum ada sesi'
                 : Formatters.relativeDate(student.lastSessionAt!),
-            style: AppTypography.caption
-                .copyWith(color: AppColors.textSecondary),
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           _MetaDot(),
           Text(
             '${student.totalSessionsWithCoach} sesi',
-            style: AppTypography.caption
-                .copyWith(color: AppColors.textSecondary),
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           _MetaDot(),
           Text(
@@ -454,8 +470,8 @@ class _StudentRosterCard extends StatelessWidget {
               color: student.attendanceRate >= 0.85
                   ? AppColors.success
                   : student.attendanceRate >= 0.7
-                      ? AppColors.warning
-                      : AppColors.error,
+                  ? AppColors.warning
+                  : AppColors.error,
               fontWeight: FontWeight.w600,
             ),
           ),

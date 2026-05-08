@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/storage/secure_storage_service.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
@@ -48,56 +49,80 @@ final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
   return ApiTenantRepository(apiClient);
 });
 
-final authNotifierProvider =
-    NotifierProvider<AuthNotifier, User?>(AuthNotifier.new);
+final authNotifierProvider = NotifierProvider<AuthNotifier, User?>(
+  AuthNotifier.new,
+);
 
 /// True while a role switch API call is in flight.
 final isSwitchingRoleProvider = StateProvider<bool>((ref) => false);
 
 /// The current tenant's display currency code (e.g. `'IDR'`, `'MYR'`).
 final tenantCurrencyProvider = Provider<String>(
-    (ref) => ref.watch(authNotifierProvider)?.tenantCurrency ?? 'IDR');
+  (ref) => ref.watch(authNotifierProvider)?.tenantCurrency ?? 'IDR',
+);
 
 /// The current tenant's IANA timezone (e.g. `'Asia/Jakarta'`). Pending
 /// consumption — Issue 19.6 (BE handoff) standardizes datetime serialization
 /// with tenant tz offset; until then formatters fall back to device-local.
 final tenantTimezoneProvider = Provider<String>(
-    (ref) => ref.watch(authNotifierProvider)?.tenantTimezone ?? 'UTC');
+  (ref) => ref.watch(authNotifierProvider)?.tenantTimezone ?? 'UTC',
+);
 
 /// Hex color (`#RRGGBB`) used by `SessionHero` for the tenant-logo
 /// fallback background. Defaults to slate-900 to match the Vue web app.
 final tenantBrandColorProvider = Provider<String>(
-    (ref) => ref.watch(authNotifierProvider)?.tenantBrandColor ?? '#0F172A');
+  (ref) => ref.watch(authNotifierProvider)?.tenantBrandColor ?? '#0F172A',
+);
 
 class AuthNotifier extends Notifier<User?> {
   @override
   User? build() {
     final prefs = ref.read(sharedPreferencesProvider);
+    // Restore tenant slug regardless of user-blob parse outcome — it
+    // belongs to the device-tenant binding, not the session.
+    final slug = _secureStorage.getTenantSlug();
+    if (slug != null) {
+      ref.read(tenantSlugProvider.notifier).state = slug;
+    }
+
     final userJson = prefs.getString(_userKey);
     if (userJson != null) {
       try {
         final user = User.fromJson(
           jsonDecode(userJson) as Map<String, dynamic>,
         );
-        // Restore tenant slug from secure storage cache
-        final slug = _secureStorage.getTenantSlug();
-        if (slug != null) {
-          ref.read(tenantSlugProvider.notifier).state = slug;
-        }
         _initializeAsyncServices();
         return user;
-      } catch (_) {
-        prefs.remove(_userKey);
-        prefs.remove(_legacyTokenKey);
+      } catch (e) {
+        // Don't purge on parse error — it nukes the session for users
+        // who upgraded across a User schema change. Keep the bearer
+        // token (still valid for /auth/me) and rehydrate from the
+        // server. The interceptor's 401 path will clean up if the
+        // token is actually dead.
+        debugPrint('AuthNotifier: stale auth_user blob, refetching: $e');
       }
+    }
+
+    // No persisted user, OR persisted blob was unreadable — if we have
+    // a token, ask the server who we are. Splash screen waits ~2s
+    // before deciding where to route, giving /auth/me time to land.
+    if (_secureStorage.getToken() != null) {
+      Future.microtask(() async {
+        try {
+          await refreshUser();
+          _initializeAsyncServices();
+        } catch (_) {
+          // 401 already handled by ApiInterceptor → onUnauthorized;
+          // any other error leaves state null and Splash routes to login.
+        }
+      });
     }
     return null;
   }
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
   AuthRepository get _repo => ref.read(authRepositoryProvider);
-  SecureStorageService get _secureStorage =>
-      ref.read(secureStorageProvider);
+  SecureStorageService get _secureStorage => ref.read(secureStorageProvider);
 
   Future<void> login(String email, String password) async {
     final (user, token) = await _repo.login(email, password);
@@ -107,7 +132,7 @@ class AuthNotifier extends Notifier<User?> {
       await _secureStorage.saveTenantSlug(user.tenantSlug!);
       ref.read(tenantSlugProvider.notifier).state = user.tenantSlug;
     }
-    _prefs.setString(_userKey, jsonEncode(user.toJson()));
+    await _prefs.setString(_userKey, jsonEncode(user.toJson()));
     state = user;
     // Clear cached data from any prior session (logout may not have completed
     // cleanly, or app may have been killed mid-session).
@@ -128,7 +153,7 @@ class AuthNotifier extends Notifier<User?> {
       password: password,
     );
     await _secureStorage.saveToken(token.token);
-    _prefs.setString(_userKey, jsonEncode(user.toJson()));
+    await _prefs.setString(_userKey, jsonEncode(user.toJson()));
     state = user;
     // Fire-and-forget: init FCM after register
     _initializePushNotifications();
@@ -138,7 +163,7 @@ class AuthNotifier extends Notifier<User?> {
   Future<void> refreshUser() async {
     final user = await _repo.getCurrentUser();
     if (user != null) {
-      _updateUser(user);
+      await _updateUser(user);
     }
   }
 
@@ -148,11 +173,11 @@ class AuthNotifier extends Notifier<User?> {
     _updateUser(user);
   }
 
-  void _updateUser(User user) {
+  Future<void> _updateUser(User user) async {
     // Use backend's active_role as authoritative — do not preserve old role.
     // Previously this preserved the local role via user.copyWith(role: current.role).
     // Now that /me returns active_role, the backend is authoritative.
-    _prefs.setString(_userKey, jsonEncode(user.toJson()));
+    await _prefs.setString(_userKey, jsonEncode(user.toJson()));
     state = user;
   }
 
@@ -162,10 +187,7 @@ class AuthNotifier extends Notifier<User?> {
     if (current == null || current.role == newRole) return;
 
     // Use resolveBackendRole to handle super-admin / organizer ambiguity
-    final backendRole = resolveBackendRole(
-      newRole,
-      current.availableRoles,
-    );
+    final backendRole = resolveBackendRole(newRole, current.availableRoles);
 
     try {
       final repo = ref.read(authRepositoryProvider);

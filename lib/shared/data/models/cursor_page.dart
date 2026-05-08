@@ -4,10 +4,16 @@ class CursorPage<T> {
   final String? nextCursor;
   final int perPage;
 
+  /// Total matching rows across all pages. Optional — endpoints that
+  /// don't compute it return null and callers fall back to
+  /// `items.length` for display.
+  final int? total;
+
   const CursorPage({
     required this.items,
     this.nextCursor,
     required this.perPage,
+    this.total,
   });
 
   bool get hasMore => nextCursor != null;
@@ -22,6 +28,7 @@ class CursorPage<T> {
       items: data.map(fromJson).toList(),
       nextCursor: json['next_cursor'] as String?,
       perPage: json['per_page'] as int? ?? 15,
+      total: (json['total'] as num?)?.toInt(),
     );
   }
 }

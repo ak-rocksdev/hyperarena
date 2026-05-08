@@ -25,12 +25,17 @@ class CoachStudentsListState {
   final bool isLoadingMore;
   final String? error;
 
+  /// Total students across all pages — pinned in the header strip so
+  /// scrolling/lazy-load doesn't grow the visible count.
+  final int? total;
+
   const CoachStudentsListState({
     this.items = const [],
     this.nextCursor,
     this.isLoading = false,
     this.isLoadingMore = false,
     this.error,
+    this.total,
   });
 
   bool get hasMore => nextCursor != null;
@@ -42,6 +47,7 @@ class CoachStudentsListState {
     bool? isLoading,
     bool? isLoadingMore,
     String? Function()? error,
+    int? Function()? total,
   }) {
     return CoachStudentsListState(
       items: items ?? this.items,
@@ -49,12 +55,15 @@ class CoachStudentsListState {
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       error: error != null ? error() : this.error,
+      total: total != null ? total() : this.total,
     );
   }
 }
 
-final coachStudentsListProvider = NotifierProvider<CoachStudentsListNotifier,
-    CoachStudentsListState>(CoachStudentsListNotifier.new);
+final coachStudentsListProvider =
+    NotifierProvider<CoachStudentsListNotifier, CoachStudentsListState>(
+      CoachStudentsListNotifier.new,
+    );
 
 class CoachStudentsListNotifier extends Notifier<CoachStudentsListState> {
   String? _searchQuery;
@@ -75,6 +84,7 @@ class CoachStudentsListNotifier extends Notifier<CoachStudentsListState> {
       state = CoachStudentsListState(
         items: page.items,
         nextCursor: page.nextCursor,
+        total: page.total,
       );
     } catch (e) {
       state = CoachStudentsListState(error: e.toString());
@@ -85,10 +95,9 @@ class CoachStudentsListNotifier extends Notifier<CoachStudentsListState> {
     if (state.isLoadingMore || !state.hasMore) return;
     state = state.copyWith(isLoadingMore: true);
     try {
-      final page = await ref.read(clubRepositoryProvider).getCoachStudents(
-            cursor: state.nextCursor,
-            search: _searchQuery,
-          );
+      final page = await ref
+          .read(clubRepositoryProvider)
+          .getCoachStudents(cursor: state.nextCursor, search: _searchQuery);
       state = state.copyWith(
         items: [...state.items, ...page.items],
         nextCursor: () => page.nextCursor,
@@ -101,8 +110,10 @@ class CoachStudentsListNotifier extends Notifier<CoachStudentsListState> {
 }
 
 /// 19.2 — coach-scope student detail (read-only profile).
-final coachStudentDetailProvider =
-    FutureProvider.family<StudentDetail, int>((ref, studentProfileId) async {
+final coachStudentDetailProvider = FutureProvider.family<StudentDetail, int>((
+  ref,
+  studentProfileId,
+) async {
   return ref
       .read(clubRepositoryProvider)
       .getCoachStudentDetail(studentProfileId);
@@ -110,12 +121,14 @@ final coachStudentDetailProvider =
 
 /// 19.3 — admin-scope student detail (adds financial sections).
 final adminStudentDetailProvider =
-    FutureProvider.family<AdminStudentDetail, int>(
-        (ref, studentProfileId) async {
-  return ref
-      .read(clubRepositoryProvider)
-      .getAdminStudentDetail(studentProfileId);
-});
+    FutureProvider.family<AdminStudentDetail, int>((
+      ref,
+      studentProfileId,
+    ) async {
+      return ref
+          .read(clubRepositoryProvider)
+          .getAdminStudentDetail(studentProfileId);
+    });
 
 /// 19.5 — tenant-wide roster for the organizer Klub list, cursor-paginated.
 /// Search lives in state so `loadMore()` continues the same query.
@@ -127,6 +140,9 @@ class AdminRosterListState {
   final String? error;
   final String search;
 
+  /// Total members across all pages — pinned in the header strip.
+  final int? total;
+
   const AdminRosterListState({
     this.items = const [],
     this.nextCursor,
@@ -134,6 +150,7 @@ class AdminRosterListState {
     this.isLoadingMore = false,
     this.error,
     this.search = '',
+    this.total,
   });
 
   bool get hasMore => nextCursor != null;
@@ -146,6 +163,7 @@ class AdminRosterListState {
     bool? isLoadingMore,
     String? Function()? error,
     String? search,
+    int? Function()? total,
   }) {
     return AdminRosterListState(
       items: items ?? this.items,
@@ -154,14 +172,15 @@ class AdminRosterListState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       error: error != null ? error() : this.error,
       search: search ?? this.search,
+      total: total != null ? total() : this.total,
     );
   }
 }
 
 final adminRosterListProvider =
     NotifierProvider<AdminRosterListNotifier, AdminRosterListState>(
-  AdminRosterListNotifier.new,
-);
+      AdminRosterListNotifier.new,
+    );
 
 class AdminRosterListNotifier extends Notifier<AdminRosterListState> {
   @override
@@ -181,6 +200,7 @@ class AdminRosterListNotifier extends Notifier<AdminRosterListState> {
         items: page.items,
         nextCursor: page.nextCursor,
         search: query,
+        total: page.total,
       );
     } catch (e) {
       state = AdminRosterListState(error: e.toString(), search: query);
@@ -191,7 +211,9 @@ class AdminRosterListNotifier extends Notifier<AdminRosterListState> {
     if (state.isLoadingMore || !state.hasMore) return;
     state = state.copyWith(isLoadingMore: true);
     try {
-      final page = await ref.read(clubRepositoryProvider).getAdminRoster(
+      final page = await ref
+          .read(clubRepositoryProvider)
+          .getAdminRoster(
             cursor: state.nextCursor,
             search: state.search.isEmpty ? null : state.search,
           );

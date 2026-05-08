@@ -114,15 +114,35 @@ class _CoachScheduleScreenState extends ConsumerState<CoachScheduleScreen> {
     );
   }
 
-  /// Sessions that haven't completed or been cancelled.
-  List<CoachSession> _upcoming(List<CoachSession> all) =>
-      all.where((s) => s.status != 'completed' && s.status != 'cancelled')
-          .toList();
+  /// Sessions still in their active window. A row drops to "Selesai" once
+  /// either the BE flips status='completed' OR the wall-clock end time
+  /// passes — whichever comes first. Without the time check, a session
+  /// whose end-time passed an hour ago still shows up here until the BE
+  /// auto-complete cron runs.
+  List<CoachSession> _upcoming(List<CoachSession> all) {
+    final now = DateTime.now();
+    return all
+        .where(
+          (s) =>
+              s.status != 'completed' &&
+              s.status != 'cancelled' &&
+              s.endAt.isAfter(now),
+        )
+        .toList();
+  }
 
-  /// Completed or cancelled sessions.
-  List<CoachSession> _completed(List<CoachSession> all) =>
-      all.where((s) => s.status == 'completed' || s.status == 'cancelled')
-          .toList();
+  /// Completed, cancelled, or end-time-passed sessions.
+  List<CoachSession> _completed(List<CoachSession> all) {
+    final now = DateTime.now();
+    return all
+        .where(
+          (s) =>
+              s.status == 'completed' ||
+              s.status == 'cancelled' ||
+              !s.endAt.isAfter(now),
+        )
+        .toList();
+  }
 }
 
 class _SessionTab extends StatelessWidget {
@@ -142,13 +162,27 @@ class _SessionTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Empty state must also support pull-to-refresh — otherwise a coach
+    // who lands on an empty tab has no way to retry without leaving and
+    // re-entering the screen.
     if (sessions.isEmpty) {
-      return Center(
-        child: Text(
-          emptyText,
-          style: AppTypography.bodyMedium.copyWith(
-            color: AppColors.textTertiary,
-          ),
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: 320,
+              child: Center(
+                child: Text(
+                  emptyText,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -157,7 +191,14 @@ class _SessionTab extends StatelessWidget {
       onRefresh: onRefresh,
       child: ListView.builder(
         controller: scrollController,
-        padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+        // Extra bottom padding so the last card has clear breathing room
+        // above the bottom navigation bar instead of butting against it.
+        padding: const EdgeInsets.fromLTRB(
+          AppDimensions.screenHorizontal,
+          AppDimensions.screenHorizontal,
+          AppDimensions.screenHorizontal,
+          AppDimensions.xxxl,
+        ),
         itemCount: sessions.length + (isLoadingMore ? 1 : 0),
         itemBuilder: (context, i) {
           if (i >= sessions.length) {

@@ -133,6 +133,10 @@ class _StudentGradingPanelState extends ConsumerState<StudentGradingPanel> {
       );
       ref.invalidate(coachSessionProgressProvider(widget.sessionId));
       ref.invalidate(coachSessionRecommendationsProvider(widget.sessionId));
+      // Bumping a student's progress can flip the session's
+      // completion_state from `needs_grading` → `complete`; invalidate
+      // the schedule list so the chip shown there matches.
+      ref.invalidate(coachSessionListProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

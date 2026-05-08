@@ -436,9 +436,13 @@ class _CoachSessionDetailScreenState
 
                     // Bottom padding for sticky bar
                     SizedBox(
-                        height: (_editMode && canEdit && hasChanges)
-                            ? 100
-                            : AppDimensions.screenBottom),
+                      // Sticky save button (when shown) eats ~80px; when
+                      // hidden, leave generous breathing room so the last
+                      // card isn't crowded against the bottom navbar.
+                      height: (_editMode && canEdit && hasChanges)
+                          ? 100
+                          : AppDimensions.xxxl,
+                    ),
                   ],
                 ),
               ),
@@ -522,6 +526,11 @@ class _CoachSessionDetailScreenState
       await repo.bulkSaveAttendance(int.parse(widget.sessionId), attendances);
 
       ref.invalidate(coachSessionDetailProvider(widget.sessionId));
+      // Schedule list caches the row's `completion_state` and may also
+      // need to drop a finished session from "Mendatang" once all
+      // attendance is filled. Invalidate so navigating back shows fresh
+      // data instead of relying on the next manual pull-to-refresh.
+      ref.invalidate(coachSessionListProvider);
       _initialized = false;
 
       if (mounted) {

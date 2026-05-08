@@ -60,6 +60,12 @@ extension CoachSessionTitleX on CoachSession {
       (displayTitle != null && displayTitle!.isNotEmpty)
           ? displayTitle!
           : name;
+
+  /// Wall-clock end time. Used for time-based filtering (e.g. Mendatang
+  /// vs Selesai) so sessions whose status hasn't been auto-flipped to
+  /// 'completed' yet still drop out of the upcoming list once their
+  /// duration window closes.
+  DateTime get endAt => startAt.add(Duration(minutes: durationMinutes));
 }
 
 @freezed

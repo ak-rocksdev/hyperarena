@@ -4,6 +4,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/features/coach/data/models/enrollment.dart';
 import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
 
@@ -72,6 +73,7 @@ class _EnrollmentDialogState extends ConsumerState<EnrollmentDialog> {
   bool get _isEdit => widget.existing != null;
 
   Future<void> _save() async {
+    AppHaptics.tap();
     if (_programId == null) return;
     setState(() => _saving = true);
     try {

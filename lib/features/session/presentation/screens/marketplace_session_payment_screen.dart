@@ -5,14 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:hyperarena/core/utils/app_haptics.dart';
-import 'package:hyperarena/core/utils/formatters.dart';
 
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/app_button.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/session/data/models/session_join_response.dart';
@@ -100,7 +100,6 @@ class _MarketplaceSessionPaymentScreenState
   }
 
   Future<void> _pickAndUploadProof() async {
-    AppHaptics.tap();
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.gallery,
@@ -108,6 +107,9 @@ class _MarketplaceSessionPaymentScreenState
       imageQuality: 80,
     );
     if (image == null || !mounted) return;
+    // Fire AFTER a non-null pick — entry-point haptic would lie when
+    // the user opens the picker then dismisses without choosing.
+    AppHaptics.tap();
 
     setState(() {
       _selectedFilePath = image.path;

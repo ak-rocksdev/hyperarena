@@ -6,6 +6,7 @@ import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
@@ -317,6 +318,7 @@ class _PendingActions extends ConsumerWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: () async {
+                  AppHaptics.tap();
                   Navigator.pop(ctx);
                   await actions.confirmBooking(booking.id);
                 },
@@ -375,6 +377,7 @@ class _PendingActions extends ConsumerWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: () async {
+                  AppHaptics.tap();
                   Navigator.pop(ctx);
                   // markBookingSettled not available — fallback to confirmBooking
                   await actions.confirmBooking(booking.id);
@@ -421,6 +424,7 @@ class _PendingActions extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () async {
+              AppHaptics.tap();
               final reason = reasonController.text.trim();
               if (reason.isEmpty) return;
               Navigator.pop(ctx);

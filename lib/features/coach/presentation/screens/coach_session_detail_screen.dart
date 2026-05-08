@@ -1010,7 +1010,10 @@ class _GradingCard extends ConsumerWidget {
             child: const Text('Batal'),
           ),
           FilledButton.tonal(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () {
+              AppHaptics.tap();
+              Navigator.pop(ctx, true);
+            },
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,

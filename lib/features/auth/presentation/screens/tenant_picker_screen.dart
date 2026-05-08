@@ -8,6 +8,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/features/auth/data/models/tenant_summary.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
@@ -92,6 +93,7 @@ class _TenantPickerScreenState extends ConsumerState<TenantPickerScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
+              AppHaptics.tap();
               ref.read(authNotifierProvider.notifier).logout();
             },
           ),

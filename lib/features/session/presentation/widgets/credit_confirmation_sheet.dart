@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 
 /// Shows a modal bottom sheet asking the user to confirm using a credit
 /// to join a session. Returns `true` if the user taps "Gabung".
@@ -103,7 +104,10 @@ class _CreditConfirmationContent extends StatelessWidget {
                 const SizedBox(width: AppDimensions.md),
                 Expanded(
                   child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(true),
+                    onPressed: () {
+                      AppHaptics.tap();
+                      Navigator.of(context).pop(true);
+                    },
                     style: FilledButton.styleFrom(
                       minimumSize:
                           const Size.fromHeight(AppDimensions.buttonHeightMd),

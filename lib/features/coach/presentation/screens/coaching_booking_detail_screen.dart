@@ -9,6 +9,7 @@ import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
@@ -316,6 +317,7 @@ class _BottomAction extends StatelessWidget {
               )
             : FilledButton(
                 onPressed: () {
+                  AppHaptics.tap();
                   context.push(AppRoutes.coachBookingPayment);
                 },
                 style: FilledButton.styleFrom(

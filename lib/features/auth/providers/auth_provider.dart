@@ -78,21 +78,13 @@ class AuthNotifier extends Notifier<User?> {
   @override
   User? build() {
     final prefs = ref.read(sharedPreferencesProvider);
-    // Restore tenant slug regardless of user-blob parse outcome — it
-    // belongs to the device-tenant binding, not the session.
     final slug = _secureStorage.getTenantSlug();
-    if (slug != null) {
-      ref.read(tenantSlugProvider.notifier).state = slug;
-    }
-
     final userJson = prefs.getString(_userKey);
+
+    User? restored;
     if (userJson != null) {
       try {
-        final user = User.fromJson(
-          jsonDecode(userJson) as Map<String, dynamic>,
-        );
-        _initializeAsyncServices();
-        return user;
+        restored = User.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
       } catch (e) {
         // Don't purge on parse error — it nukes the session for users
         // who upgraded across a User schema change. Keep the bearer
@@ -103,21 +95,33 @@ class AuthNotifier extends Notifier<User?> {
       }
     }
 
-    // No persisted user, OR persisted blob was unreadable — if we have
-    // a token, ask the server who we are. Splash screen waits ~2s
-    // before deciding where to route, giving /auth/me time to land.
-    if (_secureStorage.getToken() != null) {
-      Future.microtask(() async {
+    // Defer side effects to a microtask — Riverpod forbids modifying
+    // other providers during build, and `_initializeAsyncServices`
+    // calls async APIs we don't want to block the first frame on.
+    final hasToken = _secureStorage.getToken() != null;
+    Future.microtask(() async {
+      if (slug != null) {
+        ref.read(tenantSlugProvider.notifier).state = slug;
+      }
+      if (restored != null) {
+        _initializeAsyncServices();
+        return;
+      }
+      // Persisted blob missing or unreadable but a token exists →
+      // re-fetch the user. Splash's 2s buffer gives /auth/me time to
+      // land before routing decisions.
+      if (hasToken) {
         try {
           await refreshUser();
           _initializeAsyncServices();
         } catch (_) {
           // 401 already handled by ApiInterceptor → onUnauthorized;
-          // any other error leaves state null and Splash routes to login.
+          // other failures leave state null → Splash routes to login.
         }
-      });
-    }
-    return null;
+      }
+    });
+
+    return restored;
   }
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);

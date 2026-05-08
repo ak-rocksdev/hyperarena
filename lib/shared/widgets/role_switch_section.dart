@@ -84,9 +84,11 @@ class RoleSwitchSection extends ConsumerWidget {
   ) async {
     // Haptic confirms the tap was received even before the spinner paints —
     // tactile feedback prevents users from re-tapping a "dead-feeling" button.
-    // mediumImpact (not lightImpact) because lightImpact maps to Android's
-    // VIRTUAL_KEY constant which most OEMs render at near-zero intensity.
-    HapticFeedback.mediumImpact();
+    // vibrate() — explicit ~50ms pulse instead of HapticFeedback.*Impact()
+    // because Samsung OEMs route the impact constants through their own
+    // haptic engine which renders them at near-zero intensity even when
+    // the system Touch-Vibration toggle is on.
+    HapticFeedback.vibrate();
 
     if (newRole == user.role) return;
     // Already switching — haptic above is enough; don't fire a second call.

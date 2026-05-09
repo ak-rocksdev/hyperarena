@@ -144,7 +144,7 @@ lib/
 | Phase 3 | Organizer — club management, sessions, dashboard | Done |
 | Phase 4 | Reviews, gamification, career tracking | Done |
 | Phase 4.1 | Venue reviews, search/filter, UI polish | Done |
-| Phase 5 | Backend API integration | Planned |
+| Phase 5 | Backend API integration | Work In Progress |
 | Phase 6 | Payment integration (QRIS, bank transfer) | Planned |
 
 ---

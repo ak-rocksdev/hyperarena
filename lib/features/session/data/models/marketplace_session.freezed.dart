@@ -28,10 +28,8 @@ mixin _$MarketplaceSession {
   @JsonKey(name: 'start_at', fromJson: tenantWallClockFromJson)
   DateTime get startAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'duration_minutes')
-  int get durationMinutes => throw _privateConstructorUsedError; // Default 0 so a legacy row with null capacity (one historical row
-  // surfaced after dropping the end-time filter) doesn't crash the
-  // whole list. Card renders "0/N peserta" — visually wrong but
-  // recoverable; whole-screen failure is not.
+  int get durationMinutes => throw _privateConstructorUsedError; // Defensive default: a legacy null-capacity row should render
+  // "0/N peserta" rather than crash the whole list parse.
   int get capacity => throw _privateConstructorUsedError;
   @JsonKey(name: 'booked_count')
   int get bookedCount => throw _privateConstructorUsedError;
@@ -415,10 +413,8 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
   @override
   @JsonKey(name: 'duration_minutes')
   final int durationMinutes;
-  // Default 0 so a legacy row with null capacity (one historical row
-  // surfaced after dropping the end-time filter) doesn't crash the
-  // whole list. Card renders "0/N peserta" — visually wrong but
-  // recoverable; whole-screen failure is not.
+  // Defensive default: a legacy null-capacity row should render
+  // "0/N peserta" rather than crash the whole list parse.
   @override
   @JsonKey()
   final int capacity;
@@ -589,10 +585,8 @@ abstract class _MarketplaceSession implements MarketplaceSession {
   DateTime get startAt;
   @override
   @JsonKey(name: 'duration_minutes')
-  int get durationMinutes; // Default 0 so a legacy row with null capacity (one historical row
-  // surfaced after dropping the end-time filter) doesn't crash the
-  // whole list. Card renders "0/N peserta" — visually wrong but
-  // recoverable; whole-screen failure is not.
+  int get durationMinutes; // Defensive default: a legacy null-capacity row should render
+  // "0/N peserta" rather than crash the whole list parse.
   @override
   int get capacity;
   @override

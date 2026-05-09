@@ -24,6 +24,7 @@ _$MarketplaceVenueImpl _$$MarketplaceVenueImplFromJson(
           .toList() ??
       const [],
   tenantId: (json['tenant_id'] as num?)?.toInt(),
+  coverImageUrl: json['cover_image_url'] as String?,
 );
 
 Map<String, dynamic> _$$MarketplaceVenueImplToJson(
@@ -36,6 +37,7 @@ Map<String, dynamic> _$$MarketplaceVenueImplToJson(
   'location': instance.location,
   'photos': instance.photos,
   'tenant_id': instance.tenantId,
+  'cover_image_url': instance.coverImageUrl,
 };
 
 _$VenueLocationImpl _$$VenueLocationImplFromJson(Map<String, dynamic> json) =>

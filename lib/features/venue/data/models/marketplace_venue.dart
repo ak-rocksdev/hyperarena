@@ -16,6 +16,12 @@ class MarketplaceVenue with _$MarketplaceVenue {
     VenueLocation? location,
     @Default([]) List<VenuePhoto> photos,
     @JsonKey(name: 'tenant_id') int? tenantId,
+    /// BE-resolved card cover image — uploaded photo if any, else Google
+    /// Street View at the venue's lat/lng. Null when neither is available
+    /// (no photos AND no location/no API key configured); caller renders
+    /// a placeholder. Prefer this over reading [photos] directly so the
+    /// fallback to Street View imagery is automatic.
+    @JsonKey(name: 'cover_image_url') String? coverImageUrl,
   }) = _MarketplaceVenue;
 
   factory MarketplaceVenue.fromJson(Map<String, dynamic> json) =>

@@ -55,6 +55,11 @@ class _VenueDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasPhotos = venue.photos.isNotEmpty;
+    // Hero image: prefer uploaded photos (gallery-tappable). Fall back to
+    // BE-resolved cover_image_url (typically a Google Street View shot at
+    // the venue's lat/lng) — same fallback chain as the web admin.
+    final heroUrl =
+        hasPhotos ? venue.photos.first.url : venue.coverImageUrl;
 
     return CustomScrollView(
       slivers: [
@@ -66,17 +71,21 @@ class _VenueDetailBody extends StatelessWidget {
             background: Stack(
               fit: StackFit.expand,
               children: [
-                if (hasPhotos)
+                if (heroUrl != null)
                   GestureDetector(
-                    onTap: () => _showPhotoViewer(
-                      context,
-                      venue.photos.map((p) => p.url).toList(),
-                      0,
-                    ),
+                    // Only the uploaded-photo path opens the gallery viewer;
+                    // Street View fallback is a single image, no carousel.
+                    onTap: hasPhotos
+                        ? () => _showPhotoViewer(
+                              context,
+                              venue.photos.map((p) => p.url).toList(),
+                              0,
+                            )
+                        : null,
                     child: Hero(
                       tag: 'venue-photo-${venue.id}-0',
                       child: CachedNetworkImage(
-                        imageUrl: venue.photos.first.url,
+                        imageUrl: heroUrl,
                         fit: BoxFit.cover,
                         placeholder: (_, _) =>
                             Container(color: AppColors.neutral100),

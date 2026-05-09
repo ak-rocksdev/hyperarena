@@ -31,6 +31,14 @@ mixin _$MarketplaceVenue {
   @JsonKey(name: 'tenant_id')
   int? get tenantId => throw _privateConstructorUsedError;
 
+  /// BE-resolved card cover image — uploaded photo if any, else Google
+  /// Street View at the venue's lat/lng. Null when neither is available
+  /// (no photos AND no location/no API key configured); caller renders
+  /// a placeholder. Prefer this over reading [photos] directly so the
+  /// fallback to Street View imagery is automatic.
+  @JsonKey(name: 'cover_image_url')
+  String? get coverImageUrl => throw _privateConstructorUsedError;
+
   /// Serializes this MarketplaceVenue to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -56,6 +64,7 @@ abstract class $MarketplaceVenueCopyWith<$Res> {
     VenueLocation? location,
     List<VenuePhoto> photos,
     @JsonKey(name: 'tenant_id') int? tenantId,
+    @JsonKey(name: 'cover_image_url') String? coverImageUrl,
   });
 
   $SportInfoCopyWith<$Res>? get sport;
@@ -84,6 +93,7 @@ class _$MarketplaceVenueCopyWithImpl<$Res, $Val extends MarketplaceVenue>
     Object? location = freezed,
     Object? photos = null,
     Object? tenantId = freezed,
+    Object? coverImageUrl = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -115,6 +125,10 @@ class _$MarketplaceVenueCopyWithImpl<$Res, $Val extends MarketplaceVenue>
                 ? _value.tenantId
                 : tenantId // ignore: cast_nullable_to_non_nullable
                       as int?,
+            coverImageUrl: freezed == coverImageUrl
+                ? _value.coverImageUrl
+                : coverImageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -166,6 +180,7 @@ abstract class _$$MarketplaceVenueImplCopyWith<$Res>
     VenueLocation? location,
     List<VenuePhoto> photos,
     @JsonKey(name: 'tenant_id') int? tenantId,
+    @JsonKey(name: 'cover_image_url') String? coverImageUrl,
   });
 
   @override
@@ -195,6 +210,7 @@ class __$$MarketplaceVenueImplCopyWithImpl<$Res>
     Object? location = freezed,
     Object? photos = null,
     Object? tenantId = freezed,
+    Object? coverImageUrl = freezed,
   }) {
     return _then(
       _$MarketplaceVenueImpl(
@@ -226,6 +242,10 @@ class __$$MarketplaceVenueImplCopyWithImpl<$Res>
             ? _value.tenantId
             : tenantId // ignore: cast_nullable_to_non_nullable
                   as int?,
+        coverImageUrl: freezed == coverImageUrl
+            ? _value.coverImageUrl
+            : coverImageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -242,6 +262,7 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
     this.location,
     final List<VenuePhoto> photos = const [],
     @JsonKey(name: 'tenant_id') this.tenantId,
+    @JsonKey(name: 'cover_image_url') this.coverImageUrl,
   }) : _photos = photos;
 
   factory _$MarketplaceVenueImpl.fromJson(Map<String, dynamic> json) =>
@@ -272,9 +293,18 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
   @JsonKey(name: 'tenant_id')
   final int? tenantId;
 
+  /// BE-resolved card cover image — uploaded photo if any, else Google
+  /// Street View at the venue's lat/lng. Null when neither is available
+  /// (no photos AND no location/no API key configured); caller renders
+  /// a placeholder. Prefer this over reading [photos] directly so the
+  /// fallback to Street View imagery is automatic.
+  @override
+  @JsonKey(name: 'cover_image_url')
+  final String? coverImageUrl;
+
   @override
   String toString() {
-    return 'MarketplaceVenue(id: $id, name: $name, status: $status, sport: $sport, location: $location, photos: $photos, tenantId: $tenantId)';
+    return 'MarketplaceVenue(id: $id, name: $name, status: $status, sport: $sport, location: $location, photos: $photos, tenantId: $tenantId, coverImageUrl: $coverImageUrl)';
   }
 
   @override
@@ -290,7 +320,9 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
                 other.location == location) &&
             const DeepCollectionEquality().equals(other._photos, _photos) &&
             (identical(other.tenantId, tenantId) ||
-                other.tenantId == tenantId));
+                other.tenantId == tenantId) &&
+            (identical(other.coverImageUrl, coverImageUrl) ||
+                other.coverImageUrl == coverImageUrl));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -304,6 +336,7 @@ class _$MarketplaceVenueImpl implements _MarketplaceVenue {
     location,
     const DeepCollectionEquality().hash(_photos),
     tenantId,
+    coverImageUrl,
   );
 
   /// Create a copy of MarketplaceVenue
@@ -332,6 +365,7 @@ abstract class _MarketplaceVenue implements MarketplaceVenue {
     final VenueLocation? location,
     final List<VenuePhoto> photos,
     @JsonKey(name: 'tenant_id') final int? tenantId,
+    @JsonKey(name: 'cover_image_url') final String? coverImageUrl,
   }) = _$MarketplaceVenueImpl;
 
   factory _MarketplaceVenue.fromJson(Map<String, dynamic> json) =
@@ -353,6 +387,15 @@ abstract class _MarketplaceVenue implements MarketplaceVenue {
   @override
   @JsonKey(name: 'tenant_id')
   int? get tenantId;
+
+  /// BE-resolved card cover image — uploaded photo if any, else Google
+  /// Street View at the venue's lat/lng. Null when neither is available
+  /// (no photos AND no location/no API key configured); caller renders
+  /// a placeholder. Prefer this over reading [photos] directly so the
+  /// fallback to Street View imagery is automatic.
+  @override
+  @JsonKey(name: 'cover_image_url')
+  String? get coverImageUrl;
 
   /// Create a copy of MarketplaceVenue
   /// with the given fields replaced by the non-null parameter values.

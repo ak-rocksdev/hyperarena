@@ -55,11 +55,16 @@ HyperArena connects **players**, **coaches**, **organizers**, and **venue owners
 - **Session Hosting** — Create open sessions, manage participants
 - **Rich Member Cards** — See member tiers, activity status, streaks, and roles at a glance
 
+### For Venue Owners
+- **Booking Queue** — Confirm, settle, or reject incoming bookings from one inbox
+- **Venue Management** — Add courts, set rates, manage availability per venue
+
 ### General
-- **Multi-role Support** — Switch between Player, Coach, and Organizer roles
+- **Cross-tenant Marketplace** — Browse sessions, coaches, and venues from any club, not just your own
+- **Multi-role Support** — Switch between Player, Coach, Organizer, and Venue Owner roles
 - **Review System** — Rate venues and coaches with detailed star ratings
 - **Dark Mode Ready** — Full dark theme support baked into the design system
-- **Bilingual** — Indonesian and English, with Rupiah currency formatting
+- **Multi-currency** — Tenant-aware Rupiah / Ringgit / USD formatting based on tenant settings
 
 ---
 

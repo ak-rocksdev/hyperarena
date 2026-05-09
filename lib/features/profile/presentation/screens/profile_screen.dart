@@ -464,6 +464,8 @@ class ProfileScreen extends ConsumerWidget {
                         isDestructive: true,
                         onTap: () async {
                           AppHaptics.tap();
+                          final confirmed = await _showLogoutConfirm(context);
+                          if (!confirmed || !context.mounted) return;
                           await ref
                               .read(authNotifierProvider.notifier)
                               .logout();
@@ -481,6 +483,38 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Returns `true` when the user confirmed, `false` on cancel or dismiss.
+/// Logout drops the bearer token + clears all per-user provider caches —
+/// destructive enough to deserve a confirm step.
+Future<bool> _showLogoutConfirm(BuildContext context) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Keluar dari akun?'),
+      content: const Text(
+        'Anda harus login lagi untuk mengakses aplikasi.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Batal'),
+        ),
+        TextButton(
+          onPressed: () {
+            AppHaptics.tap();
+            Navigator.pop(ctx, true);
+          },
+          child: const Text(
+            'Keluar',
+            style: TextStyle(color: AppColors.error),
+          ),
+        ),
+      ],
+    ),
+  );
+  return result ?? false;
 }
 
 // ── Badge Card Widget ──

@@ -82,6 +82,11 @@ class MarketplaceListState<T> {
   /// list footer; the next successful `loadMore` clears it.
   final Object? loadMoreError;
 
+  /// Total matching rows across all pages — null if BE didn't provide.
+  /// Headers/counters should display `total ?? items.length` so they
+  /// don't grow during pagination.
+  final int? total;
+
   const MarketplaceListState({
     this.items = const [],
     this.nextCursor,
@@ -89,6 +94,7 @@ class MarketplaceListState<T> {
     this.isLoadingMore = false,
     this.error,
     this.loadMoreError,
+    this.total,
   });
 
   bool get hasMore => nextCursor != null;
@@ -101,6 +107,7 @@ class MarketplaceListState<T> {
     bool? isLoadingMore,
     Object? Function()? error,
     Object? Function()? loadMoreError,
+    int? Function()? total,
   }) {
     return MarketplaceListState(
       items: items ?? this.items,
@@ -111,6 +118,7 @@ class MarketplaceListState<T> {
       loadMoreError: loadMoreError != null
           ? loadMoreError()
           : this.loadMoreError,
+      total: total != null ? total() : this.total,
     );
   }
 }
@@ -152,6 +160,7 @@ abstract class MarketplaceListNotifier<T>
       state = MarketplaceListState(
         items: page.items,
         nextCursor: page.nextCursor,
+        total: page.total,
       );
     } catch (e) {
       state = MarketplaceListState(error: e);

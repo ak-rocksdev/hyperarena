@@ -97,21 +97,32 @@ class _Body extends StatelessWidget {
                 AppDimensions.screenHorizontal,
                 AppDimensions.xl,
               ),
+              // Organizer lens: money first (KPI summary + payment history
+              // sit adjacent), then enrollment context, then pedagogical
+              // signals (engagement / trend / skills) before the session log.
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _EngagementKpiStrip(stats: detail.student.stats),
-                  const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('RINGKASAN KEUANGAN'),
                   const SizedBox(height: AppDimensions.sm),
                   _FinancialKpiStrip(
                     fin: detail.financialStats,
                     currency: tenantCurrency,
                   ),
+                  if (detail.paymentHistory.isNotEmpty) ...[
+                    const SizedBox(height: AppDimensions.xl),
+                    _SectionLabel('RIWAYAT PEMBAYARAN'),
+                    const SizedBox(height: AppDimensions.sm),
+                    _PaymentHistoryList(payments: detail.paymentHistory),
+                  ],
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('ENROLLMENT'),
                   const SizedBox(height: AppDimensions.sm),
                   _EnrollmentCard(enrollment: detail.student.enrollment),
+                  const SizedBox(height: AppDimensions.xl),
+                  _SectionLabel('AKTIVITAS'),
+                  const SizedBox(height: AppDimensions.sm),
+                  _EngagementKpiStrip(stats: detail.student.stats),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('PERFORMA TERKINI'),
                   const SizedBox(height: AppDimensions.sm),
@@ -121,12 +132,6 @@ class _Body extends StatelessWidget {
                     _SectionLabel('PROGRES KEAHLIAN'),
                     const SizedBox(height: AppDimensions.sm),
                     _SkillBreakdown(breakdown: detail.skillBreakdown),
-                  ],
-                  if (detail.paymentHistory.isNotEmpty) ...[
-                    const SizedBox(height: AppDimensions.xl),
-                    _SectionLabel('RIWAYAT PEMBAYARAN'),
-                    const SizedBox(height: AppDimensions.sm),
-                    _PaymentHistoryList(payments: detail.paymentHistory),
                   ],
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('RIWAYAT SESI'),

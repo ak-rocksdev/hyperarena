@@ -10,6 +10,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/money_text.dart';
 
 /// Tappable earnings card with 4-line breakdown:
 /// Tersedia (green), Tertunda pemain (orange), Tertunda venue (orange),
@@ -46,22 +47,26 @@ class EarningsSnapshotCard extends StatelessWidget {
             ),
             const SizedBox(height: AppDimensions.md),
             _EarningsRow(
-              label: 'Tersedia',
+              label: 'Pendapatan Bersih',
               amount: earnings.availableBalance,
               color: AppColors.success,
             ),
             const SizedBox(height: AppDimensions.sm),
             _EarningsRow(
-              label: 'Tertunda (pemain)',
+              label: 'Belum Dibayar',
               amount: earnings.pendingPlayerBalance,
               color: AppColors.warning,
             ),
-            const SizedBox(height: AppDimensions.sm),
-            _EarningsRow(
-              label: 'Tertunda (venue)',
-              amount: earnings.pendingVenueBalance,
-              color: AppColors.warning,
-            ),
+            // Tertunda (venue) hides at zero — backend currently stubs it
+            // to 0 until the multi-stakeholder split feature lands.
+            if (earnings.pendingVenueBalance > 0) ...[
+              const SizedBox(height: AppDimensions.sm),
+              _EarningsRow(
+                label: 'Tertunda (venue)',
+                amount: earnings.pendingVenueBalance,
+                color: AppColors.warning,
+              ),
+            ],
             if (earnings.disputeHoldBalance > 0) ...[
               const SizedBox(height: AppDimensions.sm),
               _EarningsRow(
@@ -100,16 +105,13 @@ class _EarningsRow extends ConsumerWidget {
             Container(
               width: 8,
               height: 8,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: AppDimensions.sm),
             Text(label, style: AppTypography.bodySmall),
           ],
         ),
-        Text(
+        MoneyText(
           Formatters.formatCurrency(amount, currency),
           style: AppTypography.titleSmall.copyWith(color: color),
         ),

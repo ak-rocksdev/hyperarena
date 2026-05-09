@@ -13,9 +13,11 @@ import 'package:hyperarena/features/organizer/presentation/widgets/earnings_snap
 import 'package:hyperarena/features/organizer/presentation/widgets/kpi_strip_widget.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/organizer_session_card.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/session_filter_bar.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/todays_collections_hero.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/widgets/money_text.dart';
 
 class OrganizerDashboardScreen extends ConsumerWidget {
   const OrganizerDashboardScreen({super.key});
@@ -71,13 +73,32 @@ class OrganizerDashboardScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── 1. Greeting ──────────────────────────────────
-                Text(
-                  '${_greeting()}, ${Formatters.firstName(user?.name, fallback: 'Organizer')}!',
-                  style: AppTypography.headingLarge,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${_greeting()}, ${Formatters.firstName(user?.name, fallback: 'Organizer')}!',
+                        style: AppTypography.headingLarge,
+                      ),
+                    ),
+                    // Money visibility toggle — sensitive-by-default;
+                    // organizer can reveal nominals when away from prying
+                    // eyes (state persists across app restarts).
+                    const MoneyVisibilityToggle(),
+                  ],
                 ),
                 const SizedBox(height: AppDimensions.base),
 
-                // ── 2. KPI Strip ─────────────────────────────────
+                // ── 2. Today's Collections hero ──────────────────
+                // Self-hides when both revenue values are 0 (no sessions
+                // today) so the dashboard stays compact on idle days.
+                AsyncValueWidget(
+                  value: statsAsync,
+                  data: (stats) => TodaysCollectionsHero(stats: stats),
+                ),
+                const SizedBox(height: AppDimensions.base),
+
+                // ── 3. KPI Strip ─────────────────────────────────
                 AsyncValueWidget(
                   value: statsAsync,
                   data: (stats) => KpiStripWidget(stats: stats),
@@ -98,14 +119,10 @@ class OrganizerDashboardScreen extends ConsumerWidget {
                 // ── 5. Session list (filtered) ───────────────────
                 Row(
                   children: [
-                    Text(
-                      'Sesi Mendatang',
-                      style: AppTypography.titleMedium,
-                    ),
+                    Text('Sesi Mendatang', style: AppTypography.titleMedium),
                     const Spacer(),
                     TextButton(
-                      onPressed: () =>
-                          context.go(AppRoutes.organizerSessions),
+                      onPressed: () => context.go(AppRoutes.organizerSessions),
                       child: const Text('Lihat Semua'),
                     ),
                   ],
@@ -114,11 +131,7 @@ class OrganizerDashboardScreen extends ConsumerWidget {
                 AsyncValueWidget(
                   value: agendaAsync,
                   data: (sessions) {
-                    final filtered = _applyFilters(
-                      sessions,
-                      dateRange,
-                      filter,
-                    );
+                    final filtered = _applyFilters(sessions, dateRange, filter);
                     if (filtered.isEmpty) {
                       return const EmptyState(
                         message: 'Tidak ada sesi yang cocok',
@@ -141,11 +154,12 @@ class OrganizerDashboardScreen extends ConsumerWidget {
                 // ── 6. Earnings card ─────────────────────────────
                 AsyncValueWidget(
                   value: earningsAsync,
-                  data: (earnings) =>
-                      EarningsSnapshotCard(earnings: earnings),
+                  data: (earnings) => EarningsSnapshotCard(earnings: earnings),
                 ),
                 // Extra bottom padding for FAB clearance
-                const SizedBox(height: AppDimensions.massive + AppDimensions.xl),
+                const SizedBox(
+                  height: AppDimensions.massive + AppDimensions.xl,
+                ),
               ],
             ),
           ),
@@ -183,9 +197,9 @@ class OrganizerDashboardScreen extends ConsumerWidget {
           DashboardFilter.none => true,
           DashboardFilter.pendingPayment => s.health.pendingPayments > 0,
           DashboardFilter.lowQuota => s.health.isLowSignupRisk,
-          DashboardFilter.dispute => false, // would need dispute field on session
-          DashboardFilter.confirmed =>
-            s.status == OpenSessionStatus.confirmed,
+          DashboardFilter.dispute =>
+            false, // would need dispute field on session
+          DashboardFilter.confirmed => s.status == OpenSessionStatus.confirmed,
         };
       }).toList();
     }

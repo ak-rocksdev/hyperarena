@@ -16,7 +16,14 @@ abstract final class Formatters {
   // AND web mirror, in the same commit.
 
   static const _zeroDecimalCurrencies = {
-    'IDR', 'JPY', 'KRW', 'VND', 'CLP', 'PYG', 'RWF', 'UGX',
+    'IDR',
+    'JPY',
+    'KRW',
+    'VND',
+    'CLP',
+    'PYG',
+    'RWF',
+    'UGX',
   };
 
   static const _currencyLocales = <String, String>{
@@ -69,6 +76,29 @@ abstract final class Formatters {
     return spec.currency.format(display);
   }
 
+  /// Currency prefix (without trailing space): "Rp", "RM", "$". Falls back
+  /// to the upper-cased currency code for unknown currencies.
+  static String currencySymbol(String currency) {
+    final upper = currency.toUpperCase();
+    final raw = _currencySymbols[upper] ?? upper;
+    return raw.trim();
+  }
+
+  /// Splits a `formatCurrency` result into its prefix and numeric body so
+  /// callers can render them at different scales (e.g. small "Rp" + huge
+  /// figure in a hero). Returns `(prefix: 'Rp', number: '4.900.000')`.
+  static ({String prefix, String number}) splitCurrency(
+    int amount,
+    String currency,
+  ) {
+    final prefix = currencySymbol(currency);
+    final formatted = formatCurrency(amount, currency);
+    if (prefix.isEmpty || !formatted.startsWith(prefix)) {
+      return (prefix: prefix, number: formatted);
+    }
+    return (prefix: prefix, number: formatted.substring(prefix.length).trim());
+  }
+
   /// Compact currency: 750000 IDR → "Rp 750rb", 4200000 IDR → "Rp 4,2jt".
   /// For non-Indonesian currencies falls back to the K/M suffix convention
   /// since "rb"/"jt" are Indonesian-specific. Decimal separator follows the
@@ -89,15 +119,22 @@ abstract final class Formatters {
           : '${spec.decimal.format(asDouble)}$unit';
     }
 
-    if (display >= 1000000) return '${spec.symbol}${render(display / 1000000, unitMillion)}';
-    if (display >= 1000) return '${spec.symbol}${render(display / 1000, unitThousand)}';
+    if (display >= 1000000) {
+      return '${spec.symbol}${render(display / 1000000, unitMillion)}';
+    }
+    if (display >= 1000) {
+      return '${spec.symbol}${render(display / 1000, unitThousand)}';
+    }
     return '${spec.symbol}${render(display, '')}';
   }
 
   static final _whitespace = RegExp(r'\s+');
   static final _dateLong = DateFormat('EEEE, d MMMM yyyy', 'id');
   static final _timeHm = DateFormat('HH:mm', 'id');
-  static final _dateTimeCompact = DateFormat('EEE, d MMM yyyy \u2022 HH:mm', 'id');
+  static final _dateTimeCompact = DateFormat(
+    'EEE, d MMM yyyy \u2022 HH:mm',
+    'id',
+  );
 
   /// Format DateTime to full date: "15 Feb 2026"
   static String formatDate(DateTime date) =>
@@ -106,6 +143,12 @@ abstract final class Formatters {
   /// Format DateTime to short date: "15 Feb"
   static String formatDateShort(DateTime date) =>
       DateFormat('dd MMM', 'id').format(date);
+
+  /// Format a date range as "01 Apr – 09 Mei" using `formatDateShort` on
+  /// both endpoints, joined with an en-dash. Takes raw `DateTime` so this
+  /// helper stays free of Flutter-material imports.
+  static String formatDateRangeShort(DateTime start, DateTime end) =>
+      '${formatDateShort(start)} – ${formatDateShort(end)}';
 
   /// Format day name: "Sen", "Sel", etc.
   static String formatDayShort(DateTime date) =>
@@ -155,8 +198,11 @@ abstract final class Formatters {
 
   /// Joins a first/last name pair, tolerating nulls + empty parts. Returns
   /// [fallback] when the joined value is empty.
-  static String fullName(String? first, String? last,
-      {String fallback = 'Siswa'}) {
+  static String fullName(
+    String? first,
+    String? last, {
+    String fallback = 'Siswa',
+  }) {
     final joined = '${first ?? ''} ${last ?? ''}'.trim();
     return joined.isEmpty ? fallback : joined;
   }

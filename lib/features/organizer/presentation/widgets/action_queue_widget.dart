@@ -10,6 +10,8 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/providers/money_visibility_provider.dart';
+import 'package:hyperarena/shared/widgets/money_text.dart';
 
 /// Groups action items by category and renders each group as a collapsible
 /// task card with a primary action button.
@@ -23,7 +25,8 @@ class ActionQueueWidget extends ConsumerWidget {
     if (items.isEmpty) return const SizedBox.shrink();
 
     final currency = ref.watch(tenantCurrencyProvider);
-    final groups = _groupItems(items, currency);
+    final moneyVisible = ref.watch(moneyVisibilityProvider);
+    final groups = _groupItems(items, currency, moneyVisible);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,72 +40,110 @@ class ActionQueueWidget extends ConsumerWidget {
     );
   }
 
+  /// High → low severity, then nearest dueAt first within the same severity.
+  /// Items without dueAt sort last in their severity bucket.
+  static int _compareUrgency(OrganizerActionItem a, OrganizerActionItem b) {
+    final sevDelta = b.severity.index - a.severity.index;
+    if (sevDelta != 0) return sevDelta;
+    final aDue = a.dueAt;
+    final bDue = b.dueAt;
+    if (aDue == null && bDue == null) return 0;
+    if (aDue == null) return 1;
+    if (bDue == null) return -1;
+    return aDue.compareTo(bDue);
+  }
+
   List<_ActionGroup> _groupItems(
-      List<OrganizerActionItem> items, String currency) {
-    final paymentItems = items
-        .where((i) => i.type == OrganizerActionType.confirmPayment)
-        .toList();
+    List<OrganizerActionItem> items,
+    String currency,
+    bool moneyVisible,
+  ) {
+    final paymentItems =
+        items
+            .where((i) => i.type == OrganizerActionType.confirmPayment)
+            .toList()
+          ..sort(_compareUrgency);
     final riskItems =
-        items.where((i) => i.type == OrganizerActionType.sessionRisk).toList();
+        items.where((i) => i.type == OrganizerActionType.sessionRisk).toList()
+          ..sort(_compareUrgency);
     final disputeItems =
-        items.where((i) => i.type == OrganizerActionType.dispute).toList();
+        items.where((i) => i.type == OrganizerActionType.dispute).toList()
+          ..sort(_compareUrgency);
 
     final groups = <_ActionGroup>[];
+    // Group order: highest peak-severity first. Tie → bigger amount first.
     if (paymentItems.isNotEmpty) {
-      final totalAmount =
-          paymentItems.fold<int>(0, (sum, i) => sum + (i.amountImpact ?? 0));
-      groups.add(_ActionGroup(
-        icon: Icons.payment,
-        label: 'Pembayaran Tertunda',
-        color: AppColors.warning,
-        count: paymentItems.length,
-        impactText: totalAmount > 0
-            ? '${_totalParticipantCount(paymentItems)} pemain · ${Formatters.formatCurrencyCompact(totalAmount, currency)}'
-            : '${paymentItems.length} sesi',
-        actionLabel: 'Ingatkan Semua',
-        items: paymentItems,
-        onAction: () {
-          // Phase 5+: send payment reminders via push notification
-        },
-      ));
+      final totalAmount = paymentItems.fold<int>(
+        0,
+        (sum, i) => sum + (i.amountImpact ?? 0),
+      );
+      groups.add(
+        _ActionGroup(
+          icon: Icons.payment,
+          label: 'Pembayaran Tertunda',
+          color: AppColors.warning,
+          count: paymentItems.length,
+          impactText: totalAmount > 0
+              ? '${_totalParticipantCount(paymentItems)} pemain · ${moneyVisible ? Formatters.formatCurrencyCompact(totalAmount, currency) : MoneyText.maskFormatted(Formatters.formatCurrencyCompact(totalAmount, currency), 4)}'
+              : '${paymentItems.length} sesi',
+          actionLabel: 'Ingatkan Semua',
+          items: paymentItems,
+          onAction: () {
+            // Phase 5+: send payment reminders via push notification
+          },
+        ),
+      );
     }
     if (riskItems.isNotEmpty) {
       final nearest = riskItems
           .where((i) => i.timeToStart != null)
           .fold<Duration?>(null, (min, i) {
-        if (min == null || i.timeToStart! < min) return i.timeToStart;
-        return min;
-      });
+            if (min == null || i.timeToStart! < min) return i.timeToStart;
+            return min;
+          });
       final impactText = nearest != null
           ? '${riskItems.length} sesi · Terdekat mulai ${_formatDuration(nearest)}'
           : '${riskItems.length} sesi';
-      groups.add(_ActionGroup(
-        icon: Icons.people_outline,
-        label: 'Kuota Rendah',
-        color: AppColors.accent,
-        count: riskItems.length,
-        impactText: impactText,
-        actionLabel: 'Undang Pemain',
-        items: riskItems,
-        onAction: () {
-          // Phase 5+: share invite links via Share Sheet / deep link
-        },
-      ));
+      groups.add(
+        _ActionGroup(
+          icon: Icons.people_outline,
+          label: 'Kuota Rendah',
+          color: AppColors.accent,
+          count: riskItems.length,
+          impactText: impactText,
+          actionLabel: 'Undang Pemain',
+          items: riskItems,
+          onAction: () {
+            // Phase 5+: share invite links via Share Sheet / deep link
+          },
+        ),
+      );
     }
     if (disputeItems.isNotEmpty) {
-      groups.add(_ActionGroup(
-        icon: Icons.gavel,
-        label: 'Komplain',
-        color: AppColors.error,
-        count: disputeItems.length,
-        impactText: '${disputeItems.length} kasus',
-        actionLabel: 'Selesaikan',
-        items: disputeItems,
-        onAction: () {
-          // Phase 5+: navigate to dispute resolution screen
-        },
-      ));
+      groups.add(
+        _ActionGroup(
+          icon: Icons.gavel,
+          label: 'Komplain',
+          color: AppColors.error,
+          count: disputeItems.length,
+          impactText: '${disputeItems.length} kasus',
+          actionLabel: 'Selesaikan',
+          items: disputeItems,
+          onAction: () {
+            // Phase 5+: navigate to dispute resolution screen
+          },
+        ),
+      );
     }
+    groups.sort((a, b) {
+      final aPeak = a.items
+          .map((i) => i.severity.index)
+          .fold<int>(0, (m, s) => s > m ? s : m);
+      final bPeak = b.items
+          .map((i) => i.severity.index)
+          .fold<int>(0, (m, s) => s > m ? s : m);
+      return bPeak - aPeak;
+    });
     return groups;
   }
 
@@ -182,8 +223,9 @@ class _ActionGroupCardState extends State<_ActionGroupCard> {
                     height: 36,
                     decoration: BoxDecoration(
                       color: g.color.withValues(alpha: 0.1),
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusSm),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusSm,
+                      ),
                     ),
                     child: Icon(g.icon, size: 20, color: g.color),
                   ),
@@ -194,10 +236,7 @@ class _ActionGroupCardState extends State<_ActionGroupCard> {
                       children: [
                         Text(g.label, style: AppTypography.titleSmall),
                         const SizedBox(height: 2),
-                        Text(
-                          g.impactText,
-                          style: AppTypography.caption,
-                        ),
+                        Text(g.impactText, style: AppTypography.caption),
                       ],
                     ),
                   ),
@@ -235,8 +274,9 @@ class _ActionGroupCardState extends State<_ActionGroupCard> {
                   _ActionItemDetail(item: item, color: g.color),
               ],
             ),
-            crossFadeState:
-                _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState: _expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 200),
           ),
         ],
@@ -251,6 +291,14 @@ class _ActionItemDetail extends ConsumerWidget {
   final OrganizerActionItem item;
   final Color color;
 
+  /// Severity ribbon color — independent of the group color so a high-
+  /// severity item in any group reads red regardless of type.
+  Color _severityColor() => switch (item.severity) {
+    OrganizerActionSeverity.high => AppColors.error,
+    OrganizerActionSeverity.medium => AppColors.warning,
+    OrganizerActionSeverity.low => AppColors.neutral400,
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionId = item.sessionId;
@@ -260,53 +308,72 @@ class _ActionItemDetail extends ConsumerWidget {
       onTap: sessionId != null
           ? () => context.push(AppRoutes.organizerParticipants(sessionId))
           : null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.base,
-          vertical: AppDimensions.sm,
-        ),
+      child: IntrinsicHeight(
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: AppDimensions.sm),
+            Container(width: 3, color: _severityColor()),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(item.title, style: AppTypography.bodySmall),
-                  if (item.subtitle.isNotEmpty)
-                    Text(
-                      item.subtitle,
-                      style: AppTypography.caption,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.base,
+                  vertical: AppDimensions.sm,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  if (item.amountImpact != null && item.amountImpact! > 0)
-                    Text(
-                      Formatters.formatCurrencyCompact(item.amountImpact!, currency),
-                      style: AppTypography.caption.copyWith(color: color),
+                    const SizedBox(width: AppDimensions.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.title, style: AppTypography.bodySmall),
+                          if (item.subtitle.isNotEmpty)
+                            Text(
+                              item.subtitle,
+                              style: AppTypography.caption,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          if (item.amountImpact != null &&
+                              item.amountImpact! > 0)
+                            MoneyText(
+                              Formatters.formatCurrencyCompact(
+                                item.amountImpact!,
+                                currency,
+                              ),
+                              style: AppTypography.caption.copyWith(
+                                color: color,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                ],
-              ),
-            ),
-            if (item.timeToStart != null)
-              Text(
-                ActionQueueWidget._formatDuration(item.timeToStart!),
-                style: AppTypography.caption,
-              ),
-            if (sessionId != null)
-              Padding(
-                padding: const EdgeInsets.only(left: AppDimensions.xs),
-                child: Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: AppColors.neutral400,
+                    if (item.timeToStart != null)
+                      Text(
+                        ActionQueueWidget._formatDuration(item.timeToStart!),
+                        style: AppTypography.caption,
+                      ),
+                    if (sessionId != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: AppDimensions.xs),
+                        child: Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color: AppColors.neutral400,
+                        ),
+                      ),
+                  ],
                 ),
               ),
+            ),
           ],
         ),
       ),

@@ -15,8 +15,10 @@ import 'package:hyperarena/features/club/data/models/club_summary.dart';
 import 'package:hyperarena/features/club/providers/club_providers.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/club_hero.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/providers/money_visibility_provider.dart';
 import 'package:hyperarena/shared/utils/debouncer.dart';
 import 'package:hyperarena/shared/widgets/list_loading_indicator.dart';
+import 'package:hyperarena/shared/widgets/money_text.dart';
 import 'package:hyperarena/shared/widgets/pinned_list_header.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
@@ -37,12 +39,22 @@ class OrganizerMembersScreen extends ConsumerStatefulWidget {
 /// roster gaps the organizer is responsible for closing.
 enum _RosterFilter { all, outstanding, noCoach, unrated }
 
+/// Sort key for the roster. Default is `activity` (most recently seen first),
+/// but switching the filter to `outstanding` auto-flips this to `debt` so the
+/// organizer lands on the biggest debt without an extra tap.
+enum _RosterSort { activity, debt, name }
+
+/// Pinned header height — section label + search + filter row + sort row at
+/// default text scale. Bump this if any of the four rows grows.
+const double _kPinnedHeaderHeight = 184;
+
 class _OrganizerMembersScreenState
     extends ConsumerState<OrganizerMembersScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   final _debouncer = Debouncer();
   _RosterFilter _filter = _RosterFilter.all;
+  _RosterSort _sort = _RosterSort.activity;
 
   @override
   void initState() {
@@ -122,7 +134,7 @@ class _OrganizerMembersScreenState
             // while the user browses deep into the roster. Height fits
             // worst case (filter row visible).
             PinnedListHeader(
-              height: 156,
+              height: _kPinnedHeaderHeight,
               background: AppColors.neutral50,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -130,6 +142,7 @@ class _OrganizerMembersScreenState
                   _buildSectionLabel(listState),
                   _buildSearch(),
                   _buildFilterRow(listState),
+                  _buildSortRow(listState),
                 ],
               ),
             ),
@@ -309,12 +322,15 @@ class _OrganizerMembersScreenState
     );
   }
 
-  /// Client-side filter atop the paginated `state.items`. Counts are only
-  /// over the currently-loaded page — fine for a v1, but the next iteration
-  /// should push these as query params to `GET /v1/admin/students/roster`
-  /// so the count reflects the whole tenant, not just what's been scrolled.
-  List<AdminStudentRosterItem> _applyFilter(List<AdminStudentRosterItem> src) {
-    return switch (_filter) {
+  /// Client-side filter + sort atop the paginated `state.items`. Counts are
+  /// only over the currently-loaded page — fine for a v1, but the next
+  /// iteration should push these as query params to
+  /// `GET /v1/admin/students/roster` so counts and ordering reflect the
+  /// whole tenant, not just what's been scrolled.
+  List<AdminStudentRosterItem> _applyFilterAndSort(
+    List<AdminStudentRosterItem> src,
+  ) {
+    final filtered = switch (_filter) {
       _RosterFilter.all => src,
       _RosterFilter.outstanding =>
         src.where((m) => m.outstandingCount > 0).toList(growable: false),
@@ -325,6 +341,20 @@ class _OrganizerMembersScreenState
             .where((m) => m.latestProgress?.status == null)
             .toList(growable: false),
     };
+    final sorted = [...filtered];
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
+    sorted.sort(
+      (a, b) => switch (_sort) {
+        _RosterSort.activity => (b.lastSessionAt ?? epoch).compareTo(
+          a.lastSessionAt ?? epoch,
+        ),
+        _RosterSort.debt => b.outstandingAmount.compareTo(a.outstandingAmount),
+        _RosterSort.name => a.fullName.toLowerCase().compareTo(
+          b.fullName.toLowerCase(),
+        ),
+      },
+    );
+    return sorted;
   }
 
   Widget _buildFilterRow(AdminRosterListState state) {
@@ -361,7 +391,12 @@ class _OrganizerMembersScreenState
               count: outstanding,
               tone: _RosterFilterTone.error,
               isSelected: _filter == _RosterFilter.outstanding,
-              onTap: () => setState(() => _filter = _RosterFilter.outstanding),
+              onTap: () => setState(() {
+                _filter = _RosterFilter.outstanding;
+                // Auto-flip sort: when the organizer pivots to collection
+                // mode, biggest debt is what they want first.
+                if (_sort == _RosterSort.activity) _sort = _RosterSort.debt;
+              }),
             ),
             const SizedBox(width: AppDimensions.xs),
             _RosterFilterChip(
@@ -381,6 +416,55 @@ class _OrganizerMembersScreenState
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Editorial small-caps sort selector. Renders as a single text row
+  /// ("URUTKAN: Aktivitas · Tagihan · Nama") where the active key is
+  /// underlined with a 1.5px primary-toned bar — matches the Athletic
+  /// Field Notebook language without introducing a dropdown chrome.
+  Widget _buildSortRow(AdminRosterListState state) {
+    if (state.isLoading || state.error != null || state.items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.screenHorizontal,
+        0,
+        AppDimensions.screenHorizontal,
+        AppDimensions.sm,
+      ),
+      child: Row(
+        children: [
+          Text(
+            'URUTKAN',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textTertiary,
+              fontWeight: FontWeight.w700,
+              fontSize: 9,
+              letterSpacing: 1.4,
+            ),
+          ),
+          const SizedBox(width: AppDimensions.sm),
+          _SortKey(
+            label: 'Aktivitas',
+            isActive: _sort == _RosterSort.activity,
+            onTap: () => setState(() => _sort = _RosterSort.activity),
+          ),
+          const _SortDivider(),
+          _SortKey(
+            label: 'Tagihan',
+            isActive: _sort == _RosterSort.debt,
+            onTap: () => setState(() => _sort = _RosterSort.debt),
+          ),
+          const _SortDivider(),
+          _SortKey(
+            label: 'Nama',
+            isActive: _sort == _RosterSort.name,
+            onTap: () => setState(() => _sort = _RosterSort.name),
+          ),
+        ],
       ),
     );
   }
@@ -430,7 +514,7 @@ class _OrganizerMembersScreenState
         ),
       ];
     }
-    final filtered = _applyFilter(state.items);
+    final filtered = _applyFilterAndSort(state.items);
     if (filtered.isEmpty) {
       return [
         SliverFillRemaining(
@@ -475,6 +559,66 @@ class _OrganizerMembersScreenState
 }
 
 enum _RosterFilterTone { neutral, error, warning }
+
+class _SortKey extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _SortKey({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? AppColors.primary900 : AppColors.textSecondary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isActive ? AppColors.primary900 : Colors.transparent,
+                width: 1.5,
+              ),
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: color,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              fontSize: 11,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SortDivider extends StatelessWidget {
+  const _SortDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.xs),
+      child: Text(
+        '·',
+        style: AppTypography.caption.copyWith(
+          color: AppColors.neutral300,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+}
 
 class _RosterFilterChip extends StatelessWidget {
   final String label;
@@ -550,15 +694,16 @@ class _RosterFilterChip extends StatelessWidget {
   }
 }
 
-class _ClubStatsCard extends StatelessWidget {
+class _ClubStatsCard extends ConsumerWidget {
   final ClubStats stats;
   final String currency;
 
   const _ClubStatsCard({required this.stats, required this.currency});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final hasOutstanding = stats.outstandingTotal > 0;
+    final moneyVisible = ref.watch(moneyVisibilityProvider);
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(
@@ -617,10 +762,18 @@ class _ClubStatsCard extends StatelessWidget {
               child: _StatTile(
                 label: 'TAGIHAN',
                 value: hasOutstanding
-                    ? Formatters.formatCurrencyCompact(
-                        stats.outstandingTotal,
-                        currency,
-                      )
+                    ? (moneyVisible
+                          ? Formatters.formatCurrencyCompact(
+                              stats.outstandingTotal,
+                              currency,
+                            )
+                          : MoneyText.maskFormatted(
+                              Formatters.formatCurrencyCompact(
+                                stats.outstandingTotal,
+                                currency,
+                              ),
+                              4,
+                            ))
                     : '—',
                 hint: hasOutstanding
                     ? '${stats.outstandingCount} anggota'
@@ -726,7 +879,6 @@ class _MemberRosterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = _statusColor(member.latestProgress?.status);
     final hasOutstanding = member.outstandingCount > 0;
-    final accentBar = hasOutstanding ? AppColors.error : accent;
     return Material(
       color: AppSurfaces.surface,
       borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
@@ -746,7 +898,7 @@ class _MemberRosterCard extends StatelessWidget {
                 Container(
                   width: 4,
                   decoration: BoxDecoration(
-                    color: accentBar,
+                    color: accent,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(AppDimensions.radiusLg),
                       bottomLeft: Radius.circular(AppDimensions.radiusLg),
@@ -796,6 +948,7 @@ class _MemberRosterCard extends StatelessWidget {
   }
 
   Widget _buildHeaderRow(bool hasOutstanding) {
+    final unenrolled = member.enrollment == null;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -831,13 +984,43 @@ class _MemberRosterCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                member.fullName,
-                style: AppTypography.titleSmall.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      member.fullName,
+                      style: AppTypography.titleSmall.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (unenrolled) ...[
+                    const SizedBox(width: AppDimensions.xs),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.warning, width: 1),
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusSm,
+                        ),
+                      ),
+                      child: Text(
+                        'TANPA PROGRAM',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.warning,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 9,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 2),
               Text(
@@ -858,40 +1041,17 @@ class _MemberRosterCard extends StatelessWidget {
 
   Widget _buildEnrollmentLine() {
     final program = member.enrollment?.programName;
-    final coach = member.assignedCoach?.name;
+    // Unenrolled state is signalled by the TANPA PROGRAM chip on the header
+    // row — this row collapses to avoid double-flagging the same fact.
+    if (program == null) return const SizedBox.shrink();
+    final level = member.enrollment?.levelName;
     return Padding(
       padding: const EdgeInsets.only(left: 56),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            program == null ? Icons.info_outline : Icons.book_outlined,
-            size: 12,
-            color: program == null ? AppColors.warning : AppColors.textTertiary,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              program == null
-                  ? 'Belum terdaftar di program'
-                  : (member.enrollment?.levelName == null
-                        ? program
-                        : '$program · ${member.enrollment!.levelName}'),
-              style: AppTypography.caption.copyWith(
-                color: program == null
-                    ? AppColors.warning
-                    : AppColors.textSecondary,
-                fontStyle: program == null ? FontStyle.italic : null,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (coach != null) ...[
-            const SizedBox(width: AppDimensions.xs),
-            _CoachChip(name: coach),
-          ],
-        ],
+      child: Text(
+        level == null ? program : '$program · $level',
+        style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -900,6 +1060,7 @@ class _MemberRosterCard extends StatelessWidget {
     final lastSession = member.lastSessionAt == null
         ? 'Belum ada sesi'
         : Formatters.relativeDate(member.lastSessionAt!);
+    final coach = member.assignedCoach?.name;
     return Padding(
       padding: const EdgeInsets.only(left: 56),
       child: Wrap(
@@ -925,8 +1086,9 @@ class _MemberRosterCard extends StatelessWidget {
               ),
             ),
           ),
+          if (coach != null) _CoachChip(name: coach),
           Text(
-            ' · $lastSession · ${member.totalSessions} sesi',
+            '· $lastSession · ${member.totalSessions} sesi',
             style: AppTypography.caption.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -1008,7 +1170,7 @@ class _CoachChip extends StatelessWidget {
   }
 }
 
-class _OutstandingBanner extends StatelessWidget {
+class _OutstandingBanner extends ConsumerWidget {
   final int amount;
   final int count;
   final DateTime? oldestAt;
@@ -1021,8 +1183,28 @@ class _OutstandingBanner extends StatelessWidget {
     required this.currency,
   });
 
+  // Aging ramp — fresh debt reads muted, stale debt reads bold-and-loud so
+  // the eye finds the worst row first when the list is long.
+  int? get _ageDays =>
+      oldestAt == null ? null : DateTime.now().difference(oldestAt!).inDays;
+
+  Color get _ageColor {
+    final d = _ageDays;
+    if (d == null) return AppColors.error.withValues(alpha: 0.7);
+    if (d < 7) return AppColors.error.withValues(alpha: 0.55);
+    return AppColors.error;
+  }
+
+  FontWeight get _ageWeight =>
+      (_ageDays ?? 0) >= 30 ? FontWeight.w700 : FontWeight.w400;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final moneyVisible = ref.watch(moneyVisibilityProvider);
+    // The leading currency prefix is rendered separately as an editorial
+    // "Rp" stamp, so we feed the body cell only the digit portion.
+    final parts = Formatters.splitCurrency(amount, currency);
+    final amountText = moneyVisible ? parts.number : '••••';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -1034,43 +1216,39 @@ class _OutstandingBanner extends StatelessWidget {
         border: Border(
           top: BorderSide(color: AppColors.error.withValues(alpha: 0.18)),
         ),
-        // bottomLeft is flush against the 4px accent bar, no curve needed.
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.zero,
           bottomRight: Radius.circular(AppDimensions.radiusLg),
         ),
       ),
-      child: Row(
-        children: [
-          Icon(Icons.payments_outlined, size: 13, color: AppColors.error),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text.rich(
-              TextSpan(
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.error,
-                  fontSize: 11,
-                ),
-                children: [
-                  TextSpan(
-                    text: Formatters.formatCurrencyCompact(amount, currency),
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  TextSpan(text: ' · $count tagihan menunggak'),
-                  if (oldestAt != null)
-                    TextSpan(
-                      text: ' sejak ${Formatters.formatDateShort(oldestAt!)}',
-                      style: TextStyle(
-                        color: AppColors.error.withValues(alpha: 0.8),
-                      ),
-                    ),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+      child: Text.rich(
+        TextSpan(
+          style: AppTypography.caption.copyWith(
+            color: AppColors.error,
+            fontSize: 11,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
-        ],
+          children: [
+            TextSpan(
+              text: '${parts.prefix} ',
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
+              ),
+            ),
+            TextSpan(
+              text: amountText,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            TextSpan(text: '  ·  $count tagihan'),
+            if (oldestAt != null)
+              TextSpan(
+                text: '  ·  sejak ${Formatters.formatDateShort(oldestAt!)}',
+                style: TextStyle(color: _ageColor, fontWeight: _ageWeight),
+              ),
+          ],
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

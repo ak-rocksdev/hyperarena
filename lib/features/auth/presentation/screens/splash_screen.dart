@@ -83,10 +83,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.sports_tennis,
-                    size: 80,
-                    color: AppColors.textOnPrimary,
+                  // Brand mark — HyperArena logo. PNG carries its own teal
+                  // tile + rounded corners, dropping onto the splash gradient
+                  // like the app icon.
+                  SizedBox(
+                    width: 96,
+                    height: 96,
+                    child: Image.asset(
+                      'assets/brand/hyperarena_logo.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(

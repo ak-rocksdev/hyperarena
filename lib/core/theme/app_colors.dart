@@ -3,17 +3,20 @@ import 'package:flutter/material.dart';
 /// Brand, neutral, semantic, text, and border color tokens.
 /// Reference: DESIGN_SYSTEM.md Sections 1.1–1.6
 abstract final class AppColors {
-  // ── Primary: Electric Blue ──────────────────────────────────
-  static const primary50 = Color(0xFFEFF6FF);
-  static const primary100 = Color(0xFFDBEAFE);
-  static const primary200 = Color(0xFFBFDBFE);
-  static const primary300 = Color(0xFF93C5FD);
-  static const primary400 = Color(0xFF60A5FA);
-  static const primary500 = Color(0xFF3B82F6);
-  static const primary = Color(0xFF2563EB); // primary600 — main
-  static const primary700 = Color(0xFF1D4ED8);
-  static const primary800 = Color(0xFF1E40AF);
-  static const primary900 = Color(0xFF1E3A8A);
+  // ── Primary: HyperArena Brand Teal ──────────────────────────
+  // Anchored on brand teal (#1F7A74) sampled from HyperArena logo.
+  // Smooth derived ramp; primary600 + primary700 are exact brand values
+  // used in the dashboard gradient hero (`#1F7A74` → `#155956`).
+  static const primary50 = Color(0xFFE6F2F0); // brand tint (logo halo)
+  static const primary100 = Color(0xFFCCE5E2);
+  static const primary200 = Color(0xFF99CCC5);
+  static const primary300 = Color(0xFF66B2A8);
+  static const primary400 = Color(0xFF4D9F94);
+  static const primary500 = Color(0xFF338C81);
+  static const primary = Color(0xFF1F7A74); // primary600 — BRAND MAIN
+  static const primary700 = Color(0xFF155956); // BRAND DARK
+  static const primary800 = Color(0xFF103F3D);
+  static const primary900 = Color(0xFF0B2A28);
 
   // ── Secondary: Teal ─────────────────────────────────────────
   static const secondary50 = Color(0xFFF0FDFA);
@@ -81,14 +84,14 @@ abstract final class AppColors {
   static const textOnSecondary = Color(0xFF042F2E);
   static const textOnAccent = Color(0xFFFFFFFF);
   static const textOnDark = Color(0xFFFFFFFF);
-  static const textLink = Color(0xFF2563EB);
+  static const textLink = Color(0xFF1F7A74);
 
   // ── Border & Divider ────────────────────────────────────────
   static const border = Color(0xFFE2E8F0);
   static const borderLight = Color(0xFFF1F5F9);
   static const borderMedium = Color(0xFFCBD5E1);
   static const borderStrong = Color(0xFF94A3B8);
-  static const borderFocused = Color(0xFF2563EB);
+  static const borderFocused = Color(0xFF1F7A74);
   static const borderError = Color(0xFFEF4444);
   static const divider = Color(0xFFE2E8F0);
 }

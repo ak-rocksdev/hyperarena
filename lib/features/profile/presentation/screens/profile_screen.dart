@@ -990,7 +990,16 @@ void _showAboutDialog(BuildContext context) {
       ),
       title: Row(
         children: [
-          Icon(Icons.sports_tennis, color: AppColors.primary),
+          // Brand mark — HyperArena logo (replaces the old sports_tennis
+          // placeholder).
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Image.asset(
+              'assets/brand/hyperarena_logo.png',
+              fit: BoxFit.contain,
+            ),
+          ),
           const SizedBox(width: AppDimensions.sm),
           const Text('HyperArena'),
         ],

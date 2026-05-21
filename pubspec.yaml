@@ -76,8 +76,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
+  remove_alpha_ios: true
   image_path: "assets/icon/app_icon.png"
-  adaptive_icon_background: "#2563EB"
+  adaptive_icon_background: "#1F7A74"
   adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 flutter:
@@ -85,3 +86,4 @@ flutter:
 
   assets:
     - google_fonts/
+    - assets/brand/

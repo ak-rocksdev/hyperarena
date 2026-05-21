@@ -117,10 +117,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     child: Column(
                       children: [
-                        Icon(
-                          Icons.sports_tennis,
-                          size: 72,
-                          color: AppColors.primary,
+                        // Brand mark — HyperArena logo. PNG already has teal
+                        // background + rounded corners baked in, so it lays
+                        // on the soft `primary50` header without extra
+                        // clipping.
+                        SizedBox(
+                          width: 72,
+                          height: 72,
+                          child: Image.asset(
+                            'assets/brand/hyperarena_logo.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                         const SizedBox(height: AppDimensions.md),
                         Text(

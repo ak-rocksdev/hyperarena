@@ -8,7 +8,7 @@ abstract final class AppSurfaces {
   static const backgroundPure = Color(0xFFFFFFFF);
   static const surface = Color(0xFFFFFFFF);
   static const surfaceVariant = Color(0xFFF1F5F9);
-  static const surfaceHighlight = Color(0xFFEFF6FF);
+  static const surfaceHighlight = Color(0xFFE6F2F0);
   static const surfaceSecondary = Color(0xFFF0FDFA);
   static const surfaceAccent = Color(0xFFFFF7ED);
 
@@ -17,7 +17,7 @@ abstract final class AppSurfaces {
   static const darkBackgroundPure = Color(0xFF020617);
   static const darkSurface = Color(0xFF1E293B);
   static const darkSurfaceVariant = Color(0xFF334155);
-  static const darkSurfaceHighlight = Color(0xFF1E3A5F);
+  static const darkSurfaceHighlight = Color(0xFF103F3D);
   static const darkSurfaceSecondary = Color(0xFF134E4A);
   static const darkSurfaceAccent = Color(0xFF431407);
 
@@ -26,7 +26,7 @@ abstract final class AppSurfaces {
   static final overlayLight = const Color(0xFF000000).withValues(alpha: 0.20);
   static final overlayDark = const Color(0xFF000000).withValues(alpha: 0.80);
   static final scrim = const Color(0xFF000000).withValues(alpha: 0.32);
-  static final ripple = const Color(0xFF2563EB).withValues(alpha: 0.10);
+  static final ripple = const Color(0xFF1F7A74).withValues(alpha: 0.10);
 
   // ── Shimmer ─────────────────────────────────────────────────
   static const shimmerBase = Color(0xFFE2E8F0);
@@ -35,10 +35,17 @@ abstract final class AppSurfaces {
   static const darkShimmerHighlight = Color(0xFF475569);
 
   // ── Gradients ───────────────────────────────────────────────
+  // Brand hero gradient — used by organizer dashboard header band.
+  // Three-stop teal: brand → brand dark → near-black teal.
   static const primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF1D4ED8), Color(0xFF60A5FA)],
+    stops: [0.0, 0.7, 1.0],
+    colors: [
+      Color(0xFF1F7A74),
+      Color(0xFF155956),
+      Color(0xFF0F4442),
+    ],
   );
 
   static const energyGradient = LinearGradient(

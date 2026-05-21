@@ -212,6 +212,12 @@ class FinancialStats with _$FinancialStats {
     @JsonKey(name: 'outstanding_amount') @Default(0) int outstandingAmount,
     @JsonKey(name: 'outstanding_count') @Default(0) int outstandingCount,
     @JsonKey(name: 'total_transactions') @Default(0) int totalTransactions,
+
+    // ── Member Detail v2 fields (spec: PRD-organizer-dashboard-be-fields.md) ──
+    // Nullable on purpose: BE may not return them yet. UI hides the aging
+    // progress bar + lifetime tile gracefully when null.
+    @JsonKey(name: 'oldest_unpaid_days') int? oldestUnpaidDays,
+    @JsonKey(name: 'lifetime_spend') int? lifetimeSpend,
   }) = _FinancialStats;
 
   factory FinancialStats.fromJson(Map<String, dynamic> json) =>

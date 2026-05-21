@@ -371,7 +371,19 @@ mixin _$OrganizerEarningsSummary {
       throw _privateConstructorUsedError;
   int get pendingPlayerBalance => throw _privateConstructorUsedError;
   int get pendingVenueBalance => throw _privateConstructorUsedError;
-  int get disputeHoldBalance => throw _privateConstructorUsedError;
+  int get disputeHoldBalance =>
+      throw _privateConstructorUsedError; // ── Earnings v2 fields (spec: docs/PRD-organizer-dashboard-be-fields.md) ──
+  // All nullable — UI hides corresponding sections when BE has not yet
+  // populated them. Once BE deploys, the P&L card + expense breakdown +
+  // bar chart + delta caption light up automatically.
+  int? get grossRevenue => throw _privateConstructorUsedError;
+  int? get totalExpenses => throw _privateConstructorUsedError;
+  int? get netRevenueThisPeriod => throw _privateConstructorUsedError;
+  int? get sessionCount => throw _privateConstructorUsedError;
+  int? get prevPeriodNet => throw _privateConstructorUsedError;
+  List<double> get weeklyChart => throw _privateConstructorUsedError;
+  List<ExpenseCategory> get expenseBreakdown =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this OrganizerEarningsSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -398,6 +410,13 @@ abstract class $OrganizerEarningsSummaryCopyWith<$Res> {
     int pendingPlayerBalance,
     int pendingVenueBalance,
     int disputeHoldBalance,
+    int? grossRevenue,
+    int? totalExpenses,
+    int? netRevenueThisPeriod,
+    int? sessionCount,
+    int? prevPeriodNet,
+    List<double> weeklyChart,
+    List<ExpenseCategory> expenseBreakdown,
   });
 }
 
@@ -426,6 +445,13 @@ class _$OrganizerEarningsSummaryCopyWithImpl<
     Object? pendingPlayerBalance = null,
     Object? pendingVenueBalance = null,
     Object? disputeHoldBalance = null,
+    Object? grossRevenue = freezed,
+    Object? totalExpenses = freezed,
+    Object? netRevenueThisPeriod = freezed,
+    Object? sessionCount = freezed,
+    Object? prevPeriodNet = freezed,
+    Object? weeklyChart = null,
+    Object? expenseBreakdown = null,
   }) {
     return _then(
       _value.copyWith(
@@ -457,6 +483,34 @@ class _$OrganizerEarningsSummaryCopyWithImpl<
                 ? _value.disputeHoldBalance
                 : disputeHoldBalance // ignore: cast_nullable_to_non_nullable
                       as int,
+            grossRevenue: freezed == grossRevenue
+                ? _value.grossRevenue
+                : grossRevenue // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            totalExpenses: freezed == totalExpenses
+                ? _value.totalExpenses
+                : totalExpenses // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            netRevenueThisPeriod: freezed == netRevenueThisPeriod
+                ? _value.netRevenueThisPeriod
+                : netRevenueThisPeriod // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            sessionCount: freezed == sessionCount
+                ? _value.sessionCount
+                : sessionCount // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            prevPeriodNet: freezed == prevPeriodNet
+                ? _value.prevPeriodNet
+                : prevPeriodNet // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            weeklyChart: null == weeklyChart
+                ? _value.weeklyChart
+                : weeklyChart // ignore: cast_nullable_to_non_nullable
+                      as List<double>,
+            expenseBreakdown: null == expenseBreakdown
+                ? _value.expenseBreakdown
+                : expenseBreakdown // ignore: cast_nullable_to_non_nullable
+                      as List<ExpenseCategory>,
           )
           as $Val,
     );
@@ -480,6 +534,13 @@ abstract class _$$OrganizerEarningsSummaryImplCopyWith<$Res>
     int pendingPlayerBalance,
     int pendingVenueBalance,
     int disputeHoldBalance,
+    int? grossRevenue,
+    int? totalExpenses,
+    int? netRevenueThisPeriod,
+    int? sessionCount,
+    int? prevPeriodNet,
+    List<double> weeklyChart,
+    List<ExpenseCategory> expenseBreakdown,
   });
 }
 
@@ -508,6 +569,13 @@ class __$$OrganizerEarningsSummaryImplCopyWithImpl<$Res>
     Object? pendingPlayerBalance = null,
     Object? pendingVenueBalance = null,
     Object? disputeHoldBalance = null,
+    Object? grossRevenue = freezed,
+    Object? totalExpenses = freezed,
+    Object? netRevenueThisPeriod = freezed,
+    Object? sessionCount = freezed,
+    Object? prevPeriodNet = freezed,
+    Object? weeklyChart = null,
+    Object? expenseBreakdown = null,
   }) {
     return _then(
       _$OrganizerEarningsSummaryImpl(
@@ -539,6 +607,34 @@ class __$$OrganizerEarningsSummaryImplCopyWithImpl<$Res>
             ? _value.disputeHoldBalance
             : disputeHoldBalance // ignore: cast_nullable_to_non_nullable
                   as int,
+        grossRevenue: freezed == grossRevenue
+            ? _value.grossRevenue
+            : grossRevenue // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        totalExpenses: freezed == totalExpenses
+            ? _value.totalExpenses
+            : totalExpenses // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        netRevenueThisPeriod: freezed == netRevenueThisPeriod
+            ? _value.netRevenueThisPeriod
+            : netRevenueThisPeriod // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        sessionCount: freezed == sessionCount
+            ? _value.sessionCount
+            : sessionCount // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        prevPeriodNet: freezed == prevPeriodNet
+            ? _value.prevPeriodNet
+            : prevPeriodNet // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        weeklyChart: null == weeklyChart
+            ? _value._weeklyChart
+            : weeklyChart // ignore: cast_nullable_to_non_nullable
+                  as List<double>,
+        expenseBreakdown: null == expenseBreakdown
+            ? _value._expenseBreakdown
+            : expenseBreakdown // ignore: cast_nullable_to_non_nullable
+                  as List<ExpenseCategory>,
       ),
     );
   }
@@ -555,7 +651,16 @@ class _$OrganizerEarningsSummaryImpl implements _OrganizerEarningsSummary {
     this.pendingPlayerBalance = 0,
     this.pendingVenueBalance = 0,
     this.disputeHoldBalance = 0,
-  }) : _settlements = settlements;
+    this.grossRevenue,
+    this.totalExpenses,
+    this.netRevenueThisPeriod,
+    this.sessionCount,
+    this.prevPeriodNet,
+    final List<double> weeklyChart = const [],
+    final List<ExpenseCategory> expenseBreakdown = const [],
+  }) : _settlements = settlements,
+       _weeklyChart = weeklyChart,
+       _expenseBreakdown = expenseBreakdown;
 
   factory _$OrganizerEarningsSummaryImpl.fromJson(Map<String, dynamic> json) =>
       _$$OrganizerEarningsSummaryImplFromJson(json);
@@ -587,10 +692,42 @@ class _$OrganizerEarningsSummaryImpl implements _OrganizerEarningsSummary {
   @override
   @JsonKey()
   final int disputeHoldBalance;
+  // ── Earnings v2 fields (spec: docs/PRD-organizer-dashboard-be-fields.md) ──
+  // All nullable — UI hides corresponding sections when BE has not yet
+  // populated them. Once BE deploys, the P&L card + expense breakdown +
+  // bar chart + delta caption light up automatically.
+  @override
+  final int? grossRevenue;
+  @override
+  final int? totalExpenses;
+  @override
+  final int? netRevenueThisPeriod;
+  @override
+  final int? sessionCount;
+  @override
+  final int? prevPeriodNet;
+  final List<double> _weeklyChart;
+  @override
+  @JsonKey()
+  List<double> get weeklyChart {
+    if (_weeklyChart is EqualUnmodifiableListView) return _weeklyChart;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_weeklyChart);
+  }
+
+  final List<ExpenseCategory> _expenseBreakdown;
+  @override
+  @JsonKey()
+  List<ExpenseCategory> get expenseBreakdown {
+    if (_expenseBreakdown is EqualUnmodifiableListView)
+      return _expenseBreakdown;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_expenseBreakdown);
+  }
 
   @override
   String toString() {
-    return 'OrganizerEarningsSummary(availableBalance: $availableBalance, pendingBalance: $pendingBalance, paidOutThisMonth: $paidOutThisMonth, settlements: $settlements, pendingPlayerBalance: $pendingPlayerBalance, pendingVenueBalance: $pendingVenueBalance, disputeHoldBalance: $disputeHoldBalance)';
+    return 'OrganizerEarningsSummary(availableBalance: $availableBalance, pendingBalance: $pendingBalance, paidOutThisMonth: $paidOutThisMonth, settlements: $settlements, pendingPlayerBalance: $pendingPlayerBalance, pendingVenueBalance: $pendingVenueBalance, disputeHoldBalance: $disputeHoldBalance, grossRevenue: $grossRevenue, totalExpenses: $totalExpenses, netRevenueThisPeriod: $netRevenueThisPeriod, sessionCount: $sessionCount, prevPeriodNet: $prevPeriodNet, weeklyChart: $weeklyChart, expenseBreakdown: $expenseBreakdown)';
   }
 
   @override
@@ -613,7 +750,25 @@ class _$OrganizerEarningsSummaryImpl implements _OrganizerEarningsSummary {
             (identical(other.pendingVenueBalance, pendingVenueBalance) ||
                 other.pendingVenueBalance == pendingVenueBalance) &&
             (identical(other.disputeHoldBalance, disputeHoldBalance) ||
-                other.disputeHoldBalance == disputeHoldBalance));
+                other.disputeHoldBalance == disputeHoldBalance) &&
+            (identical(other.grossRevenue, grossRevenue) ||
+                other.grossRevenue == grossRevenue) &&
+            (identical(other.totalExpenses, totalExpenses) ||
+                other.totalExpenses == totalExpenses) &&
+            (identical(other.netRevenueThisPeriod, netRevenueThisPeriod) ||
+                other.netRevenueThisPeriod == netRevenueThisPeriod) &&
+            (identical(other.sessionCount, sessionCount) ||
+                other.sessionCount == sessionCount) &&
+            (identical(other.prevPeriodNet, prevPeriodNet) ||
+                other.prevPeriodNet == prevPeriodNet) &&
+            const DeepCollectionEquality().equals(
+              other._weeklyChart,
+              _weeklyChart,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._expenseBreakdown,
+              _expenseBreakdown,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -627,6 +782,13 @@ class _$OrganizerEarningsSummaryImpl implements _OrganizerEarningsSummary {
     pendingPlayerBalance,
     pendingVenueBalance,
     disputeHoldBalance,
+    grossRevenue,
+    totalExpenses,
+    netRevenueThisPeriod,
+    sessionCount,
+    prevPeriodNet,
+    const DeepCollectionEquality().hash(_weeklyChart),
+    const DeepCollectionEquality().hash(_expenseBreakdown),
   );
 
   /// Create a copy of OrganizerEarningsSummary
@@ -655,6 +817,13 @@ abstract class _OrganizerEarningsSummary implements OrganizerEarningsSummary {
     final int pendingPlayerBalance,
     final int pendingVenueBalance,
     final int disputeHoldBalance,
+    final int? grossRevenue,
+    final int? totalExpenses,
+    final int? netRevenueThisPeriod,
+    final int? sessionCount,
+    final int? prevPeriodNet,
+    final List<double> weeklyChart,
+    final List<ExpenseCategory> expenseBreakdown,
   }) = _$OrganizerEarningsSummaryImpl;
 
   factory _OrganizerEarningsSummary.fromJson(Map<String, dynamic> json) =
@@ -673,7 +842,24 @@ abstract class _OrganizerEarningsSummary implements OrganizerEarningsSummary {
   @override
   int get pendingVenueBalance;
   @override
-  int get disputeHoldBalance;
+  int get disputeHoldBalance; // ── Earnings v2 fields (spec: docs/PRD-organizer-dashboard-be-fields.md) ──
+  // All nullable — UI hides corresponding sections when BE has not yet
+  // populated them. Once BE deploys, the P&L card + expense breakdown +
+  // bar chart + delta caption light up automatically.
+  @override
+  int? get grossRevenue;
+  @override
+  int? get totalExpenses;
+  @override
+  int? get netRevenueThisPeriod;
+  @override
+  int? get sessionCount;
+  @override
+  int? get prevPeriodNet;
+  @override
+  List<double> get weeklyChart;
+  @override
+  List<ExpenseCategory> get expenseBreakdown;
 
   /// Create a copy of OrganizerEarningsSummary
   /// with the given fields replaced by the non-null parameter values.
@@ -681,4 +867,271 @@ abstract class _OrganizerEarningsSummary implements OrganizerEarningsSummary {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$OrganizerEarningsSummaryImplCopyWith<_$OrganizerEarningsSummaryImpl>
   get copyWith => throw _privateConstructorUsedError;
+}
+
+ExpenseCategory _$ExpenseCategoryFromJson(Map<String, dynamic> json) {
+  return _ExpenseCategory.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ExpenseCategory {
+  String get label => throw _privateConstructorUsedError;
+  String? get subtitle => throw _privateConstructorUsedError;
+  int get amount => throw _privateConstructorUsedError;
+
+  /// 7-char hex like `#EF4444` — optional override. When null, the client
+  /// picks a color from a fixed rotation based on row index.
+  String? get colorHex => throw _privateConstructorUsedError;
+
+  /// Emoji or icon-name override. When null, the client falls back to a
+  /// generic receipt glyph.
+  String? get icon => throw _privateConstructorUsedError;
+
+  /// Serializes this ExpenseCategory to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ExpenseCategory
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ExpenseCategoryCopyWith<ExpenseCategory> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ExpenseCategoryCopyWith<$Res> {
+  factory $ExpenseCategoryCopyWith(
+    ExpenseCategory value,
+    $Res Function(ExpenseCategory) then,
+  ) = _$ExpenseCategoryCopyWithImpl<$Res, ExpenseCategory>;
+  @useResult
+  $Res call({
+    String label,
+    String? subtitle,
+    int amount,
+    String? colorHex,
+    String? icon,
+  });
+}
+
+/// @nodoc
+class _$ExpenseCategoryCopyWithImpl<$Res, $Val extends ExpenseCategory>
+    implements $ExpenseCategoryCopyWith<$Res> {
+  _$ExpenseCategoryCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ExpenseCategory
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? label = null,
+    Object? subtitle = freezed,
+    Object? amount = null,
+    Object? colorHex = freezed,
+    Object? icon = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            label: null == label
+                ? _value.label
+                : label // ignore: cast_nullable_to_non_nullable
+                      as String,
+            subtitle: freezed == subtitle
+                ? _value.subtitle
+                : subtitle // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            amount: null == amount
+                ? _value.amount
+                : amount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            colorHex: freezed == colorHex
+                ? _value.colorHex
+                : colorHex // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            icon: freezed == icon
+                ? _value.icon
+                : icon // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ExpenseCategoryImplCopyWith<$Res>
+    implements $ExpenseCategoryCopyWith<$Res> {
+  factory _$$ExpenseCategoryImplCopyWith(
+    _$ExpenseCategoryImpl value,
+    $Res Function(_$ExpenseCategoryImpl) then,
+  ) = __$$ExpenseCategoryImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String label,
+    String? subtitle,
+    int amount,
+    String? colorHex,
+    String? icon,
+  });
+}
+
+/// @nodoc
+class __$$ExpenseCategoryImplCopyWithImpl<$Res>
+    extends _$ExpenseCategoryCopyWithImpl<$Res, _$ExpenseCategoryImpl>
+    implements _$$ExpenseCategoryImplCopyWith<$Res> {
+  __$$ExpenseCategoryImplCopyWithImpl(
+    _$ExpenseCategoryImpl _value,
+    $Res Function(_$ExpenseCategoryImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ExpenseCategory
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? label = null,
+    Object? subtitle = freezed,
+    Object? amount = null,
+    Object? colorHex = freezed,
+    Object? icon = freezed,
+  }) {
+    return _then(
+      _$ExpenseCategoryImpl(
+        label: null == label
+            ? _value.label
+            : label // ignore: cast_nullable_to_non_nullable
+                  as String,
+        subtitle: freezed == subtitle
+            ? _value.subtitle
+            : subtitle // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        amount: null == amount
+            ? _value.amount
+            : amount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        colorHex: freezed == colorHex
+            ? _value.colorHex
+            : colorHex // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        icon: freezed == icon
+            ? _value.icon
+            : icon // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ExpenseCategoryImpl implements _ExpenseCategory {
+  const _$ExpenseCategoryImpl({
+    required this.label,
+    this.subtitle,
+    required this.amount,
+    this.colorHex,
+    this.icon,
+  });
+
+  factory _$ExpenseCategoryImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ExpenseCategoryImplFromJson(json);
+
+  @override
+  final String label;
+  @override
+  final String? subtitle;
+  @override
+  final int amount;
+
+  /// 7-char hex like `#EF4444` — optional override. When null, the client
+  /// picks a color from a fixed rotation based on row index.
+  @override
+  final String? colorHex;
+
+  /// Emoji or icon-name override. When null, the client falls back to a
+  /// generic receipt glyph.
+  @override
+  final String? icon;
+
+  @override
+  String toString() {
+    return 'ExpenseCategory(label: $label, subtitle: $subtitle, amount: $amount, colorHex: $colorHex, icon: $icon)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ExpenseCategoryImpl &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.subtitle, subtitle) ||
+                other.subtitle == subtitle) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.colorHex, colorHex) ||
+                other.colorHex == colorHex) &&
+            (identical(other.icon, icon) || other.icon == icon));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, label, subtitle, amount, colorHex, icon);
+
+  /// Create a copy of ExpenseCategory
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ExpenseCategoryImplCopyWith<_$ExpenseCategoryImpl> get copyWith =>
+      __$$ExpenseCategoryImplCopyWithImpl<_$ExpenseCategoryImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ExpenseCategoryImplToJson(this);
+  }
+}
+
+abstract class _ExpenseCategory implements ExpenseCategory {
+  const factory _ExpenseCategory({
+    required final String label,
+    final String? subtitle,
+    required final int amount,
+    final String? colorHex,
+    final String? icon,
+  }) = _$ExpenseCategoryImpl;
+
+  factory _ExpenseCategory.fromJson(Map<String, dynamic> json) =
+      _$ExpenseCategoryImpl.fromJson;
+
+  @override
+  String get label;
+  @override
+  String? get subtitle;
+  @override
+  int get amount;
+
+  /// 7-char hex like `#EF4444` — optional override. When null, the client
+  /// picks a color from a fixed rotation based on row index.
+  @override
+  String? get colorHex;
+
+  /// Emoji or icon-name override. When null, the client falls back to a
+  /// generic receipt glyph.
+  @override
+  String? get icon;
+
+  /// Create a copy of ExpenseCategory
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ExpenseCategoryImplCopyWith<_$ExpenseCategoryImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -10,8 +11,9 @@ import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/club/data/models/student_detail.dart';
 import 'package:hyperarena/features/club/providers/club_providers.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/member_financial_kpi_strip.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/member_hero_with_outstanding.dart';
 import 'package:hyperarena/shared/widgets/session_result_sheet.dart';
-import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 import 'package:hyperarena/shared/widgets/zoomable_image.dart';
 
 /// Organizer-side member profile. Wired to `GET /v1/admin/students/{id}/detail`
@@ -84,31 +86,42 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.neutral50,
-      body: CustomScrollView(
-        slivers: [
-          _Hero(student: detail.student),
-          SliverToBoxAdapter(
-            child: Padding(
+    final hasOutstanding = detail.financialStats.outstandingAmount > 0;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Teal hero — keep system status bar icons light/white.
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: AppColors.neutral50,
+        body: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            MemberHeroWithOutstanding(
+              student: detail.student,
+              financial: detail.financialStats,
+            ),
+            // When the outstanding banner overlaps (negative bottom margin
+            // of -28 in the hero), reserve extra space here so the banner
+            // doesn't overlap the next section.
+            SizedBox(height: hasOutstanding ? 48 : AppDimensions.lg),
+            Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppDimensions.screenHorizontal,
-                AppDimensions.lg,
+                0,
                 AppDimensions.screenHorizontal,
                 AppDimensions.xl,
               ),
-              // Organizer lens: money first (KPI summary + payment history
-              // sit adjacent), then enrollment context, then pedagogical
-              // signals (engagement / trend / skills) before the session log.
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _SectionLabel('RINGKASAN KEUANGAN'),
                   const SizedBox(height: AppDimensions.sm),
-                  _FinancialKpiStrip(
-                    fin: detail.financialStats,
-                    currency: tenantCurrency,
-                  ),
+                  MemberFinancialKpiStrip(financial: detail.financialStats),
                   if (detail.paymentHistory.isNotEmpty) ...[
                     const SizedBox(height: AppDimensions.xl),
                     _SectionLabel('RIWAYAT PEMBAYARAN'),
@@ -140,161 +153,8 @@ class _Body extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Hero ────────────────────────────────────────────────────────────
-
-class _Hero extends StatelessWidget {
-  final StudentProfileSummary student;
-
-  const _Hero({required this.student});
-
-  @override
-  Widget build(BuildContext context) {
-    final ageText =
-        student.age != null ? '${student.age} tahun' : 'Umur Not Set';
-    return SliverAppBar(
-      expandedHeight: 280,
-      pinned: true,
-      backgroundColor: AppColors.primary900,
-      foregroundColor: Colors.white,
-      flexibleSpace: FlexibleSpaceBar(
-        title: LayoutBuilder(builder: (_, c) {
-          final collapsed = c.biggest.height < 120;
-          return AnimatedOpacity(
-            opacity: collapsed ? 1 : 0,
-            duration: const Duration(milliseconds: 150),
-            child: Text(
-              student.fullName,
-              style: AppTypography.bodyMedium.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          );
-        }),
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                gradient: AppSurfaces.primaryGradient,
-              ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 60),
-                child: ZoomableAvatar(
-                  heroTag: 'member-${student.id}',
-                  imageUrl:
-                      student.photoUrls?['lg'] ?? student.photoUrls?['md'],
-                  fallbackInitials: Formatters.initials(student.fullName),
-                  radius: 56,
-                  bgColor: Colors.white.withValues(alpha: 0.18),
-                  fgColor: Colors.white,
-                  caption: student.fullName,
-                ),
-              ),
-            ),
-            const IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Color(0xCC000000),
-                    ],
-                    stops: [0.5, 1.0],
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: AppDimensions.screenHorizontal,
-              right: AppDimensions.screenHorizontal,
-              bottom: AppDimensions.lg,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Wrap(
-                    spacing: AppDimensions.xs,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      _HeroChip(label: ageText, icon: Icons.cake_outlined),
-                      if (student.gender != null)
-                        _HeroChip(
-                          label: _genderLabel(student.gender!),
-                          icon: student.gender == 'female'
-                              ? Icons.female
-                              : Icons.male,
-                        ),
-                      if (student.sport != null)
-                        _HeroChip(
-                          label: student.sport!,
-                          icon: Icons.sports_tennis,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimensions.xs),
-                  Text(
-                    student.fullName,
-                    style: AppTypography.headingLarge.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      height: 1.1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
-      ),
-    );
-  }
-
-  String _genderLabel(String g) =>
-      switch (g) { 'male' => 'Pria', 'female' => 'Wanita', _ => g };
-}
-
-class _HeroChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-
-  const _HeroChip({required this.label, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 11, color: Colors.white),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -377,69 +237,6 @@ class _EngagementKpiStrip extends StatelessWidget {
                 value:
                     '${stats.skillsMasteredCount}/${stats.skillsTotalCount}',
                 label: 'Skill dikuasai',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Financial KPI strip ────────────────────────────────────────────
-
-class _FinancialKpiStrip extends StatelessWidget {
-  final FinancialStats fin;
-  final String currency;
-
-  const _FinancialKpiStrip({required this.fin, required this.currency});
-
-  @override
-  Widget build(BuildContext context) {
-    final hasOutstanding = fin.outstandingAmount > 0;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: AppDimensions.lg,
-        horizontal: AppDimensions.md,
-      ),
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        border: Border.all(
-          color: hasOutstanding
-              ? AppColors.error.withValues(alpha: 0.3)
-              : AppColors.neutral200,
-        ),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              child: _KpiTile(
-                value: Formatters.formatCurrencyCompact(
-                    fin.paidThisMonth, currency),
-                label: 'Bayar bulan ini',
-                color: AppColors.success,
-              ),
-            ),
-            const _KpiDivider(),
-            Expanded(
-              child: _KpiTile(
-                value: hasOutstanding
-                    ? Formatters.formatCurrencyCompact(
-                        fin.outstandingAmount, currency)
-                    : '—',
-                label: hasOutstanding
-                    ? '${fin.outstandingCount} tagihan'
-                    : 'Tidak ada tagihan',
-                color: hasOutstanding ? AppColors.error : AppColors.success,
-              ),
-            ),
-            const _KpiDivider(),
-            Expanded(
-              child: _KpiTile(
-                value: fin.totalTransactions.toString(),
-                label: 'Total transaksi',
               ),
             ),
           ],

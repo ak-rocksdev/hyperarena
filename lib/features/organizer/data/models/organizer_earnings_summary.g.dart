@@ -61,6 +61,21 @@ _$OrganizerEarningsSummaryImpl _$$OrganizerEarningsSummaryImplFromJson(
   pendingPlayerBalance: (json['pending_player_balance'] as num?)?.toInt() ?? 0,
   pendingVenueBalance: (json['pending_venue_balance'] as num?)?.toInt() ?? 0,
   disputeHoldBalance: (json['dispute_hold_balance'] as num?)?.toInt() ?? 0,
+  grossRevenue: (json['gross_revenue'] as num?)?.toInt(),
+  totalExpenses: (json['total_expenses'] as num?)?.toInt(),
+  netRevenueThisPeriod: (json['net_revenue_this_period'] as num?)?.toInt(),
+  sessionCount: (json['session_count'] as num?)?.toInt(),
+  prevPeriodNet: (json['prev_period_net'] as num?)?.toInt(),
+  weeklyChart:
+      (json['weekly_chart'] as List<dynamic>?)
+          ?.map((e) => (e as num).toDouble())
+          .toList() ??
+      const [],
+  expenseBreakdown:
+      (json['expense_breakdown'] as List<dynamic>?)
+          ?.map((e) => ExpenseCategory.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$OrganizerEarningsSummaryImplToJson(
@@ -73,4 +88,31 @@ Map<String, dynamic> _$$OrganizerEarningsSummaryImplToJson(
   'pending_player_balance': instance.pendingPlayerBalance,
   'pending_venue_balance': instance.pendingVenueBalance,
   'dispute_hold_balance': instance.disputeHoldBalance,
+  'gross_revenue': instance.grossRevenue,
+  'total_expenses': instance.totalExpenses,
+  'net_revenue_this_period': instance.netRevenueThisPeriod,
+  'session_count': instance.sessionCount,
+  'prev_period_net': instance.prevPeriodNet,
+  'weekly_chart': instance.weeklyChart,
+  'expense_breakdown': instance.expenseBreakdown,
+};
+
+_$ExpenseCategoryImpl _$$ExpenseCategoryImplFromJson(
+  Map<String, dynamic> json,
+) => _$ExpenseCategoryImpl(
+  label: json['label'] as String,
+  subtitle: json['subtitle'] as String?,
+  amount: (json['amount'] as num).toInt(),
+  colorHex: json['color_hex'] as String?,
+  icon: json['icon'] as String?,
+);
+
+Map<String, dynamic> _$$ExpenseCategoryImplToJson(
+  _$ExpenseCategoryImpl instance,
+) => <String, dynamic>{
+  'label': instance.label,
+  'subtitle': instance.subtitle,
+  'amount': instance.amount,
+  'color_hex': instance.colorHex,
+  'icon': instance.icon,
 };

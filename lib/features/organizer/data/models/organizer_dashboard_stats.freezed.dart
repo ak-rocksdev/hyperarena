@@ -32,7 +32,17 @@ mixin _$OrganizerDashboardStats {
   int get atRiskSessions => throw _privateConstructorUsedError;
   int get totalUnpaidAmount => throw _privateConstructorUsedError;
   int get revenueCollectedToday => throw _privateConstructorUsedError;
-  int get revenueExpectedToday => throw _privateConstructorUsedError;
+  int get revenueExpectedToday =>
+      throw _privateConstructorUsedError; // ── Dashboard v2 fields (spec: docs/PRD-organizer-dashboard-be-fields.md) ──
+  // Nullable on purpose: BE may not return them yet. UI hides
+  // corresponding tiles when null instead of showing zeros.
+  int? get lastMonthEarnings => throw _privateConstructorUsedError;
+  int? get sessionsThisMonth => throw _privateConstructorUsedError;
+  int? get coachesActiveToday => throw _privateConstructorUsedError;
+  int? get coachesTotal => throw _privateConstructorUsedError;
+  int? get playersBookedToday => throw _privateConstructorUsedError;
+  int? get hoursOnCourtToday => throw _privateConstructorUsedError;
+  int? get unpaidMemberCount => throw _privateConstructorUsedError;
 
   /// Serializes this OrganizerDashboardStats to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -62,6 +72,13 @@ abstract class $OrganizerDashboardStatsCopyWith<$Res> {
     int totalUnpaidAmount,
     int revenueCollectedToday,
     int revenueExpectedToday,
+    int? lastMonthEarnings,
+    int? sessionsThisMonth,
+    int? coachesActiveToday,
+    int? coachesTotal,
+    int? playersBookedToday,
+    int? hoursOnCourtToday,
+    int? unpaidMemberCount,
   });
 }
 
@@ -93,6 +110,13 @@ class _$OrganizerDashboardStatsCopyWithImpl<
     Object? totalUnpaidAmount = null,
     Object? revenueCollectedToday = null,
     Object? revenueExpectedToday = null,
+    Object? lastMonthEarnings = freezed,
+    Object? sessionsThisMonth = freezed,
+    Object? coachesActiveToday = freezed,
+    Object? coachesTotal = freezed,
+    Object? playersBookedToday = freezed,
+    Object? hoursOnCourtToday = freezed,
+    Object? unpaidMemberCount = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -136,6 +160,34 @@ class _$OrganizerDashboardStatsCopyWithImpl<
                 ? _value.revenueExpectedToday
                 : revenueExpectedToday // ignore: cast_nullable_to_non_nullable
                       as int,
+            lastMonthEarnings: freezed == lastMonthEarnings
+                ? _value.lastMonthEarnings
+                : lastMonthEarnings // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            sessionsThisMonth: freezed == sessionsThisMonth
+                ? _value.sessionsThisMonth
+                : sessionsThisMonth // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            coachesActiveToday: freezed == coachesActiveToday
+                ? _value.coachesActiveToday
+                : coachesActiveToday // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            coachesTotal: freezed == coachesTotal
+                ? _value.coachesTotal
+                : coachesTotal // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            playersBookedToday: freezed == playersBookedToday
+                ? _value.playersBookedToday
+                : playersBookedToday // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            hoursOnCourtToday: freezed == hoursOnCourtToday
+                ? _value.hoursOnCourtToday
+                : hoursOnCourtToday // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            unpaidMemberCount: freezed == unpaidMemberCount
+                ? _value.unpaidMemberCount
+                : unpaidMemberCount // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -162,6 +214,13 @@ abstract class _$$OrganizerDashboardStatsImplCopyWith<$Res>
     int totalUnpaidAmount,
     int revenueCollectedToday,
     int revenueExpectedToday,
+    int? lastMonthEarnings,
+    int? sessionsThisMonth,
+    int? coachesActiveToday,
+    int? coachesTotal,
+    int? playersBookedToday,
+    int? hoursOnCourtToday,
+    int? unpaidMemberCount,
   });
 }
 
@@ -193,6 +252,13 @@ class __$$OrganizerDashboardStatsImplCopyWithImpl<$Res>
     Object? totalUnpaidAmount = null,
     Object? revenueCollectedToday = null,
     Object? revenueExpectedToday = null,
+    Object? lastMonthEarnings = freezed,
+    Object? sessionsThisMonth = freezed,
+    Object? coachesActiveToday = freezed,
+    Object? coachesTotal = freezed,
+    Object? playersBookedToday = freezed,
+    Object? hoursOnCourtToday = freezed,
+    Object? unpaidMemberCount = freezed,
   }) {
     return _then(
       _$OrganizerDashboardStatsImpl(
@@ -236,6 +302,34 @@ class __$$OrganizerDashboardStatsImplCopyWithImpl<$Res>
             ? _value.revenueExpectedToday
             : revenueExpectedToday // ignore: cast_nullable_to_non_nullable
                   as int,
+        lastMonthEarnings: freezed == lastMonthEarnings
+            ? _value.lastMonthEarnings
+            : lastMonthEarnings // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        sessionsThisMonth: freezed == sessionsThisMonth
+            ? _value.sessionsThisMonth
+            : sessionsThisMonth // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        coachesActiveToday: freezed == coachesActiveToday
+            ? _value.coachesActiveToday
+            : coachesActiveToday // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        coachesTotal: freezed == coachesTotal
+            ? _value.coachesTotal
+            : coachesTotal // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        playersBookedToday: freezed == playersBookedToday
+            ? _value.playersBookedToday
+            : playersBookedToday // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        hoursOnCourtToday: freezed == hoursOnCourtToday
+            ? _value.hoursOnCourtToday
+            : hoursOnCourtToday // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        unpaidMemberCount: freezed == unpaidMemberCount
+            ? _value.unpaidMemberCount
+            : unpaidMemberCount // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -255,6 +349,13 @@ class _$OrganizerDashboardStatsImpl implements _OrganizerDashboardStats {
     this.totalUnpaidAmount = 0,
     this.revenueCollectedToday = 0,
     this.revenueExpectedToday = 0,
+    this.lastMonthEarnings,
+    this.sessionsThisMonth,
+    this.coachesActiveToday,
+    this.coachesTotal,
+    this.playersBookedToday,
+    this.hoursOnCourtToday,
+    this.unpaidMemberCount,
   });
 
   factory _$OrganizerDashboardStatsImpl.fromJson(Map<String, dynamic> json) =>
@@ -290,10 +391,27 @@ class _$OrganizerDashboardStatsImpl implements _OrganizerDashboardStats {
   @override
   @JsonKey()
   final int revenueExpectedToday;
+  // ── Dashboard v2 fields (spec: docs/PRD-organizer-dashboard-be-fields.md) ──
+  // Nullable on purpose: BE may not return them yet. UI hides
+  // corresponding tiles when null instead of showing zeros.
+  @override
+  final int? lastMonthEarnings;
+  @override
+  final int? sessionsThisMonth;
+  @override
+  final int? coachesActiveToday;
+  @override
+  final int? coachesTotal;
+  @override
+  final int? playersBookedToday;
+  @override
+  final int? hoursOnCourtToday;
+  @override
+  final int? unpaidMemberCount;
 
   @override
   String toString() {
-    return 'OrganizerDashboardStats(sessionsToday: $sessionsToday, sessionsNext7Days: $sessionsNext7Days, pendingPayments: $pendingPayments, averageParticipants: $averageParticipants, averageRating: $averageRating, monthlyEarnings: $monthlyEarnings, atRiskSessions: $atRiskSessions, totalUnpaidAmount: $totalUnpaidAmount, revenueCollectedToday: $revenueCollectedToday, revenueExpectedToday: $revenueExpectedToday)';
+    return 'OrganizerDashboardStats(sessionsToday: $sessionsToday, sessionsNext7Days: $sessionsNext7Days, pendingPayments: $pendingPayments, averageParticipants: $averageParticipants, averageRating: $averageRating, monthlyEarnings: $monthlyEarnings, atRiskSessions: $atRiskSessions, totalUnpaidAmount: $totalUnpaidAmount, revenueCollectedToday: $revenueCollectedToday, revenueExpectedToday: $revenueExpectedToday, lastMonthEarnings: $lastMonthEarnings, sessionsThisMonth: $sessionsThisMonth, coachesActiveToday: $coachesActiveToday, coachesTotal: $coachesTotal, playersBookedToday: $playersBookedToday, hoursOnCourtToday: $hoursOnCourtToday, unpaidMemberCount: $unpaidMemberCount)';
   }
 
   @override
@@ -320,7 +438,21 @@ class _$OrganizerDashboardStatsImpl implements _OrganizerDashboardStats {
             (identical(other.revenueCollectedToday, revenueCollectedToday) ||
                 other.revenueCollectedToday == revenueCollectedToday) &&
             (identical(other.revenueExpectedToday, revenueExpectedToday) ||
-                other.revenueExpectedToday == revenueExpectedToday));
+                other.revenueExpectedToday == revenueExpectedToday) &&
+            (identical(other.lastMonthEarnings, lastMonthEarnings) ||
+                other.lastMonthEarnings == lastMonthEarnings) &&
+            (identical(other.sessionsThisMonth, sessionsThisMonth) ||
+                other.sessionsThisMonth == sessionsThisMonth) &&
+            (identical(other.coachesActiveToday, coachesActiveToday) ||
+                other.coachesActiveToday == coachesActiveToday) &&
+            (identical(other.coachesTotal, coachesTotal) ||
+                other.coachesTotal == coachesTotal) &&
+            (identical(other.playersBookedToday, playersBookedToday) ||
+                other.playersBookedToday == playersBookedToday) &&
+            (identical(other.hoursOnCourtToday, hoursOnCourtToday) ||
+                other.hoursOnCourtToday == hoursOnCourtToday) &&
+            (identical(other.unpaidMemberCount, unpaidMemberCount) ||
+                other.unpaidMemberCount == unpaidMemberCount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -337,6 +469,13 @@ class _$OrganizerDashboardStatsImpl implements _OrganizerDashboardStats {
     totalUnpaidAmount,
     revenueCollectedToday,
     revenueExpectedToday,
+    lastMonthEarnings,
+    sessionsThisMonth,
+    coachesActiveToday,
+    coachesTotal,
+    playersBookedToday,
+    hoursOnCourtToday,
+    unpaidMemberCount,
   );
 
   /// Create a copy of OrganizerDashboardStats
@@ -368,6 +507,13 @@ abstract class _OrganizerDashboardStats implements OrganizerDashboardStats {
     final int totalUnpaidAmount,
     final int revenueCollectedToday,
     final int revenueExpectedToday,
+    final int? lastMonthEarnings,
+    final int? sessionsThisMonth,
+    final int? coachesActiveToday,
+    final int? coachesTotal,
+    final int? playersBookedToday,
+    final int? hoursOnCourtToday,
+    final int? unpaidMemberCount,
   }) = _$OrganizerDashboardStatsImpl;
 
   factory _OrganizerDashboardStats.fromJson(Map<String, dynamic> json) =
@@ -392,7 +538,23 @@ abstract class _OrganizerDashboardStats implements OrganizerDashboardStats {
   @override
   int get revenueCollectedToday;
   @override
-  int get revenueExpectedToday;
+  int get revenueExpectedToday; // ── Dashboard v2 fields (spec: docs/PRD-organizer-dashboard-be-fields.md) ──
+  // Nullable on purpose: BE may not return them yet. UI hides
+  // corresponding tiles when null instead of showing zeros.
+  @override
+  int? get lastMonthEarnings;
+  @override
+  int? get sessionsThisMonth;
+  @override
+  int? get coachesActiveToday;
+  @override
+  int? get coachesTotal;
+  @override
+  int? get playersBookedToday;
+  @override
+  int? get hoursOnCourtToday;
+  @override
+  int? get unpaidMemberCount;
 
   /// Create a copy of OrganizerDashboardStats
   /// with the given fields replaced by the non-null parameter values.

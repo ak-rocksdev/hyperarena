@@ -1,50 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
-import 'package:hyperarena/core/theme/app_typography.dart';
-import 'package:hyperarena/core/utils/formatters.dart';
-import 'package:hyperarena/core/widgets/async_value_widget.dart';
-import 'package:hyperarena/core/widgets/empty_state.dart';
-import 'package:hyperarena/features/auth/providers/auth_provider.dart';
-import 'package:hyperarena/features/organizer/presentation/widgets/action_queue_widget.dart';
-import 'package:hyperarena/features/organizer/presentation/widgets/earnings_snapshot_card.dart';
-import 'package:hyperarena/features/organizer/presentation/widgets/kpi_strip_widget.dart';
-import 'package:hyperarena/features/organizer/presentation/widgets/organizer_session_card.dart';
-import 'package:hyperarena/features/organizer/presentation/widgets/session_filter_bar.dart';
-import 'package:hyperarena/features/organizer/presentation/widgets/todays_collections_hero.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/dashboard_action_list.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/day_timeline.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/organizer_hero_band.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/today_activity_strip.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/widgets/money_text.dart';
 
+/// Organizer dashboard v2 — redesigned per
+/// `docs/PRD-organizer-ui-improvement.md` (Direction B "Brand teal").
+///
+/// Composition (top → bottom):
+///   1. [OrganizerHeroBand] — teal gradient band with header, monthly
+///      revenue hero, and Belum/Siap-cair glass tiles.
+///   2. [TodayActivityStrip] — "Hari ini" 3 mini KPIs.
+///   3. [DayTimeline] — "Jadwal" vertical timeline of today's sessions.
+///   4. [DashboardActionList] — "Perlu tindakan" top-3 flat rows.
+///   5. FAB "Buat Sesi" — brand teal pill bottom-right.
 class OrganizerDashboardScreen extends ConsumerWidget {
   const OrganizerDashboardScreen({super.key});
 
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 11) return 'Selamat Pagi';
-    if (hour < 15) return 'Selamat Siang';
-    if (hour < 18) return 'Selamat Sore';
-    return 'Selamat Malam';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authNotifierProvider);
     final statsAsync = ref.watch(organizerDashboardProvider);
     final inboxAsync = ref.watch(organizerActionInboxProvider);
     final agendaAsync = ref.watch(organizerAgendaProvider);
     final earningsAsync = ref.watch(organizerEarningsProvider);
-    final dateRange = ref.watch(dashboardDateRangeProvider);
-    final filter = ref.watch(dashboardFilterProvider);
+    final clubAsync = ref.watch(clubProfileProvider);
+
+    final stats = statsAsync.valueOrNull;
+    final earnings = earningsAsync.valueOrNull;
+    final club = clubAsync.valueOrNull;
+    final agenda = agendaAsync.valueOrNull ?? const <OpenSession>[];
+    final inbox = inboxAsync.valueOrNull ?? [];
 
     Future<void> refreshAll() async {
       ref.invalidate(organizerDashboardProvider);
       ref.invalidate(organizerActionInboxProvider);
       ref.invalidate(organizerAgendaProvider);
       ref.invalidate(organizerEarningsProvider);
+      ref.invalidate(clubProfileProvider);
       await Future.wait([
         ref.read(organizerDashboardProvider.future),
         ref.read(organizerActionInboxProvider.future),
@@ -53,110 +53,57 @@ class OrganizerDashboardScreen extends ConsumerWidget {
       ]);
     }
 
-    return Scaffold(
-      // ── 7. FAB — "Buat Sesi" ───────────────────────────────
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'dashboardCreateSession',
-        onPressed: () => context.push(AppRoutes.organizerCreateSession),
-        icon: const Icon(Icons.add),
-        label: const Text('Buat Sesi'),
-        backgroundColor: AppColors.accent,
-        foregroundColor: Colors.white,
+    final today = DateTime.now();
+    final todaySessions = agenda.where((s) {
+      return s.date.year == today.year &&
+          s.date.month == today.month &&
+          s.date.day == today.day;
+    }).toList()
+      ..sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Hero band is teal — force light status-bar icons so signal/wifi/
+      // battery stay legible against the dark teal gradient.
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark, // iOS — flips text white
       ),
-      body: SafeArea(
-        child: RefreshIndicator(
+      child: Scaffold(
+        // Edge-to-edge: hero band extends behind the status bar; the FAB
+        // floats over the scrolling content.
+        extendBodyBehindAppBar: true,
+        floatingActionButton: FloatingActionButton.extended(
+          heroTag: 'dashboardCreateSession',
+          onPressed: () => context.push(AppRoutes.organizerCreateSession),
+          icon: const Icon(Icons.add),
+          label: const Text('Buat Sesi'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 6,
+          shape: const StadiumBorder(),
+        ),
+        body: RefreshIndicator(
           onRefresh: refreshAll,
+          color: AppColors.primary,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── 1. Greeting ──────────────────────────────────
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${_greeting()}, ${Formatters.firstName(user?.name, fallback: 'Organizer')}!',
-                        style: AppTypography.headingLarge,
-                      ),
-                    ),
-                    // Money visibility toggle — sensitive-by-default;
-                    // organizer can reveal nominals when away from prying
-                    // eyes (state persists across app restarts).
-                    const MoneyVisibilityToggle(),
-                  ],
+                OrganizerHeroBand(
+                  stats: stats,
+                  earnings: earnings,
+                  club: club,
                 ),
-                const SizedBox(height: AppDimensions.base),
-
-                // ── 2. Today's Collections hero ──────────────────
-                // Self-hides when both revenue values are 0 (no sessions
-                // today) so the dashboard stays compact on idle days.
-                AsyncValueWidget(
-                  value: statsAsync,
-                  data: (stats) => TodaysCollectionsHero(stats: stats),
+                TodayActivityStrip(stats: stats),
+                DayTimeline(
+                  sessions: todaySessions,
+                  hoursOnCourt: stats?.hoursOnCourtToday,
                 ),
-                const SizedBox(height: AppDimensions.base),
-
-                // ── 3. KPI Strip ─────────────────────────────────
-                AsyncValueWidget(
-                  value: statsAsync,
-                  data: (stats) => KpiStripWidget(stats: stats),
-                ),
-                const SizedBox(height: AppDimensions.xl),
-
-                // ── 3. Action Queue ──────────────────────────────
-                AsyncValueWidget(
-                  value: inboxAsync,
-                  data: (items) => ActionQueueWidget(items: items),
-                ),
-                const SizedBox(height: AppDimensions.xl),
-
-                // ── 4. Date toggle + filter chips ────────────────
-                const SessionFilterBar(),
-                const SizedBox(height: AppDimensions.base),
-
-                // ── 5. Session list (filtered) ───────────────────
-                Row(
-                  children: [
-                    Text('Sesi Mendatang', style: AppTypography.titleMedium),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => context.go(AppRoutes.organizerSessions),
-                      child: const Text('Lihat Semua'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppDimensions.sm),
-                AsyncValueWidget(
-                  value: agendaAsync,
-                  data: (sessions) {
-                    final filtered = _applyFilters(sessions, dateRange, filter);
-                    if (filtered.isEmpty) {
-                      return const EmptyState(
-                        message: 'Tidak ada sesi yang cocok',
-                        icon: Icons.event_available_outlined,
-                      );
-                    }
-                    return Column(
-                      children: [
-                        for (var i = 0; i < filtered.length; i++) ...[
-                          OrganizerSessionCard(session: filtered[i]),
-                          if (i < filtered.length - 1)
-                            const SizedBox(height: AppDimensions.sm),
-                        ],
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: AppDimensions.xl),
-
-                // ── 6. Earnings card ─────────────────────────────
-                AsyncValueWidget(
-                  value: earningsAsync,
-                  data: (earnings) => EarningsSnapshotCard(earnings: earnings),
-                ),
-                // Extra bottom padding for FAB clearance
+                DashboardActionList(items: inbox),
+                // FAB clearance — keeps the last action row from sliding
+                // under the floating "Buat Sesi" pill.
                 const SizedBox(
                   height: AppDimensions.massive + AppDimensions.xl,
                 ),
@@ -166,44 +113,5 @@ class OrganizerDashboardScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  /// Client-side filtering based on date range and status filter.
-  List<OpenSession> _applyFilters(
-    List<OpenSession> sessions,
-    DashboardDateRange dateRange,
-    DashboardFilter filter,
-  ) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // Date filter
-    var filtered = sessions.where((s) {
-      final sessionDay = DateTime(s.date.year, s.date.month, s.date.day);
-      return switch (dateRange) {
-        DashboardDateRange.today => sessionDay == today,
-        DashboardDateRange.tomorrow =>
-          sessionDay == today.add(const Duration(days: 1)),
-        DashboardDateRange.thisWeek =>
-          !sessionDay.isBefore(today) &&
-              sessionDay.isBefore(today.add(const Duration(days: 7))),
-      };
-    }).toList();
-
-    // Status filter
-    if (filter != DashboardFilter.none) {
-      filtered = filtered.where((s) {
-        return switch (filter) {
-          DashboardFilter.none => true,
-          DashboardFilter.pendingPayment => s.health.pendingPayments > 0,
-          DashboardFilter.lowQuota => s.health.isLowSignupRisk,
-          DashboardFilter.dispute =>
-            false, // would need dispute field on session
-          DashboardFilter.confirmed => s.status == OpenSessionStatus.confirmed,
-        };
-      }).toList();
-    }
-
-    return filtered;
   }
 }

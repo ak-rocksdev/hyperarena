@@ -31,10 +31,11 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_student_det
 import 'package:hyperarena/features/coach/presentation/screens/coach_students_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/student_detail_screen.dart';
 import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
+import 'package:hyperarena/features/organizer/presentation/screens/organizer_community_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
+import 'package:hyperarena/features/organizer/presentation/screens/organizer_earnings_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_member_detail_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_members_screen.dart';
-import 'package:hyperarena/features/organizer/presentation/screens/organizer_earnings_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_session_detail_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_session_list_screen.dart';
 import 'package:hyperarena/features/owner/presentation/screens/owner_dashboard_screen.dart';
@@ -136,24 +137,29 @@ class RoleShell extends StatelessWidget {
     ],
     UserRole.organizer => const [
       NavigationDestination(
-        icon: Icon(Icons.dashboard_outlined),
-        selectedIcon: Icon(Icons.dashboard),
-        label: 'Dashboard',
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: 'Beranda',
       ),
       NavigationDestination(
         icon: Icon(Icons.event_outlined),
         selectedIcon: Icon(Icons.event),
-        label: 'Sessions',
+        label: 'Sesi',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.people_outline),
+        selectedIcon: Icon(Icons.people),
+        label: 'Anggota',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.account_balance_wallet_outlined),
+        selectedIcon: Icon(Icons.account_balance_wallet),
+        label: 'Pendapatan',
       ),
       NavigationDestination(
         icon: Icon(Icons.groups_outlined),
         selectedIcon: Icon(Icons.groups),
         label: 'Klub',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person),
-        label: 'Profile',
       ),
     ],
     UserRole.courtOwner => const [
@@ -494,7 +500,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             CoachDetailScreen(coachId: state.pathParameters['id']!),
       ),
 
-      // ── Organizer role shell (4 tabs) ────────────────
+      // ── Organizer role shell (5 tabs — PR 4d) ────────
+      // Profile moves out of the shell; reachable from the dashboard
+      // header (`/organizer/profile` is still a full-screen route).
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) =>
             RoleShell(navigationShell: shell, role: UserRole.organizer),
@@ -518,11 +526,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.organizerClub,
+                path: AppRoutes.organizerMembers,
                 builder: (_, _) => const OrganizerMembersScreen(),
                 routes: [
                   GoRoute(
-                    path: 'members/:id',
+                    path: ':id',
                     builder: (_, state) => OrganizerMemberDetailScreen(
                       memberId: state.pathParameters['id']!,
                     ),
@@ -534,8 +542,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.organizerProfile,
-                builder: (_, _) => const ProfileScreen(),
+                path: AppRoutes.organizerEarnings,
+                builder: (_, _) => const OrganizerEarningsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.organizerClub,
+                builder: (_, _) => const OrganizerCommunityScreen(),
               ),
             ],
           ),
@@ -590,9 +606,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) =>
             ParticipantManagementScreen(sessionId: state.pathParameters['id']!),
       ),
+      // organizerEarnings moved into the organizer shell as a tab (PR 4d).
+      // Profile is now reachable via the dashboard header icon (not in nav).
       GoRoute(
-        path: AppRoutes.organizerEarnings,
-        builder: (_, _) => const OrganizerEarningsScreen(),
+        path: AppRoutes.organizerProfile,
+        builder: (_, _) => const ProfileScreen(),
       ),
       GoRoute(
         path: AppRoutes.organizerInbox,

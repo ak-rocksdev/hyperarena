@@ -74,8 +74,11 @@ abstract final class AppRoutes {
   // ── Organizer routes ───────────────────────────────────────────────
   static const organizerDashboard = '/organizer/dashboard';
   static const organizerSessions = '/organizer/sessions';
+  static const organizerMembers = '/organizer/members';
+  static String organizerMember(String id) => '/organizer/members/$id';
+  /// Community / Klub tab — club identity, cover photo, member directory.
+  /// Distinct from [organizerMembers] (financial-lens member list).
   static const organizerClub = '/organizer/club';
-  static String organizerMember(String id) => '/organizer/club/members/$id';
   static const organizerProfile = '/organizer/profile';
   static const organizerCreateSession = '/organizer/session/create';
   static String organizerSessionDetail(String id) => '/organizer/session/$id';

@@ -303,6 +303,8 @@ _$FinancialStatsImpl _$$FinancialStatsImplFromJson(Map<String, dynamic> json) =>
       outstandingAmount: (json['outstanding_amount'] as num?)?.toInt() ?? 0,
       outstandingCount: (json['outstanding_count'] as num?)?.toInt() ?? 0,
       totalTransactions: (json['total_transactions'] as num?)?.toInt() ?? 0,
+      oldestUnpaidDays: (json['oldest_unpaid_days'] as num?)?.toInt(),
+      lifetimeSpend: (json['lifetime_spend'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$$FinancialStatsImplToJson(
@@ -312,6 +314,8 @@ Map<String, dynamic> _$$FinancialStatsImplToJson(
   'outstanding_amount': instance.outstandingAmount,
   'outstanding_count': instance.outstandingCount,
   'total_transactions': instance.totalTransactions,
+  'oldest_unpaid_days': instance.oldestUnpaidDays,
+  'lifetime_spend': instance.lifetimeSpend,
 };
 
 _$PaymentHistoryItemImpl _$$PaymentHistoryItemImplFromJson(

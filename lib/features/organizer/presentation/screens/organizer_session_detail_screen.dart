@@ -3,23 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
-import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
-import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
-import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
-import 'package:hyperarena/features/auth/providers/auth_provider.dart';
-import 'package:hyperarena/features/organizer/data/models/session_financial.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/payment_proof_sheet.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/session_detail_hero.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/session_health_strip.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/session_settlement_card.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/organizer/providers/participant_management_provider.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:hyperarena/shared/widgets/session_hero.dart';
 
 class OrganizerSessionDetailScreen extends ConsumerWidget {
   const OrganizerSessionDetailScreen({super.key, required this.sessionId});
@@ -50,296 +48,31 @@ class OrganizerSessionDetailScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
             children: [
-              // 1. Session header card
-              _SessionHeaderCard(session: session),
+              // 1. Sport-tinted hero card
+              SessionDetailHero(session: session),
               const SizedBox(height: AppDimensions.lg),
 
-              // 2. Health summary strip
-              _HealthSummaryStrip(session: session),
+              // 2. Health strip
+              SessionHealthStrip(session: session),
               const SizedBox(height: AppDimensions.lg),
 
-              // 3. Action buttons row
+              // 3. Settlement (money first — design intent)
+              _SettlementSection(sessionId: sessionId),
+              const SizedBox(height: AppDimensions.lg),
+
+              // 4. Participant roster + batch confirm CTA
+              _ParticipantRoster(sessionId: sessionId),
+              const SizedBox(height: AppDimensions.lg),
+
+              // 5. Action pills (Kirim Pengingat / Batalkan)
               _ActionButtonsRow(
                 sessionId: sessionId,
                 actions: ref.read(participantManagementProvider),
               ),
-              const SizedBox(height: AppDimensions.lg),
-
-              // 4. Participant roster
-              _ParticipantRoster(sessionId: sessionId),
-              const SizedBox(height: AppDimensions.lg),
-
-              // 5. Settlement section
-              _SettlementSection(sessionId: sessionId),
               const SizedBox(height: AppDimensions.huge),
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-// ── 1. Session Header Card ──────────────────────────────────────────────────
-
-class _SessionHeaderCard extends ConsumerWidget {
-  const _SessionHeaderCard({required this.session});
-
-  final OpenSession session;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
-    final sportColor = sportTheme.color(session.sport);
-    final sportBg = sportTheme.backgroundColor(session.sport);
-    final currency = ref.watch(tenantCurrencyProvider);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        boxShadow: AppShadows.sm,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Hero — tappable for fullscreen on real photos.
-          SessionHero(
-            photoUrls: session.photoUrls,
-            photoPath: session.photoPath,
-            size: SessionHeroSize.lg,
-            borderRadius: 0,
-            enableZoom: true,
-            heroTag: 'organizer-session-hero-${session.id}',
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppDimensions.base),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-          // Top row: sport badge + edit icon
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: sportBg,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-                ),
-                child: Text(
-                  SportChipSelector.sportLabel(session.sport),
-                  style: AppTypography.labelSmall.copyWith(color: sportColor),
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Edit akan segera hadir'),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.edit_outlined),
-                iconSize: 20,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimensions.sm),
-
-          // Title
-          Text(session.safeTitle, style: AppTypography.headingSmall),
-          const SizedBox(height: AppDimensions.sm),
-
-          // Status pill
-          _SessionStatusPill(status: session.status),
-          const SizedBox(height: AppDimensions.md),
-
-          // Info rows
-          _InfoRow(
-            icon: Icons.location_on_outlined,
-            text: session.venueName,
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          _InfoRow(
-            icon: Icons.calendar_today_outlined,
-            text: Formatters.formatDate(session.date),
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          _InfoRow(
-            icon: Icons.access_time_outlined,
-            text: Formatters.formatTimeRange(
-              session.startTime,
-              session.endTime,
-            ),
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          _InfoRow(
-            icon: Icons.attach_money_outlined,
-            text: Formatters.sessionPriceLabel(
-              effectivePrice: session.pricing?.effectivePrice,
-              paymentMode: session.pricing?.paymentMode,
-              creditRequired: session.pricing?.creditRequired,
-              currency: session.pricing?.currency,
-              fallbackAmount: session.pricePerPerson,
-              tenantCurrency: currency,
-            ),
-          ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SessionStatusPill extends StatelessWidget {
-  const _SessionStatusPill({required this.status});
-
-  final OpenSessionStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _statusColor(status);
-    final label = _statusLabel(status);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.labelSmall.copyWith(color: color),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.neutral400),
-        const SizedBox(width: AppDimensions.sm),
-        Expanded(child: Text(text, style: AppTypography.bodyMedium)),
-      ],
-    );
-  }
-}
-
-// ── 2. Health Summary Strip ─────────────────────────────────────────────────
-
-class _HealthSummaryStrip extends StatelessWidget {
-  const _HealthSummaryStrip({required this.session});
-
-  final OpenSession session;
-
-  @override
-  Widget build(BuildContext context) {
-    final isFull = session.currentPlayers >= session.maxPlayers;
-    final fillColor = isFull ? AppColors.success : AppColors.primary;
-
-    final hasPending = session.health.pendingPayments > 0;
-    final pendingColor = hasPending ? AppColors.warning : AppColors.success;
-
-    final settlementColor = _settlementColor(session.settlementStatus);
-    final settlementLabel = _settlementLabel(session.settlementStatus);
-
-    return Row(
-      children: [
-        Expanded(
-          child: _HealthCard(
-            label: 'Peserta',
-            value: '${session.currentPlayers}/${session.maxPlayers}',
-            color: fillColor,
-          ),
-        ),
-        const SizedBox(width: AppDimensions.sm),
-        Expanded(
-          child: _HealthCard(
-            label: 'Tertunda',
-            value: '${session.health.pendingPayments}',
-            color: pendingColor,
-          ),
-        ),
-        const SizedBox(width: AppDimensions.sm),
-        Expanded(
-          child: _HealthCard(
-            label: 'Settlement',
-            value: settlementLabel,
-            color: settlementColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Color _settlementColor(SessionSettlementStatus status) {
-    return switch (status) {
-      SessionSettlementStatus.pending => AppColors.warning,
-      SessionSettlementStatus.cleared => AppColors.info,
-      SessionSettlementStatus.paidOut => AppColors.success,
-    };
-  }
-
-  String _settlementLabel(SessionSettlementStatus status) {
-    return switch (status) {
-      SessionSettlementStatus.pending => 'Tertunda',
-      SessionSettlementStatus.cleared => 'Tersedia',
-      SessionSettlementStatus.paidOut => 'Dibayarkan',
-    };
-  }
-}
-
-class _HealthCard extends StatelessWidget {
-  const _HealthCard({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.sm),
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        boxShadow: AppShadows.xs,
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: AppTypography.caption,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          Text(
-            value,
-            style: AppTypography.titleSmall.copyWith(color: color),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ),
     );
   }
@@ -358,13 +91,12 @@ class _ActionButtonsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _TonalActionButton(
-            icon: Icons.notifications_active_outlined,
-            label: 'Kirim Pengingat',
+    // Bagikan + Duplikat hidden as stubs per PRD §6 reduce-stub-debt rule.
+    // Re-add when actual implementations exist.
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
             onPressed: () => _showTemplatePicker(
               context,
               onTemplate: (templateCode) => actions.sendMessage(
@@ -372,36 +104,29 @@ class _ActionButtonsRow extends StatelessWidget {
                 templateCode: templateCode,
               ),
             ),
+            icon: const Icon(
+              Icons.notifications_active_outlined,
+              size: 16,
+            ),
+            label: const Text('Kirim Pengingat'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textSecondary,
+              side: const BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.radiusMd),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              textStyle: AppTypography.labelMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
           ),
-          const SizedBox(width: AppDimensions.sm),
-          _TonalActionButton(
-            icon: Icons.share_outlined,
-            label: 'Bagikan',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Fitur berbagi akan segera hadir'),
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: AppDimensions.sm),
-          _TonalActionButton(
-            icon: Icons.copy_outlined,
-            label: 'Duplikat',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Fitur duplikasi akan segera hadir'),
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: AppDimensions.sm),
-          _TonalActionButton(
-            icon: Icons.cancel_outlined,
-            label: 'Batalkan',
-            foregroundColor: AppColors.error,
+        ),
+        const SizedBox(width: AppDimensions.sm),
+        Expanded(
+          child: OutlinedButton.icon(
             onPressed: () => _showReasonDialog(
               context,
               title: 'Batalkan Sesi',
@@ -411,42 +136,27 @@ class _ActionButtonsRow extends StatelessWidget {
                 reason: reason,
               ),
             ),
+            icon: const Icon(Icons.cancel_outlined, size: 16),
+            label: const Text('Batalkan'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.errorDark,
+              backgroundColor: AppColors.errorLight,
+              side: BorderSide(
+                color: AppColors.error.withValues(alpha: 0.4),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.radiusMd),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              textStyle: AppTypography.labelMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TonalActionButton extends StatelessWidget {
-  const _TonalActionButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-    this.foregroundColor,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
-  final Color? foregroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton.tonal(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        foregroundColor: foregroundColor,
-        visualDensity: VisualDensity.compact,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 4),
-          Text(label),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -501,13 +211,50 @@ class _ParticipantRoster extends ConsumerWidget {
                 icon: Icons.group_off_outlined,
               );
             }
+            final pendingCount = participants
+                .where(
+                  (p) => p.status == SessionParticipantStatus.pendingPayment,
+                )
+                .length;
+
             return Column(
-              children: participants.map((participant) {
-                return _ParticipantRow(
-                  participant: participant,
-                  sessionId: sessionId,
-                );
-              }).toList(),
+              children: [
+                ...participants.map(
+                  (participant) => _ParticipantRow(
+                    participant: participant,
+                    sessionId: sessionId,
+                  ),
+                ),
+                if (pendingCount > 0) ...[
+                  const SizedBox(height: AppDimensions.sm),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => context.push(
+                        AppRoutes.organizerParticipants(sessionId),
+                      ),
+                      icon: const Icon(Icons.check, size: 16),
+                      label: Text(
+                        'Konfirmasi Semua Pembayaran ($pendingCount)',
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusMd,
+                          ),
+                        ),
+                        textStyle: AppTypography.labelMedium.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             );
           },
         ),
@@ -584,6 +331,41 @@ class _ParticipantRow extends ConsumerWidget {
 
   void _showParticipantActions(BuildContext context, WidgetRef ref) {
     final actions = ref.read(participantManagementProvider);
+
+    // Pending payment uses the redesigned PaymentProofSheet (PR 4c):
+    // proof preview front-and-center, claimed amount vs expected check,
+    // dual Tolak / Tandai Lunas buttons. Other statuses keep the generic
+    // sheet (existing flow) since their actions don't share the same
+    // payment-confirmation chrome.
+    if (participant.status == SessionParticipantStatus.pendingPayment) {
+      final sessionData =
+          ref.read(organizerSessionDetailProvider(sessionId)).valueOrNull;
+      final expectedAmount = sessionData?.pricing?.effectivePrice ??
+          sessionData?.pricePerPerson ??
+          0;
+      final sessionTitle = sessionData?.safeTitle ?? 'Sesi';
+      PaymentProofSheet.show(
+        context: context,
+        participant: participant,
+        sessionTitle: sessionTitle,
+        expectedAmount: expectedAmount,
+        onConfirm: () => actions.confirm(
+          participantId: participant.id,
+          sessionId: sessionId,
+        ),
+        onReject: () => _showReasonDialog(
+          context,
+          title: 'Tolak Peserta',
+          label: 'Alasan penolakan',
+          onSubmit: (reason) => actions.reject(
+            participantId: participant.id,
+            sessionId: sessionId,
+            reason: reason,
+          ),
+        ),
+      );
+      return;
+    }
 
     showModalBottomSheet<void>(
       context: context,
@@ -933,7 +715,8 @@ class _ParticipantStatusChip extends StatelessWidget {
 
 /// Replaces the old `organizerEarningsProvider` settlement (which
 /// hardcoded `estimated_cost: 0`) with the live financial snapshot from
-/// `SessionFinancialService::forSession`.
+/// `SessionFinancialService::forSession`. Uses the redesigned
+/// [SessionSettlementCard] (prominent net + group rows).
 class _SettlementSection extends ConsumerWidget {
   const _SettlementSection({required this.sessionId});
 
@@ -946,297 +729,29 @@ class _SettlementSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Settlement', style: AppTypography.titleMedium),
+        Row(
+          children: [
+            Text(
+              'Rincian keuangan',
+              style: AppTypography.titleMedium.copyWith(
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(width: AppDimensions.sm),
+            Text(
+              'Estimasi · belum selesai',
+              style: AppTypography.labelMedium.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: AppDimensions.sm),
         AsyncValueWidget(
           value: financialAsync,
-          data: (fin) => _FinancialBreakdown(financial: fin),
-        ),
-      ],
-    );
-  }
-}
-
-class _FinancialBreakdown extends StatefulWidget {
-  const _FinancialBreakdown({required this.financial});
-
-  final SessionFinancial financial;
-
-  @override
-  State<_FinancialBreakdown> createState() => _FinancialBreakdownState();
-}
-
-class _FinancialBreakdownState extends State<_FinancialBreakdown> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final fin = widget.financial;
-    final currency = fin.currency;
-    final hasDetail = fin.revenue.systemTracked.streams.isNotEmpty ||
-        fin.cost.systemTracked.streams.isNotEmpty ||
-        fin.revenue.custom.entries.isNotEmpty ||
-        fin.cost.custom.entries.isNotEmpty;
-
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.base),
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        boxShadow: AppShadows.xs,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _NetTopLine(net: fin.net, currency: currency),
-          const SizedBox(height: AppDimensions.sm),
-          const Divider(height: 1),
-          const SizedBox(height: AppDimensions.sm),
-          _SettlementRow(
-            label: 'Pendapatan',
-            value: Formatters.formatCurrency(fin.revenue.total, currency),
-            valueColor: AppColors.success,
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          _SettlementRow(
-            label: 'Biaya',
-            value: '- ${Formatters.formatCurrency(fin.cost.total, currency)}',
-            valueColor: AppColors.error,
-          ),
-          if (hasDetail) ...[
-            const SizedBox(height: AppDimensions.sm),
-            InkWell(
-              onTap: () => setState(() => _expanded = !_expanded),
-              borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: AppDimensions.xs),
-                child: Row(
-                  children: [
-                    Icon(
-                      _expanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      size: 18,
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(width: AppDimensions.xs),
-                    Text(
-                      _expanded ? 'Sembunyikan rincian' : 'Lihat rincian',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (_expanded)
-              _BreakdownPanel(financial: fin, currency: currency),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _NetTopLine extends StatelessWidget {
-  const _NetTopLine({required this.net, required this.currency});
-
-  final FinancialNet net;
-  final String currency;
-
-  @override
-  Widget build(BuildContext context) {
-    final isPositive = net.amount >= 0;
-    final color = isPositive ? AppColors.success : AppColors.error;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Pendapatan Bersih', style: AppTypography.caption),
-            const SizedBox(height: 2),
-            Text(
-              Formatters.formatCurrency(net.amount, currency),
-              style: AppTypography.titleMedium.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        if (net.marginPercent != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-            ),
-            child: Text(
-              'Margin ${net.marginPercent}%',
-              style: AppTypography.labelSmall.copyWith(color: color),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _BreakdownPanel extends StatelessWidget {
-  const _BreakdownPanel({required this.financial, required this.currency});
-
-  final SessionFinancial financial;
-  final String currency;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: AppDimensions.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (financial.revenue.systemTracked.streams.isNotEmpty ||
-              financial.revenue.custom.entries.isNotEmpty)
-            _BreakdownGroup(
-              label: 'Pendapatan',
-              accent: AppColors.success,
-              streams: financial.revenue.systemTracked.streams,
-              entries: financial.revenue.custom.entries,
-              currency: currency,
-            ),
-          if (financial.cost.systemTracked.streams.isNotEmpty ||
-              financial.cost.custom.entries.isNotEmpty) ...[
-            const SizedBox(height: AppDimensions.sm),
-            _BreakdownGroup(
-              label: 'Biaya',
-              accent: AppColors.error,
-              streams: financial.cost.systemTracked.streams,
-              entries: financial.cost.custom.entries,
-              currency: currency,
-              negative: true,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _BreakdownGroup extends StatelessWidget {
-  const _BreakdownGroup({
-    required this.label,
-    required this.accent,
-    required this.streams,
-    required this.entries,
-    required this.currency,
-    this.negative = false,
-  });
-
-  final String label;
-  final Color accent;
-  final List<FinancialStream> streams;
-  final List<FinancialEntry> entries;
-  final String currency;
-  final bool negative;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.sm),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: AppTypography.caption.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          for (final s in streams.where((s) => s.amount != 0))
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: _SettlementRow(
-                label: s.displayLabel,
-                value: _amountText(s.amount, currency),
-                valueColor: negative ? AppColors.error : null,
-              ),
-            ),
-          for (final e in entries)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: _SettlementRow(
-                label: e.category?.name ?? 'Lain-lain',
-                value: _amountText(e.amount, currency),
-                valueColor: negative ? AppColors.error : null,
-                hint: e.notes,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  String _amountText(int amount, String currency) {
-    final formatted = Formatters.formatCurrency(amount, currency);
-    return negative ? '- $formatted' : formatted;
-  }
-}
-
-class _SettlementRow extends StatelessWidget {
-  const _SettlementRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-    this.hint,
-  });
-
-  final String label;
-  final String value;
-  final Color? valueColor;
-  final String? hint;
-
-  @override
-  Widget build(BuildContext context) {
-    final hintText = hint;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(label, style: AppTypography.bodyMedium),
-              if (hintText != null && hintText.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    hintText,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(width: AppDimensions.sm),
-        Text(
-          value,
-          style: AppTypography.bodyMedium.copyWith(
-            color: valueColor,
-          ),
+          data: (fin) => SessionSettlementCard(financial: fin),
         ),
       ],
     );
@@ -1244,26 +759,6 @@ class _SettlementRow extends StatelessWidget {
 }
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
-
-Color _statusColor(OpenSessionStatus status) {
-  return switch (status) {
-    OpenSessionStatus.open => AppColors.primary,
-    OpenSessionStatus.full => AppColors.warning,
-    OpenSessionStatus.confirmed => AppColors.success,
-    OpenSessionStatus.cancelled => AppColors.error,
-    OpenSessionStatus.completed => AppColors.neutral400,
-  };
-}
-
-String _statusLabel(OpenSessionStatus status) {
-  return switch (status) {
-    OpenSessionStatus.open => 'Terjadwal',
-    OpenSessionStatus.full => 'Penuh',
-    OpenSessionStatus.confirmed => 'Terkonfirmasi',
-    OpenSessionStatus.cancelled => 'Dibatalkan',
-    OpenSessionStatus.completed => 'Selesai',
-  };
-}
 
 String _participantStatusLabel(SessionParticipantStatus status) {
   return switch (status) {

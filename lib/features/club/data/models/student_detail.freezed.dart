@@ -3350,7 +3350,13 @@ mixin _$FinancialStats {
   @JsonKey(name: 'outstanding_count')
   int get outstandingCount => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_transactions')
-  int get totalTransactions => throw _privateConstructorUsedError;
+  int get totalTransactions => throw _privateConstructorUsedError; // ── Member Detail v2 fields (spec: PRD-organizer-dashboard-be-fields.md) ──
+  // Nullable on purpose: BE may not return them yet. UI hides the aging
+  // progress bar + lifetime tile gracefully when null.
+  @JsonKey(name: 'oldest_unpaid_days')
+  int? get oldestUnpaidDays => throw _privateConstructorUsedError;
+  @JsonKey(name: 'lifetime_spend')
+  int? get lifetimeSpend => throw _privateConstructorUsedError;
 
   /// Serializes this FinancialStats to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -3374,6 +3380,8 @@ abstract class $FinancialStatsCopyWith<$Res> {
     @JsonKey(name: 'outstanding_amount') int outstandingAmount,
     @JsonKey(name: 'outstanding_count') int outstandingCount,
     @JsonKey(name: 'total_transactions') int totalTransactions,
+    @JsonKey(name: 'oldest_unpaid_days') int? oldestUnpaidDays,
+    @JsonKey(name: 'lifetime_spend') int? lifetimeSpend,
   });
 }
 
@@ -3396,6 +3404,8 @@ class _$FinancialStatsCopyWithImpl<$Res, $Val extends FinancialStats>
     Object? outstandingAmount = null,
     Object? outstandingCount = null,
     Object? totalTransactions = null,
+    Object? oldestUnpaidDays = freezed,
+    Object? lifetimeSpend = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -3415,6 +3425,14 @@ class _$FinancialStatsCopyWithImpl<$Res, $Val extends FinancialStats>
                 ? _value.totalTransactions
                 : totalTransactions // ignore: cast_nullable_to_non_nullable
                       as int,
+            oldestUnpaidDays: freezed == oldestUnpaidDays
+                ? _value.oldestUnpaidDays
+                : oldestUnpaidDays // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            lifetimeSpend: freezed == lifetimeSpend
+                ? _value.lifetimeSpend
+                : lifetimeSpend // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -3435,6 +3453,8 @@ abstract class _$$FinancialStatsImplCopyWith<$Res>
     @JsonKey(name: 'outstanding_amount') int outstandingAmount,
     @JsonKey(name: 'outstanding_count') int outstandingCount,
     @JsonKey(name: 'total_transactions') int totalTransactions,
+    @JsonKey(name: 'oldest_unpaid_days') int? oldestUnpaidDays,
+    @JsonKey(name: 'lifetime_spend') int? lifetimeSpend,
   });
 }
 
@@ -3456,6 +3476,8 @@ class __$$FinancialStatsImplCopyWithImpl<$Res>
     Object? outstandingAmount = null,
     Object? outstandingCount = null,
     Object? totalTransactions = null,
+    Object? oldestUnpaidDays = freezed,
+    Object? lifetimeSpend = freezed,
   }) {
     return _then(
       _$FinancialStatsImpl(
@@ -3475,6 +3497,14 @@ class __$$FinancialStatsImplCopyWithImpl<$Res>
             ? _value.totalTransactions
             : totalTransactions // ignore: cast_nullable_to_non_nullable
                   as int,
+        oldestUnpaidDays: freezed == oldestUnpaidDays
+            ? _value.oldestUnpaidDays
+            : oldestUnpaidDays // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        lifetimeSpend: freezed == lifetimeSpend
+            ? _value.lifetimeSpend
+            : lifetimeSpend // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -3488,6 +3518,8 @@ class _$FinancialStatsImpl implements _FinancialStats {
     @JsonKey(name: 'outstanding_amount') this.outstandingAmount = 0,
     @JsonKey(name: 'outstanding_count') this.outstandingCount = 0,
     @JsonKey(name: 'total_transactions') this.totalTransactions = 0,
+    @JsonKey(name: 'oldest_unpaid_days') this.oldestUnpaidDays,
+    @JsonKey(name: 'lifetime_spend') this.lifetimeSpend,
   });
 
   factory _$FinancialStatsImpl.fromJson(Map<String, dynamic> json) =>
@@ -3505,10 +3537,19 @@ class _$FinancialStatsImpl implements _FinancialStats {
   @override
   @JsonKey(name: 'total_transactions')
   final int totalTransactions;
+  // ── Member Detail v2 fields (spec: PRD-organizer-dashboard-be-fields.md) ──
+  // Nullable on purpose: BE may not return them yet. UI hides the aging
+  // progress bar + lifetime tile gracefully when null.
+  @override
+  @JsonKey(name: 'oldest_unpaid_days')
+  final int? oldestUnpaidDays;
+  @override
+  @JsonKey(name: 'lifetime_spend')
+  final int? lifetimeSpend;
 
   @override
   String toString() {
-    return 'FinancialStats(paidThisMonth: $paidThisMonth, outstandingAmount: $outstandingAmount, outstandingCount: $outstandingCount, totalTransactions: $totalTransactions)';
+    return 'FinancialStats(paidThisMonth: $paidThisMonth, outstandingAmount: $outstandingAmount, outstandingCount: $outstandingCount, totalTransactions: $totalTransactions, oldestUnpaidDays: $oldestUnpaidDays, lifetimeSpend: $lifetimeSpend)';
   }
 
   @override
@@ -3523,7 +3564,11 @@ class _$FinancialStatsImpl implements _FinancialStats {
             (identical(other.outstandingCount, outstandingCount) ||
                 other.outstandingCount == outstandingCount) &&
             (identical(other.totalTransactions, totalTransactions) ||
-                other.totalTransactions == totalTransactions));
+                other.totalTransactions == totalTransactions) &&
+            (identical(other.oldestUnpaidDays, oldestUnpaidDays) ||
+                other.oldestUnpaidDays == oldestUnpaidDays) &&
+            (identical(other.lifetimeSpend, lifetimeSpend) ||
+                other.lifetimeSpend == lifetimeSpend));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3534,6 +3579,8 @@ class _$FinancialStatsImpl implements _FinancialStats {
     outstandingAmount,
     outstandingCount,
     totalTransactions,
+    oldestUnpaidDays,
+    lifetimeSpend,
   );
 
   /// Create a copy of FinancialStats
@@ -3559,6 +3606,8 @@ abstract class _FinancialStats implements FinancialStats {
     @JsonKey(name: 'outstanding_amount') final int outstandingAmount,
     @JsonKey(name: 'outstanding_count') final int outstandingCount,
     @JsonKey(name: 'total_transactions') final int totalTransactions,
+    @JsonKey(name: 'oldest_unpaid_days') final int? oldestUnpaidDays,
+    @JsonKey(name: 'lifetime_spend') final int? lifetimeSpend,
   }) = _$FinancialStatsImpl;
 
   factory _FinancialStats.fromJson(Map<String, dynamic> json) =
@@ -3575,7 +3624,15 @@ abstract class _FinancialStats implements FinancialStats {
   int get outstandingCount;
   @override
   @JsonKey(name: 'total_transactions')
-  int get totalTransactions;
+  int get totalTransactions; // ── Member Detail v2 fields (spec: PRD-organizer-dashboard-be-fields.md) ──
+  // Nullable on purpose: BE may not return them yet. UI hides the aging
+  // progress bar + lifetime tile gracefully when null.
+  @override
+  @JsonKey(name: 'oldest_unpaid_days')
+  int? get oldestUnpaidDays;
+  @override
+  @JsonKey(name: 'lifetime_spend')
+  int? get lifetimeSpend;
 
   /// Create a copy of FinancialStats
   /// with the given fields replaced by the non-null parameter values.

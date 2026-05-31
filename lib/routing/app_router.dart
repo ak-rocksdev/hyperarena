@@ -31,7 +31,6 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_student_det
 import 'package:hyperarena/features/coach/presentation/screens/coach_students_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/student_detail_screen.dart';
 import 'package:hyperarena/features/home/presentation/screens/home_screen.dart';
-import 'package:hyperarena/features/organizer/presentation/screens/organizer_community_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_earnings_screen.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/organizer_member_detail_screen.dart';
@@ -136,6 +135,11 @@ class RoleShell extends StatelessWidget {
       ),
     ],
     UserRole.organizer => const [
+      // 4-tab — "Klub" tab temporarily removed because
+      // OrganizerCommunityScreen depends on BE endpoints
+      // (getClubProfile / getClubMembers) that are not yet implemented
+      // and currently throw UnimplementedError. Restore once
+      // GET /v1/marketplace/organizer/club + /club/members land.
       NavigationDestination(
         icon: Icon(Icons.home_outlined),
         selectedIcon: Icon(Icons.home),
@@ -155,11 +159,6 @@ class RoleShell extends StatelessWidget {
         icon: Icon(Icons.account_balance_wallet_outlined),
         selectedIcon: Icon(Icons.account_balance_wallet),
         label: 'Pendapatan',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.groups_outlined),
-        selectedIcon: Icon(Icons.groups),
-        label: 'Klub',
       ),
     ],
     UserRole.courtOwner => const [
@@ -500,9 +499,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             CoachDetailScreen(coachId: state.pathParameters['id']!),
       ),
 
-      // ── Organizer role shell (5 tabs — PR 4d) ────────
-      // Profile moves out of the shell; reachable from the dashboard
-      // header (`/organizer/profile` is still a full-screen route).
+      // ── Organizer role shell (4 tabs — PR 4d.1 hotfix) ────────
+      // Klub tab dropped temporarily — see RoleShell._destinations
+      // for the rationale. `/organizer/club` route registered as a
+      // full-screen route below so deep-links still resolve, but the
+      // tab is not in the nav until BE endpoints exist.
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) =>
             RoleShell(navigationShell: shell, role: UserRole.organizer),
@@ -544,14 +545,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.organizerEarnings,
                 builder: (_, _) => const OrganizerEarningsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.organizerClub,
-                builder: (_, _) => const OrganizerCommunityScreen(),
               ),
             ],
           ),

@@ -6,6 +6,8 @@ import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/network/dio_error_handler.dart';
 import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/payment/data/models/payment_method.dart';
+import 'package:hyperarena/features/payment/data/models/purchase_card_summary.dart';
+import 'package:hyperarena/features/payment/data/models/purchase_full_detail.dart';
 import 'package:hyperarena/features/payment/data/models/purchase_status.dart';
 
 class PaymentRepository {
@@ -117,6 +119,49 @@ class PaymentRepository {
       await _apiClient.post(
         '/v1/marketplace/purchases/$purchaseId/proof',
         data: form,
+      );
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. Purchase history (cross-tenant, auth required).
+  // ---------------------------------------------------------------------------
+
+  /// Returns all purchases for the current user.
+  ///
+  /// Pass [status] to filter (e.g. 'confirmed', 'expired').
+  /// Pass [cursor] to load the next page (cursor value from [next_cursor]).
+  /// TODO(v2): wire cursor for infinite scroll — V1 only loads first 20.
+  Future<List<PurchaseCardSummary>> getMyPurchases({
+    String? status,
+    String? cursor,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        '/v1/marketplace/member/purchases',
+        queryParameters: {
+          if (status != null && status != 'all') 'status': status,
+          'cursor': ?cursor,
+        },
+      );
+      return (response.data['data'] as List)
+          .map((j) => PurchaseCardSummary.fromJson(j as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  /// Returns the full detail + rebook eligibility for a single purchase.
+  Future<PurchaseDetailResponse> getPurchaseDetail(int id) async {
+    try {
+      final response = await _apiClient.get(
+        '/v1/marketplace/member/purchases/$id',
+      );
+      return PurchaseDetailResponse.fromJson(
+        response.data as Map<String, dynamic>,
       );
     } on DioException catch (e) {
       rethrowDio(e);

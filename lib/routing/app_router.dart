@@ -65,7 +65,9 @@ import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/payment/data/models/payment_method.dart';
 import 'package:hyperarena/features/payment/presentation/screens/checkout_screen.dart';
 import 'package:hyperarena/features/payment/presentation/screens/manual_payment_screen.dart';
+import 'package:hyperarena/features/payment/presentation/screens/my_purchases_screen.dart';
 import 'package:hyperarena/features/payment/presentation/screens/payment_success_screen.dart';
+import 'package:hyperarena/features/payment/presentation/screens/purchase_detail_screen.dart';
 import 'package:hyperarena/features/payment/presentation/screens/va_waiting_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/marketplace_venue_detail_screen.dart';
@@ -745,6 +747,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             paymentMethodLabel: extra?['paymentMethodLabel'] as String?,
           );
         },
+      ),
+
+      // ── Purchase history routes ────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.myPurchases,
+        builder: (_, _) => const MyPurchasesScreen(),
+      ),
+      GoRoute(
+        path: '/purchases/:purchaseId',
+        builder: (_, state) => PurchaseDetailScreen(
+          purchaseId: int.parse(state.pathParameters['purchaseId']!),
+        ),
       ),
     ],
   );

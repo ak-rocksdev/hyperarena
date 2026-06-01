@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/features/payment/data/models/payment_method.dart';
+import 'package:hyperarena/features/payment/data/models/purchase_card_summary.dart';
+import 'package:hyperarena/features/payment/data/models/purchase_full_detail.dart';
 import 'package:hyperarena/features/payment/data/models/purchase_status.dart';
 import 'package:hyperarena/features/payment/data/repositories/payment_repository.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
@@ -14,6 +16,19 @@ final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
 final availablePaymentMethodsProvider =
     FutureProvider.autoDispose.family<List<PaymentMethod>, String>((ref, tenantSlug) async {
   return ref.watch(paymentRepositoryProvider).getAvailableMethods(tenantSlug);
+});
+
+/// Lists all purchases for the current user, optionally filtered by [status].
+/// Pass null or 'all' to show everything.
+final myPurchasesProvider = FutureProvider.autoDispose
+    .family<List<PurchaseCardSummary>, String?>((ref, status) async {
+  return ref.watch(paymentRepositoryProvider).getMyPurchases(status: status);
+});
+
+/// Full detail + rebook_eligibility for a single purchase [id].
+final purchaseDetailProvider = FutureProvider.autoDispose
+    .family<PurchaseDetailResponse, int>((ref, id) async {
+  return ref.watch(paymentRepositoryProvider).getPurchaseDetail(id);
 });
 
 /// Polls purchase status every 3 seconds until terminal status (confirmed, expired,

@@ -94,6 +94,15 @@ class PaymentRepository {
   // 4. Auth required. Manual-transfer flow.
   // ---------------------------------------------------------------------------
 
+  /// Cancels a pending purchase, releasing the session slot.
+  Future<void> cancelPurchase(int purchaseId) async {
+    try {
+      await _apiClient.post('/v1/marketplace/purchases/$purchaseId/cancel', data: {});
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
   /// Uploads a transfer proof image for a manual-payment purchase.
   Future<void> uploadProof({
     required int purchaseId,

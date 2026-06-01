@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
+import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/utils/clipboard.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/payment_method.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/cost_breakdown_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/refund_policy_card.dart';
+import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ManualPaymentScreen extends ConsumerStatefulWidget {
@@ -48,10 +51,67 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     super.dispose();
   }
 
+  Future<void> _confirmCancel() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Batalkan Pesanan?'),
+        content: const Text(
+          'Pesanan akan dibatalkan dan slot di sesi akan dilepas. Anda dapat memesan kembali nanti selama sesi masih tersedia.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Tidak'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+            child: const Text('Ya, Batalkan'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await ref.read(paymentRepositoryProvider).cancelPurchase(widget.purchaseId);
+      if (!mounted) return;
+      if (widget.sessionId != null) {
+        ref.invalidate(marketplaceSessionDetailProvider(widget.sessionId.toString()));
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pesanan dibatalkan.'),
+          backgroundColor: Colors.grey,
+        ),
+      );
+      context.go(AppRoutes.home(UserRole.player));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal membatalkan: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Transfer Manual')),
+      appBar: AppBar(
+        title: const Text('Transfer Manual'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.close, color: Colors.red.shade700),
+            tooltip: 'Batalkan Pesanan',
+            onPressed: _confirmCancel,
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

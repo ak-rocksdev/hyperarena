@@ -9,8 +9,9 @@ import 'package:hyperarena/features/payment/presentation/widgets/countdown_timer
 import 'package:hyperarena/features/payment/presentation/widgets/refund_policy_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/va_account_display.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 
-class VaWaitingScreen extends ConsumerWidget {
+class VaWaitingScreen extends ConsumerStatefulWidget {
   const VaWaitingScreen({
     super.key,
     required this.purchaseId,
@@ -33,22 +34,75 @@ class VaWaitingScreen extends ConsumerWidget {
   final String? paymentMethodLabel;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final statusAsync = ref.watch(purchaseStatusStreamProvider(purchaseId));
+  ConsumerState<VaWaitingScreen> createState() => _VaWaitingScreenState();
+}
+
+class _VaWaitingScreenState extends ConsumerState<VaWaitingScreen> {
+  Future<void> _confirmCancel() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Batalkan Pesanan?'),
+        content: const Text(
+          'Pesanan akan dibatalkan dan slot di sesi akan dilepas. Anda dapat memesan kembali nanti selama sesi masih tersedia.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Tidak'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+            child: const Text('Ya, Batalkan'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await ref.read(paymentRepositoryProvider).cancelPurchase(widget.purchaseId);
+      if (!mounted) return;
+      if (widget.sessionId != null) {
+        ref.invalidate(marketplaceSessionDetailProvider(widget.sessionId.toString()));
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pesanan dibatalkan.'),
+          backgroundColor: Colors.grey,
+        ),
+      );
+      context.go(AppRoutes.home(UserRole.player));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal membatalkan: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final statusAsync = ref.watch(purchaseStatusStreamProvider(widget.purchaseId));
 
     // Auto-navigate when status becomes terminal
-    ref.listen<AsyncValue<dynamic>>(purchaseStatusStreamProvider(purchaseId), (prev, next) {
+    ref.listen<AsyncValue<dynamic>>(purchaseStatusStreamProvider(widget.purchaseId), (prev, next) {
       next.whenData((status) {
         if (status.status != 'confirmed' && status.status != 'expired') return;
         context.go(
-          '/payment/success/$purchaseId?status=${status.status}',
+          '/payment/success/${widget.purchaseId}?status=${status.status}',
           extra: {
-            'sessionId': sessionId,
-            'sessionLabel': sessionLabel,
-            'sessionStartAt': sessionStartAt,
-            'venueName': venueName,
-            'amount': amount,
-            'paymentMethodLabel': paymentMethodLabel,
+            'sessionId': widget.sessionId,
+            'sessionLabel': widget.sessionLabel,
+            'sessionStartAt': widget.sessionStartAt,
+            'venueName': widget.venueName,
+            'amount': widget.amount,
+            'paymentMethodLabel': widget.paymentMethodLabel,
           },
         );
       });
@@ -65,21 +119,21 @@ class VaWaitingScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             VaAccountDisplay(
-              bank: intent.vaBank ?? '',
-              accountNumber: intent.vaNumber ?? '',
-              amount: amount,
+              bank: widget.intent.vaBank ?? '',
+              accountNumber: widget.intent.vaNumber ?? '',
+              amount: widget.amount,
             ),
             const SizedBox(height: 16),
             CostBreakdownCard(
-              itemLabel: sessionLabel ?? 'Pembayaran Sesi',
-              basePrice: intent.amountBase,
-              adminFee: intent.feeAmount,
+              itemLabel: widget.sessionLabel ?? 'Pembayaran Sesi',
+              basePrice: widget.intent.amountBase,
+              adminFee: widget.intent.feeAmount,
             ),
             const SizedBox(height: 12),
             const RefundPolicyCard(),
             const SizedBox(height: 16),
-            if (intent.expiresAt != null)
-              Center(child: CountdownTimer(expiresAt: intent.expiresAt!)),
+            if (widget.intent.expiresAt != null)
+              Center(child: CountdownTimer(expiresAt: widget.intent.expiresAt!)),
             const SizedBox(height: 24),
             const _InstructionsBlock(),
             const SizedBox(height: 24),
@@ -108,6 +162,16 @@ class VaWaitingScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             OutlinedButton(
+              onPressed: _confirmCancel,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red.shade700,
+                side: BorderSide(color: Colors.red.shade300),
+                minimumSize: const Size.fromHeight(48),
+              ),
+              child: const Text('Batalkan Pesanan'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
               onPressed: () => context.go(AppRoutes.home(UserRole.player)),
               child: const Text('Bayar Nanti'),
             ),

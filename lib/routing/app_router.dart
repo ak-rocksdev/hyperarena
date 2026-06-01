@@ -693,6 +693,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             sessionId: extra['sessionId'] as int,
             productLabel: extra['productLabel'] as String,
             amount: extra['amount'] as int,
+            sessionStartAt: extra['sessionStartAt'] as DateTime?,
+            venueName: extra['venueName'] as String?,
           );
         },
       ),
@@ -704,6 +706,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             purchaseId: int.parse(state.pathParameters['purchaseId']!),
             amount: extra['amount'] as int,
             bankDetails: extra['bankDetails'] as ManualBankDetails,
+            sessionId: extra['sessionId'] as int?,
+            sessionLabel: extra['sessionLabel'] as String?,
+            sessionStartAt: extra['sessionStartAt'] as DateTime?,
+            venueName: extra['venueName'] as String?,
+            paymentMethodLabel: extra['paymentMethodLabel'] as String?,
           );
         },
       ),
@@ -715,15 +722,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             purchaseId: int.parse(state.pathParameters['purchaseId']!),
             amount: extra['amount'] as int,
             intent: extra['intent'] as PaymentIntent,
+            sessionId: extra['sessionId'] as int?,
+            sessionLabel: extra['sessionLabel'] as String?,
+            sessionStartAt: extra['sessionStartAt'] as DateTime?,
+            venueName: extra['venueName'] as String?,
+            paymentMethodLabel: extra['paymentMethodLabel'] as String?,
           );
         },
       ),
       GoRoute(
         path: '/payment/success/:purchaseId',
-        builder: (ctx, state) => PaymentSuccessScreen(
-          purchaseId: int.parse(state.pathParameters['purchaseId']!),
-          status: state.uri.queryParameters['status'] ?? 'confirmed',
-        ),
+        builder: (ctx, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return PaymentSuccessScreen(
+            purchaseId: int.parse(state.pathParameters['purchaseId']!),
+            status: state.uri.queryParameters['status'] ?? 'confirmed',
+            sessionId: extra?['sessionId'] as int?,
+            sessionLabel: extra?['sessionLabel'] as String?,
+            sessionStartAt: extra?['sessionStartAt'] as DateTime?,
+            venueName: extra?['venueName'] as String?,
+            amount: extra?['amount'] as int?,
+            paymentMethodLabel: extra?['paymentMethodLabel'] as String?,
+          );
+        },
       ),
     ],
   );

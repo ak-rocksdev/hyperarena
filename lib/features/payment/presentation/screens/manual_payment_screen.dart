@@ -15,11 +15,21 @@ class ManualPaymentScreen extends ConsumerStatefulWidget {
     required this.purchaseId,
     required this.amount,
     required this.bankDetails,
+    this.sessionId,
+    this.sessionLabel,
+    this.sessionStartAt,
+    this.venueName,
+    this.paymentMethodLabel,
   });
 
   final int purchaseId;
   final int amount;
   final ManualBankDetails bankDetails;
+  final int? sessionId;
+  final String? sessionLabel;
+  final DateTime? sessionStartAt;
+  final String? venueName;
+  final String? paymentMethodLabel;
 
   @override
   ConsumerState<ManualPaymentScreen> createState() => _ManualPaymentScreenState();
@@ -114,7 +124,17 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
         note: _noteController.text.isEmpty ? null : _noteController.text,
       );
       if (!mounted) return;
-      context.go('/payment/success/${widget.purchaseId}?status=awaiting_review');
+      context.go(
+        '/payment/success/${widget.purchaseId}?status=awaiting_review',
+        extra: {
+          'sessionId': widget.sessionId,
+          'sessionLabel': widget.sessionLabel,
+          'sessionStartAt': widget.sessionStartAt,
+          'venueName': widget.venueName,
+          'amount': widget.amount,
+          'paymentMethodLabel': widget.paymentMethodLabel,
+        },
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

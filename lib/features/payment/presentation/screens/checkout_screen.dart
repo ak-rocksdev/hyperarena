@@ -15,6 +15,8 @@ class CheckoutScreen extends ConsumerStatefulWidget {
     required this.sessionId,
     required this.productLabel,
     required this.amount,
+    this.sessionStartAt,
+    this.venueName,
   });
 
   final String tenantSlug;
@@ -22,6 +24,8 @@ class CheckoutScreen extends ConsumerStatefulWidget {
   final int sessionId;
   final String productLabel;
   final int amount;
+  final DateTime? sessionStartAt;
+  final String? venueName;
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -128,16 +132,27 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
 
       // Route based on provider
+      final paymentMethodLabel = _selected!.label;
       if (intent.provider == 'manual') {
         context.go('/payment/manual/${intent.purchaseId}', extra: {
           'amount': intent.amountTotal,
           'bankDetails': intent.bankDetails,
           'proofUploadUrl': intent.proofUploadUrl,
+          'sessionId': widget.sessionId,
+          'sessionLabel': widget.productLabel,
+          'sessionStartAt': widget.sessionStartAt,
+          'venueName': widget.venueName,
+          'paymentMethodLabel': paymentMethodLabel,
         });
       } else {
         context.go('/payment/va/${intent.purchaseId}', extra: {
           'amount': intent.amountTotal,
           'intent': intent,
+          'sessionId': widget.sessionId,
+          'sessionLabel': widget.productLabel,
+          'sessionStartAt': widget.sessionStartAt,
+          'venueName': widget.venueName,
+          'paymentMethodLabel': paymentMethodLabel,
         });
       }
     } catch (e) {

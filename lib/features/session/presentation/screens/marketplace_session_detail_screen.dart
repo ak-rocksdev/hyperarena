@@ -657,6 +657,8 @@ class _BottomBar extends ConsumerWidget {
       'sessionId': int.parse(sessionId),
       'productLabel': session.safeTitle,
       'amount': amount,
+      'sessionStartAt': session.startAt,
+      'venueName': session.venue?.name,
     });
   }
 }

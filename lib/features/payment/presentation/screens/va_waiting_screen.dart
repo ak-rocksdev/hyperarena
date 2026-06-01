@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/countdown_timer.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/va_account_display.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class VaWaitingScreen extends ConsumerWidget {
   const VaWaitingScreen({
@@ -12,11 +14,21 @@ class VaWaitingScreen extends ConsumerWidget {
     required this.purchaseId,
     required this.amount,
     required this.intent,
+    this.sessionId,
+    this.sessionLabel,
+    this.sessionStartAt,
+    this.venueName,
+    this.paymentMethodLabel,
   });
 
   final int purchaseId;
   final int amount;
   final PaymentIntent intent;
+  final int? sessionId;
+  final String? sessionLabel;
+  final DateTime? sessionStartAt;
+  final String? venueName;
+  final String? paymentMethodLabel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,10 +37,24 @@ class VaWaitingScreen extends ConsumerWidget {
     // Auto-navigate when status becomes terminal
     ref.listen<AsyncValue<dynamic>>(purchaseStatusStreamProvider(purchaseId), (prev, next) {
       next.whenData((status) {
+        final summaryExtra = {
+          'sessionId': sessionId,
+          'sessionLabel': sessionLabel,
+          'sessionStartAt': sessionStartAt,
+          'venueName': venueName,
+          'amount': amount,
+          'paymentMethodLabel': paymentMethodLabel,
+        };
         if (status.status == 'confirmed') {
-          context.go('/payment/success/$purchaseId?status=confirmed');
+          context.go(
+            '/payment/success/$purchaseId?status=confirmed',
+            extra: summaryExtra,
+          );
         } else if (status.status == 'expired') {
-          context.go('/payment/success/$purchaseId?status=expired');
+          context.go(
+            '/payment/success/$purchaseId?status=expired',
+            extra: summaryExtra,
+          );
         }
       });
     });
@@ -79,7 +105,7 @@ class VaWaitingScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             OutlinedButton(
-              onPressed: () => context.go('/'),
+              onPressed: () => context.go(AppRoutes.home(UserRole.player)),
               child: const Text('Bayar Nanti'),
             ),
           ],

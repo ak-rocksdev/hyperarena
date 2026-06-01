@@ -33,9 +33,26 @@ class HyperArenaApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       builder: (context, child) {
-        return _ForegroundNotificationListener(
+        Widget app = _ForegroundNotificationListener(
           child: child ?? const SizedBox.shrink(),
         );
+        // Dev builds get a green corner ribbon so testers know at a glance
+        // they're on a non-production build. No-op on prod / local.
+        if (AppEnv.isDev) {
+          app = Banner(
+            message: 'DEV',
+            location: BannerLocation.topEnd,
+            color: const Color(0xFF15803D),
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+            child: app,
+          );
+        }
+        return app;
       },
       routerConfig: router,
     );

@@ -25,5 +25,6 @@ class AppEnv {
   static const Duration httpTimeout = Duration(seconds: 30);
 
   static bool get isLocal => name == 'local';
+  static bool get isDev => name == 'dev';
   static bool get isProduction => name == 'production';
 }

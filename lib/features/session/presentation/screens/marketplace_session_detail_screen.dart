@@ -607,49 +607,56 @@ class _BottomBar extends ConsumerWidget {
 
   Future<void> _onJoinTap(BuildContext context, WidgetRef ref) async {
     AppHaptics.tap();
+
+    // ── Credit path: unchanged — call join API then go to confirmation ──
     if (userStatus.creditBalance >= 1) {
-      // Show credit confirmation sheet
       final confirmed = await showCreditConfirmationSheet(
         context: context,
         creditBalance: userStatus.creditBalance,
       );
       if (confirmed != true || !context.mounted) return;
-    }
 
-    // Call join API
-    final notifier = ref.read(marketplaceSessionJoinProvider.notifier);
-    final response = await notifier.join(int.parse(sessionId));
-    if (!context.mounted) return;
+      final notifier = ref.read(marketplaceSessionJoinProvider.notifier);
+      final response = await notifier.join(int.parse(sessionId));
+      if (!context.mounted) return;
 
-    if (response == null) {
-      final error =
-          ref.read(marketplaceSessionJoinProvider).error ?? 'Gagal bergabung';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
-      return;
-    }
+      if (response == null) {
+        final error =
+            ref.read(marketplaceSessionJoinProvider).error ?? 'Gagal bergabung';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+        return;
+      }
 
-    // Navigate based on result
-    final effectivePrice = pricing.effectivePrice ?? 0;
-    if (response.usedCredit) {
       context.go(
         AppRoutes.marketplaceSessionConfirmation(sessionId),
         extra: {
           'sessionName': session.safeTitle,
-          'price': effectivePrice,
+          'price': pricing.effectivePrice ?? 0,
         },
       );
-    } else {
-      context.go(
-        AppRoutes.marketplaceSessionPayment(sessionId),
-        extra: {
-          'joinResponse': response,
-          'tenantPayment': tenantPayment,
-          'sessionName': session.safeTitle,
-          'price': effectivePrice,
-        },
-      );
+      return;
     }
+
+    // ── Paid path: navigate to checkout (P4b) ────────────────────────────
+    final productId = pricing.productId;
+    final tenantSlug = session.tenant?.slug;
+    final amount = pricing.effectivePrice ?? 0;
+
+    if (productId == null || tenantSlug == null || tenantSlug.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Data produk tidak lengkap, coba lagi nanti')),
+      );
+      return;
+    }
+
+    context.push('/payment/checkout', extra: {
+      'tenantSlug': tenantSlug,
+      'productId': productId,
+      'sessionId': int.parse(sessionId),
+      'productLabel': session.safeTitle,
+      'amount': amount,
+    });
   }
 }

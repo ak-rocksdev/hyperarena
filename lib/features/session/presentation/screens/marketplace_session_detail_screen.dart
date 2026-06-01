@@ -21,14 +21,66 @@ import 'package:hyperarena/core/utils/formatters.dart';
 
 /// Marketplace session detail screen.
 /// Fetches enriched data via [marketplaceSessionDetailProvider].
-class MarketplaceSessionDetailScreen extends ConsumerWidget {
+///
+/// Handles the `?joined=1` query parameter injected by [PaymentSuccessScreen]
+/// to show a success snackbar and pulse-highlight the newest participant row.
+class MarketplaceSessionDetailScreen extends ConsumerStatefulWidget {
   final String sessionId;
 
   const MarketplaceSessionDetailScreen({super.key, required this.sessionId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final asyncDetail = ref.watch(marketplaceSessionDetailProvider(sessionId));
+  ConsumerState<MarketplaceSessionDetailScreen> createState() =>
+      _MarketplaceSessionDetailScreenState();
+}
+
+class _MarketplaceSessionDetailScreenState
+    extends ConsumerState<MarketplaceSessionDetailScreen> {
+  /// True for the first render after arriving via ?joined=1.
+  /// Cleared after the first frame so back-and-forth doesn't repeat the UX.
+  bool _highlightJoined = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final justJoined =
+          GoRouterState.of(context).uri.queryParameters['joined'] == '1';
+      if (justJoined) {
+        _showJoinSuccess();
+        setState(() => _highlightJoined = true);
+        // Clear flag after animation has had time to play (1.5 s)
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) setState(() => _highlightJoined = false);
+        });
+      }
+    });
+  }
+
+  void _showJoinSuccess() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text('Anda berhasil bergabung di sesi ini!'),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final asyncDetail =
+        ref.watch(marketplaceSessionDetailProvider(widget.sessionId));
 
     return asyncDetail.when(
       loading: () => const Scaffold(
@@ -38,8 +90,8 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
         appBar: AppBar(),
         body: Center(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppDimensions.screenHorizontal),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.screenHorizontal),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -58,8 +110,8 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppDimensions.lg),
                 FilledButton(
-                  onPressed: () =>
-                      ref.invalidate(marketplaceSessionDetailProvider(sessionId)),
+                  onPressed: () => ref.invalidate(
+                      marketplaceSessionDetailProvider(widget.sessionId)),
                   child: const Text('Coba Lagi'),
                 ),
               ],
@@ -69,7 +121,8 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
       ),
       data: (detail) => _DetailBody(
         detail: detail,
-        sessionId: sessionId,
+        sessionId: widget.sessionId,
+        highlightJoined: _highlightJoined,
       ),
     );
   }
@@ -80,8 +133,13 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
 class _DetailBody extends ConsumerWidget {
   final MarketplaceSessionDetail detail;
   final String sessionId;
+  final bool highlightJoined;
 
-  const _DetailBody({required this.detail, required this.sessionId});
+  const _DetailBody({
+    required this.detail,
+    required this.sessionId,
+    required this.highlightJoined,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -190,6 +248,7 @@ class _DetailBody extends ConsumerWidget {
                   _ParticipantsGrid(
                     participants: session.participants,
                     capacity: session.capacity,
+                    highlightJoined: highlightJoined,
                   ),
 
                   // Notes section
@@ -314,15 +373,21 @@ class _CoachRow extends StatelessWidget {
 class _ParticipantsGrid extends StatelessWidget {
   final List<SessionParticipant> participants;
   final int capacity;
+  final bool highlightJoined;
 
   const _ParticipantsGrid({
     required this.participants,
     required this.capacity,
+    required this.highlightJoined,
   });
 
   @override
   Widget build(BuildContext context) {
     final emptySlots = capacity - participants.length;
+
+    // The most recently joined participant is the last in the list (BE appends
+    // in join order). We highlight that slot when arriving via ?joined=1.
+    final lastIndex = participants.length - 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,8 +402,14 @@ class _ParticipantsGrid extends StatelessWidget {
           runSpacing: AppDimensions.sm,
           children: [
             // Enrolled participants
-            ...participants.map(
-                (p) => _ParticipantAvatar(name: p.name, photoUrl: p.photoUrl)),
+            ...participants.indexed.map((entry) {
+              final (index, p) = entry;
+              final isNewJoin = highlightJoined && index == lastIndex;
+              return _PulseHighlight(
+                enabled: isNewJoin,
+                child: _ParticipantAvatar(name: p.name, photoUrl: p.photoUrl),
+              );
+            }),
             // Empty slots
             for (int i = 0; i < emptySlots; i++) const _EmptySlotAvatar(),
           ],
@@ -398,6 +469,66 @@ class _EmptySlotAvatar extends StatelessWidget {
         size: 18,
         color: AppColors.neutral400,
       ),
+    );
+  }
+}
+
+// ── Pulse highlight wrapper ────────────────────────────────────
+
+/// Wraps [child] in a one-shot background color animation that fades from
+/// [AppColors.primary50] to transparent over 1200 ms. Only active when
+/// [enabled] is true; renders [child] directly otherwise.
+class _PulseHighlight extends StatefulWidget {
+  const _PulseHighlight({required this.child, required this.enabled});
+
+  final Widget child;
+  final bool enabled;
+
+  @override
+  State<_PulseHighlight> createState() => _PulseHighlightState();
+}
+
+class _PulseHighlightState extends State<_PulseHighlight>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Color?> _bgColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _bgColor = ColorTween(
+      begin: AppColors.primary50,
+      end: Colors.transparent,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    if (widget.enabled) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.enabled) return widget.child;
+    return AnimatedBuilder(
+      animation: _bgColor,
+      builder: (_, child) => Container(
+        decoration: BoxDecoration(
+          color: _bgColor.value,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: child,
+      ),
+      child: widget.child,
     );
   }
 }

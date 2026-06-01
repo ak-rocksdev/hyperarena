@@ -7,6 +7,7 @@ import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/booking_summary_card.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 
 class PaymentSuccessScreen extends ConsumerStatefulWidget {
   const PaymentSuccessScreen({
@@ -60,6 +61,30 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
     super.dispose();
   }
 
+  Future<void> _onFinish() async {
+    switch (widget.status) {
+      case 'confirmed':
+        if (widget.sessionId != null) {
+          // Invalidate cache so session detail fetches fresh participant list
+          ref.invalidate(
+            marketplaceSessionDetailProvider(widget.sessionId.toString()),
+          );
+          if (!mounted) return;
+          context.go(
+            '${AppRoutes.marketplaceSession(widget.sessionId.toString())}?joined=1',
+          );
+        } else {
+          context.go(AppRoutes.home(UserRole.player));
+        }
+      case 'awaiting_review':
+        // Not yet visually enrolled; go home without success marker
+        context.go(AppRoutes.home(UserRole.player));
+      case 'expired':
+      default:
+        context.go(AppRoutes.home(UserRole.player));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final (icon, color, title, subtitle) = switch (widget.status) {
@@ -87,6 +112,11 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
         'Status Tidak Diketahui',
         'Hubungi admin klub jika ada masalah.',
       ),
+    };
+
+    final (buttonText, buttonStyle) = switch (widget.status) {
+      'expired' => ('Kembali ke Beranda', _secondaryStyle()),
+      _ => ('Selesai', _primaryStyle()),
     };
 
     final userName = ref.watch(authNotifierProvider)?.name ?? 'Anda';
@@ -128,21 +158,18 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
                 ),
               ],
               const SizedBox(height: 24),
-              if (widget.sessionId != null && widget.status == 'confirmed') ...[
+              if (widget.status == 'expired')
+                OutlinedButton(
+                  onPressed: _onFinish,
+                  style: buttonStyle,
+                  child: Text(buttonText),
+                )
+              else
                 ElevatedButton(
-                  onPressed: () => context.go(
-                    AppRoutes.marketplaceSession(widget.sessionId!.toString()),
-                  ),
-                  style: _primaryStyle(),
-                  child: const Text('Lihat Detail Sesi'),
+                  onPressed: _onFinish,
+                  style: buttonStyle,
+                  child: Text(buttonText),
                 ),
-                const SizedBox(height: 8),
-              ],
-              OutlinedButton(
-                onPressed: () => context.go(AppRoutes.home(UserRole.player)),
-                style: _secondaryStyle(),
-                child: const Text('Kembali ke Beranda'),
-              ),
             ],
           ),
         ),

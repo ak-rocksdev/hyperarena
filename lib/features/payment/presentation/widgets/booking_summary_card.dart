@@ -90,21 +90,19 @@ class BookingSummaryCard extends StatelessWidget {
     );
   }
 
-  String _formatStartAt(DateTime dt) {
+  /// Formats with the Indonesian locale if available, else the default. The
+  /// 'id' locale data may not be initialized in all entry points.
+  String _formatLocalized(String pattern, DateTime dt) {
     try {
-      return DateFormat("EEE, d MMM y '•' HH:mm", 'id').format(dt.toLocal());
+      return DateFormat(pattern, 'id').format(dt.toLocal());
     } catch (_) {
-      return DateFormat("EEE, d MMM y '•' HH:mm").format(dt.toLocal());
+      return DateFormat(pattern).format(dt.toLocal());
     }
   }
 
-  String _formatPaidAt(DateTime dt) {
-    try {
-      return DateFormat('d MMM y, HH:mm', 'id').format(dt.toLocal());
-    } catch (_) {
-      return DateFormat('d MMM y, HH:mm').format(dt.toLocal());
-    }
-  }
+  String _formatStartAt(DateTime dt) => _formatLocalized("EEE, d MMM y '•' HH:mm", dt);
+
+  String _formatPaidAt(DateTime dt) => _formatLocalized('d MMM y, HH:mm', dt);
 
   String get _statusLabel => switch (status) {
     'confirmed' => '✓ Terkonfirmasi',

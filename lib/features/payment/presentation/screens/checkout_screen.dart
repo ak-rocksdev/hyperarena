@@ -131,28 +131,25 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       if (!mounted) return;
 
-      // Route based on provider
-      final paymentMethodLabel = _selected!.label;
+      // Route based on provider — all flows share the same booking-summary fields.
+      final sharedExtra = <String, dynamic>{
+        'amount': intent.amountTotal,
+        'sessionId': widget.sessionId,
+        'sessionLabel': widget.productLabel,
+        'sessionStartAt': widget.sessionStartAt,
+        'venueName': widget.venueName,
+        'paymentMethodLabel': _selected!.label,
+      };
       if (intent.provider == 'manual') {
         context.go('/payment/manual/${intent.purchaseId}', extra: {
-          'amount': intent.amountTotal,
+          ...sharedExtra,
           'bankDetails': intent.bankDetails,
           'proofUploadUrl': intent.proofUploadUrl,
-          'sessionId': widget.sessionId,
-          'sessionLabel': widget.productLabel,
-          'sessionStartAt': widget.sessionStartAt,
-          'venueName': widget.venueName,
-          'paymentMethodLabel': paymentMethodLabel,
         });
       } else {
         context.go('/payment/va/${intent.purchaseId}', extra: {
-          'amount': intent.amountTotal,
+          ...sharedExtra,
           'intent': intent,
-          'sessionId': widget.sessionId,
-          'sessionLabel': widget.productLabel,
-          'sessionStartAt': widget.sessionStartAt,
-          'venueName': widget.venueName,
-          'paymentMethodLabel': paymentMethodLabel,
         });
       }
     } catch (e) {

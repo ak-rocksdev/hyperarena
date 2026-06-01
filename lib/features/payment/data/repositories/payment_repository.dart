@@ -37,10 +37,9 @@ class PaymentRepository {
       final response = await _apiClient.get(
         '/v1/marketplace/tenants/$tenantSlug/payment-methods',
       );
-      final methods = (response.data['methods'] as List)
+      return (response.data['methods'] as List)
           .map((json) => PaymentMethod.fromJson(json as Map<String, dynamic>))
           .toList();
-      return methods;
     } on DioException catch (e) {
       rethrowDio(e);
     }

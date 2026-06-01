@@ -37,25 +37,18 @@ class VaWaitingScreen extends ConsumerWidget {
     // Auto-navigate when status becomes terminal
     ref.listen<AsyncValue<dynamic>>(purchaseStatusStreamProvider(purchaseId), (prev, next) {
       next.whenData((status) {
-        final summaryExtra = {
-          'sessionId': sessionId,
-          'sessionLabel': sessionLabel,
-          'sessionStartAt': sessionStartAt,
-          'venueName': venueName,
-          'amount': amount,
-          'paymentMethodLabel': paymentMethodLabel,
-        };
-        if (status.status == 'confirmed') {
-          context.go(
-            '/payment/success/$purchaseId?status=confirmed',
-            extra: summaryExtra,
-          );
-        } else if (status.status == 'expired') {
-          context.go(
-            '/payment/success/$purchaseId?status=expired',
-            extra: summaryExtra,
-          );
-        }
+        if (status.status != 'confirmed' && status.status != 'expired') return;
+        context.go(
+          '/payment/success/$purchaseId?status=${status.status}',
+          extra: {
+            'sessionId': sessionId,
+            'sessionLabel': sessionLabel,
+            'sessionStartAt': sessionStartAt,
+            'venueName': venueName,
+            'amount': amount,
+            'paymentMethodLabel': paymentMethodLabel,
+          },
+        );
       });
     });
 

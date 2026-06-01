@@ -676,8 +676,10 @@ class _BottomBar extends ConsumerWidget {
       );
     }
 
-    // Has credits — show badge
-    if (userStatus.creditBalance >= 1) {
+    // Credit-mode session + has credits — show "X kredit" badge.
+    // Nominal-price sessions always route through payment checkout
+    // regardless of the user's credit balance.
+    if (pricing.paymentMode == 'credit' && userStatus.creditBalance >= 1) {
       return FilledButton(
         onPressed: joinState.isLoading ? null : () => _onJoinTap(context, ref),
         style: FilledButton.styleFrom(
@@ -739,8 +741,9 @@ class _BottomBar extends ConsumerWidget {
   Future<void> _onJoinTap(BuildContext context, WidgetRef ref) async {
     AppHaptics.tap();
 
-    // ── Credit path: unchanged — call join API then go to confirmation ──
-    if (userStatus.creditBalance >= 1) {
+    // ── Credit path: only when session is credit-mode AND user has credits.
+    // Nominal-price sessions always fall through to the paid checkout flow.
+    if (pricing.paymentMode == 'credit' && userStatus.creditBalance >= 1) {
       final confirmed = await showCreditConfirmationSheet(
         context: context,
         creditBalance: userStatus.creditBalance,

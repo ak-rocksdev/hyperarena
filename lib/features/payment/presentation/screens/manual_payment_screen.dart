@@ -7,6 +7,8 @@ import 'package:hyperarena/core/utils/clipboard.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/payment_method.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
+import 'package:hyperarena/features/payment/presentation/widgets/cost_breakdown_card.dart';
+import 'package:hyperarena/features/payment/presentation/widgets/refund_policy_card.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ManualPaymentScreen extends ConsumerStatefulWidget {
@@ -58,6 +60,15 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             _AmountBox(amount: widget.amount),
             const SizedBox(height: 16),
             _BankDetailsCard(details: widget.bankDetails),
+            const SizedBox(height: 16),
+            CostBreakdownCard(
+              itemLabel: widget.sessionLabel ?? 'Pembayaran Sesi',
+              basePrice: widget.amount,
+              adminFee: 0,
+              adminFeeNote: 'Gratis untuk transfer manual',
+            ),
+            const SizedBox(height: 12),
+            const RefundPolicyCard(),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),

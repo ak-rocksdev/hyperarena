@@ -5,7 +5,9 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/payment_method.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
+import 'package:hyperarena/features/payment/presentation/widgets/cost_breakdown_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/payment_method_card.dart';
+import 'package:hyperarena/features/payment/presentation/widgets/refund_policy_card.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
@@ -92,6 +94,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ),
                   ),
                 ),
+                if (_selected != null) ...[
+                  const SizedBox(height: 24),
+                  CostBreakdownCard(
+                    itemLabel: widget.productLabel,
+                    basePrice: widget.amount,
+                    adminFee: _selected!.feeAmount,
+                    adminFeeNote: _selected!.provider == 'manual'
+                        ? 'Gratis untuk transfer manual'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  const RefundPolicyCard(),
+                ],
               ],
             ),
           );

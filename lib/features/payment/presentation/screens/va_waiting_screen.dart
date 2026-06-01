@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
+import 'package:hyperarena/features/payment/presentation/widgets/cost_breakdown_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/countdown_timer.dart';
+import 'package:hyperarena/features/payment/presentation/widgets/refund_policy_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/va_account_display.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -67,6 +69,14 @@ class VaWaitingScreen extends ConsumerWidget {
               accountNumber: intent.vaNumber ?? '',
               amount: amount,
             ),
+            const SizedBox(height: 16),
+            CostBreakdownCard(
+              itemLabel: sessionLabel ?? 'Pembayaran Sesi',
+              basePrice: intent.amountBase,
+              adminFee: intent.feeAmount,
+            ),
+            const SizedBox(height: 12),
+            const RefundPolicyCard(),
             const SizedBox(height: 16),
             if (intent.expiresAt != null)
               Center(child: CountdownTimer(expiresAt: intent.expiresAt!)),

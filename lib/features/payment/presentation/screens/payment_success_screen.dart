@@ -62,27 +62,22 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
   }
 
   Future<void> _onFinish() async {
-    switch (widget.status) {
-      case 'confirmed':
-        if (widget.sessionId != null) {
-          // Invalidate cache so session detail fetches fresh participant list
-          ref.invalidate(
-            marketplaceSessionDetailProvider(widget.sessionId.toString()),
-          );
-          if (!mounted) return;
-          context.go(
-            '${AppRoutes.marketplaceSession(widget.sessionId.toString())}?joined=1',
-          );
-        } else {
-          context.go(AppRoutes.home(UserRole.player));
-        }
-      case 'awaiting_review':
-        // Not yet visually enrolled; go home without success marker
-        context.go(AppRoutes.home(UserRole.player));
-      case 'expired':
-      default:
-        context.go(AppRoutes.home(UserRole.player));
+    // Only 'confirmed' has special routing — the user is enrolled, so bounce
+    // back to the session detail with a success marker. All other terminal
+    // statuses ('awaiting_review', 'expired', unknown) go home.
+    if (widget.status == 'confirmed' && widget.sessionId != null) {
+      // Invalidate cache so session detail fetches fresh participant list
+      ref.invalidate(
+        marketplaceSessionDetailProvider(widget.sessionId.toString()),
+      );
+      if (!mounted) return;
+      context.go(
+        '${AppRoutes.marketplaceSession(widget.sessionId.toString())}?joined=1',
+      );
+      return;
     }
+
+    context.go(AppRoutes.home(UserRole.player));
   }
 
   @override

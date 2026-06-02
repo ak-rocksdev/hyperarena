@@ -116,7 +116,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         data: (_) => SafeArea(
           minimum: const EdgeInsets.all(16),
           child: ElevatedButton(
-            onPressed: _canSubmit() && !_submitting ? _submit : null,
+            onPressed: _selected != null && !_submitting ? _submit : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -130,8 +130,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ),
     );
   }
-
-  bool _canSubmit() => _selected != null;
 
   Future<void> _submit() async {
     if (_selected == null) return;

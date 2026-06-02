@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
+import 'package:hyperarena/features/payment/data/models/purchase_status.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/cost_breakdown_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/countdown_timer.dart';
@@ -91,22 +92,25 @@ class _VaWaitingScreenState extends ConsumerState<VaWaitingScreen> {
     final statusAsync = ref.watch(purchaseStatusStreamProvider(widget.purchaseId));
 
     // Auto-navigate when status becomes terminal
-    ref.listen<AsyncValue<dynamic>>(purchaseStatusStreamProvider(widget.purchaseId), (prev, next) {
-      next.whenData((status) {
-        if (status.status != 'confirmed' && status.status != 'expired') return;
-        context.go(
-          '/payment/success/${widget.purchaseId}?status=${status.status}',
-          extra: {
-            'sessionId': widget.sessionId,
-            'sessionLabel': widget.sessionLabel,
-            'sessionStartAt': widget.sessionStartAt,
-            'venueName': widget.venueName,
-            'amount': widget.amount,
-            'paymentMethodLabel': widget.paymentMethodLabel,
-          },
-        );
-      });
-    });
+    ref.listen<AsyncValue<PurchaseStatus>>(
+      purchaseStatusStreamProvider(widget.purchaseId),
+      (prev, next) {
+        next.whenData((status) {
+          if (status.status != 'confirmed' && status.status != 'expired') return;
+          context.go(
+            '/payment/success/${widget.purchaseId}?status=${status.status}',
+            extra: {
+              'sessionId': widget.sessionId,
+              'sessionLabel': widget.sessionLabel,
+              'sessionStartAt': widget.sessionStartAt,
+              'venueName': widget.venueName,
+              'amount': widget.amount,
+              'paymentMethodLabel': widget.paymentMethodLabel,
+            },
+          );
+        });
+      },
+    );
 
     return Scaffold(
       appBar: AppBar(

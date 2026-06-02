@@ -5,7 +5,6 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:intl/intl.dart';
 
 class PurchaseDetailScreen extends ConsumerWidget {
   const PurchaseDetailScreen({super.key, required this.purchaseId});
@@ -71,7 +70,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
                       if (p.session!.startAt != null) ...[
                         const SizedBox(height: 4),
                         Text(
-                          _safeDateFormat(
+                          Formatters.tryFormatId(
                             'EEE, d MMM y • HH:mm',
                             p.session!.startAt!,
                           ),
@@ -126,7 +125,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       _row(
                         'Dibayar',
-                        _safeDateFormat('d MMM y, HH:mm', p.confirmedAt!),
+                        Formatters.tryFormatId('d MMM y, HH:mm', p.confirmedAt!),
                       ),
                     ],
                   ],
@@ -254,11 +253,4 @@ class PurchaseDetailScreen extends ConsumerWidget {
     );
   }
 
-  String _safeDateFormat(String pattern, DateTime dt) {
-    try {
-      return DateFormat(pattern, 'id').format(dt.toLocal());
-    } catch (_) {
-      return DateFormat(pattern).format(dt.toLocal());
-    }
-  }
 }

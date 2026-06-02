@@ -164,6 +164,18 @@ abstract final class Formatters {
   static String formatDateTimeCompact(DateTime date) =>
       _dateTimeCompact.format(date);
 
+  /// Format with the Indonesian locale when available, else the default
+  /// locale. Use for ad-hoc patterns that don't have a dedicated helper
+  /// above. The 'id' locale data isn't initialized in every entry point
+  /// (e.g. some test harnesses), so we fall back gracefully.
+  static String tryFormatId(String pattern, DateTime date) {
+    try {
+      return DateFormat(pattern, 'id').format(date.toLocal());
+    } catch (_) {
+      return DateFormat(pattern).format(date.toLocal());
+    }
+  }
+
   /// Pass-through time string: "07:00" → "07:00"
   static String formatTime(String time) => time;
 

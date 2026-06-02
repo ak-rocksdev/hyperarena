@@ -5,7 +5,6 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/purchase_card_summary.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
-import 'package:intl/intl.dart';
 
 class MyPurchasesScreen extends ConsumerStatefulWidget {
   const MyPurchasesScreen({super.key});
@@ -149,7 +148,7 @@ class _PurchaseCard extends StatelessWidget {
             if (item.session?.startAt != null) ...[
               const SizedBox(height: 2),
               Text(
-                _safeDateFormat(
+                Formatters.tryFormatId(
                   'EEE, d MMM y • HH:mm',
                   item.session!.startAt!,
                 ),
@@ -183,13 +182,6 @@ class _PurchaseCard extends StatelessWidget {
     );
   }
 
-  String _safeDateFormat(String pattern, DateTime dt) {
-    try {
-      return DateFormat(pattern, 'id').format(dt.toLocal());
-    } catch (_) {
-      return DateFormat(pattern).format(dt.toLocal());
-    }
-  }
 }
 
 class _EmptyState extends StatelessWidget {

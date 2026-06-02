@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
-import 'package:intl/intl.dart';
 
 class BookingSummaryCard extends StatelessWidget {
   const BookingSummaryCard({
@@ -90,19 +89,11 @@ class BookingSummaryCard extends StatelessWidget {
     );
   }
 
-  /// Formats with the Indonesian locale if available, else the default. The
-  /// 'id' locale data may not be initialized in all entry points.
-  String _formatLocalized(String pattern, DateTime dt) {
-    try {
-      return DateFormat(pattern, 'id').format(dt.toLocal());
-    } catch (_) {
-      return DateFormat(pattern).format(dt.toLocal());
-    }
-  }
+  String _formatStartAt(DateTime dt) =>
+      Formatters.tryFormatId("EEE, d MMM y '•' HH:mm", dt);
 
-  String _formatStartAt(DateTime dt) => _formatLocalized("EEE, d MMM y '•' HH:mm", dt);
-
-  String _formatPaidAt(DateTime dt) => _formatLocalized('d MMM y, HH:mm', dt);
+  String _formatPaidAt(DateTime dt) =>
+      Formatters.tryFormatId('d MMM y, HH:mm', dt);
 
   String get _statusLabel => switch (status) {
     'confirmed' => '✓ Terkonfirmasi',

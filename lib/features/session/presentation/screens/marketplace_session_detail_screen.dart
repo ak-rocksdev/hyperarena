@@ -194,10 +194,12 @@ class _DetailBody extends ConsumerWidget {
                   // non-confirmed purchase for this session in the last 30 days
                   // and is not currently booked.
                   if (userStatus.priorFailedPurchase != null &&
-                      !userStatus.isBooked)
+                      !userStatus.isBooked) ...[
                     _PriorFailedBanner(
                       prior: userStatus.priorFailedPurchase!,
                     ),
+                    const SizedBox(height: AppDimensions.md),
+                  ],
 
                   // Date & time card
                   _InfoCard(
@@ -495,22 +497,22 @@ class _PriorFailedBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (icon, title, subtitle) = switch (prior.status) {
-      'expired' => (
+      PriorFailedPurchaseStatus.expired => (
         Icons.history,
         'Anda pernah memesan sesi ini',
         'Pembayaran sebelumnya kedaluwarsa. Slot sudah dilepas, silakan pesan kembali jika masih ingin gabung.',
       ),
-      'cancelled' => (
+      PriorFailedPurchaseStatus.cancelled => (
         Icons.cancel_outlined,
         'Pesanan sebelumnya dibatalkan',
         'Anda membatalkan pesanan untuk sesi ini. Silakan pesan kembali jika masih ingin gabung.',
       ),
-      'rejected' => (
+      PriorFailedPurchaseStatus.rejected => (
         Icons.block,
         'Pesanan sebelumnya ditolak',
         'Pembayaran sebelumnya ditolak admin. Silakan pesan kembali jika masih ingin gabung.',
       ),
-      _ => (
+      PriorFailedPurchaseStatus.unknown => (
         Icons.info_outline,
         'Pesanan sebelumnya tidak berhasil',
         'Silakan pesan kembali jika masih ingin gabung.',
@@ -518,7 +520,6 @@ class _PriorFailedBanner extends StatelessWidget {
     };
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppDimensions.md),
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
         color: AppColors.warningLight,

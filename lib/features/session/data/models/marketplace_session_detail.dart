@@ -44,6 +44,28 @@ class UserSessionStatus with _$UserSessionStatus {
       _$UserSessionStatusFromJson(json);
 }
 
+@JsonEnum(fieldRename: FieldRename.snake)
+enum PriorFailedPurchaseStatus {
+  expired,
+  cancelled,
+  rejected,
+  @JsonValue('_unknown') // fallback for unrecognized strings from API
+  unknown;
+
+  /// Falls back to [unknown] for any value not in the enum, so a new
+  /// status from BE doesn't crash the app.
+  static PriorFailedPurchaseStatus fromJson(String value) {
+    return values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => unknown,
+    );
+  }
+
+  String toJson() => name;
+}
+
+String _statusToJson(PriorFailedPurchaseStatus s) => s.toJson();
+
 /// Surfaces when a member previously had an expired/cancelled/rejected
 /// purchase for this session within the last 30 days AND is not currently
 /// booked. Drives the soft amber "Anda pernah memesan" banner.
@@ -51,7 +73,8 @@ class UserSessionStatus with _$UserSessionStatus {
 class PriorFailedPurchase with _$PriorFailedPurchase {
   const factory PriorFailedPurchase({
     @JsonKey(name: 'purchase_id') required int purchaseId,
-    required String status, // 'expired' | 'cancelled' | 'rejected'
+    @JsonKey(fromJson: PriorFailedPurchaseStatus.fromJson, toJson: _statusToJson)
+    required PriorFailedPurchaseStatus status,
     @JsonKey(name: 'failed_at') DateTime? failedAt,
   }) = _PriorFailedPurchase;
 

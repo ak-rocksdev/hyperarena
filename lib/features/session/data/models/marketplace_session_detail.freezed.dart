@@ -715,8 +715,8 @@ PriorFailedPurchase _$PriorFailedPurchaseFromJson(Map<String, dynamic> json) {
 mixin _$PriorFailedPurchase {
   @JsonKey(name: 'purchase_id')
   int get purchaseId => throw _privateConstructorUsedError;
-  String get status =>
-      throw _privateConstructorUsedError; // 'expired' | 'cancelled' | 'rejected'
+  @JsonKey(fromJson: PriorFailedPurchaseStatus.fromJson, toJson: _statusToJson)
+  PriorFailedPurchaseStatus get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'failed_at')
   DateTime? get failedAt => throw _privateConstructorUsedError;
 
@@ -739,7 +739,11 @@ abstract class $PriorFailedPurchaseCopyWith<$Res> {
   @useResult
   $Res call({
     @JsonKey(name: 'purchase_id') int purchaseId,
-    String status,
+    @JsonKey(
+      fromJson: PriorFailedPurchaseStatus.fromJson,
+      toJson: _statusToJson,
+    )
+    PriorFailedPurchaseStatus status,
     @JsonKey(name: 'failed_at') DateTime? failedAt,
   });
 }
@@ -772,7 +776,7 @@ class _$PriorFailedPurchaseCopyWithImpl<$Res, $Val extends PriorFailedPurchase>
             status: null == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as PriorFailedPurchaseStatus,
             failedAt: freezed == failedAt
                 ? _value.failedAt
                 : failedAt // ignore: cast_nullable_to_non_nullable
@@ -794,7 +798,11 @@ abstract class _$$PriorFailedPurchaseImplCopyWith<$Res>
   @useResult
   $Res call({
     @JsonKey(name: 'purchase_id') int purchaseId,
-    String status,
+    @JsonKey(
+      fromJson: PriorFailedPurchaseStatus.fromJson,
+      toJson: _statusToJson,
+    )
+    PriorFailedPurchaseStatus status,
     @JsonKey(name: 'failed_at') DateTime? failedAt,
   });
 }
@@ -826,7 +834,7 @@ class __$$PriorFailedPurchaseImplCopyWithImpl<$Res>
         status: null == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as PriorFailedPurchaseStatus,
         failedAt: freezed == failedAt
             ? _value.failedAt
             : failedAt // ignore: cast_nullable_to_non_nullable
@@ -841,6 +849,10 @@ class __$$PriorFailedPurchaseImplCopyWithImpl<$Res>
 class _$PriorFailedPurchaseImpl implements _PriorFailedPurchase {
   const _$PriorFailedPurchaseImpl({
     @JsonKey(name: 'purchase_id') required this.purchaseId,
+    @JsonKey(
+      fromJson: PriorFailedPurchaseStatus.fromJson,
+      toJson: _statusToJson,
+    )
     required this.status,
     @JsonKey(name: 'failed_at') this.failedAt,
   });
@@ -852,8 +864,8 @@ class _$PriorFailedPurchaseImpl implements _PriorFailedPurchase {
   @JsonKey(name: 'purchase_id')
   final int purchaseId;
   @override
-  final String status;
-  // 'expired' | 'cancelled' | 'rejected'
+  @JsonKey(fromJson: PriorFailedPurchaseStatus.fromJson, toJson: _statusToJson)
+  final PriorFailedPurchaseStatus status;
   @override
   @JsonKey(name: 'failed_at')
   final DateTime? failedAt;
@@ -899,7 +911,11 @@ class _$PriorFailedPurchaseImpl implements _PriorFailedPurchase {
 abstract class _PriorFailedPurchase implements PriorFailedPurchase {
   const factory _PriorFailedPurchase({
     @JsonKey(name: 'purchase_id') required final int purchaseId,
-    required final String status,
+    @JsonKey(
+      fromJson: PriorFailedPurchaseStatus.fromJson,
+      toJson: _statusToJson,
+    )
+    required final PriorFailedPurchaseStatus status,
     @JsonKey(name: 'failed_at') final DateTime? failedAt,
   }) = _$PriorFailedPurchaseImpl;
 
@@ -910,7 +926,8 @@ abstract class _PriorFailedPurchase implements PriorFailedPurchase {
   @JsonKey(name: 'purchase_id')
   int get purchaseId;
   @override
-  String get status; // 'expired' | 'cancelled' | 'rejected'
+  @JsonKey(fromJson: PriorFailedPurchaseStatus.fromJson, toJson: _statusToJson)
+  PriorFailedPurchaseStatus get status;
   @override
   @JsonKey(name: 'failed_at')
   DateTime? get failedAt;

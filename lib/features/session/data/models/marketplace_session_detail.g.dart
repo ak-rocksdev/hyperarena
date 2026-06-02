@@ -62,7 +62,7 @@ _$PriorFailedPurchaseImpl _$$PriorFailedPurchaseImplFromJson(
   Map<String, dynamic> json,
 ) => _$PriorFailedPurchaseImpl(
   purchaseId: (json['purchase_id'] as num).toInt(),
-  status: json['status'] as String,
+  status: PriorFailedPurchaseStatus.fromJson(json['status'] as String),
   failedAt: json['failed_at'] == null
       ? null
       : DateTime.parse(json['failed_at'] as String),
@@ -72,6 +72,6 @@ Map<String, dynamic> _$$PriorFailedPurchaseImplToJson(
   _$PriorFailedPurchaseImpl instance,
 ) => <String, dynamic>{
   'purchase_id': instance.purchaseId,
-  'status': instance.status,
+  'status': _statusToJson(instance.status),
   'failed_at': instance.failedAt?.toIso8601String(),
 };

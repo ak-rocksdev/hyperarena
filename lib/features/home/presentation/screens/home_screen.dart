@@ -35,7 +35,20 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authNotifierProvider);
+
+    // Defensive: should never reach here since splash redirects unauthenticated
+    // users to login. Guard against null to avoid a crash if state is stale.
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) context.go(AppRoutes.login);
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final bookingsAsync = ref.watch(bookingListProvider);
+    // TODO(player-profile-api): replace MockData.currentProfile with real
+    // /v1/player/profile endpoint when BE lands. Until then, mock data
+    // provides gamification placeholder values (XP, tier, badges).
     final profile = MockData.currentProfile;
     final gamification =
         Theme.of(context).extension<GamificationThemeExtension>()!;
@@ -74,7 +87,7 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          user?.name ?? 'Player',
+                          user.name,
                           style: AppTypography.headingLarge,
                         ),
                       ],
@@ -374,6 +387,8 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  // TODO(venues-api): replace MockData.venues with real /v1/venues endpoint
+  // when BE lands. Venues list should be filtered by tenant / proximity.
   static final _sortedVenues = [...MockData.venues]
     ..sort((a, b) => b.avgRating.compareTo(a.avgRating));
 }

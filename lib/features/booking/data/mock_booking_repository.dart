@@ -1,3 +1,6 @@
+// TODO(booking-api): replace with real /v1/member/bookings endpoint when BE
+// lands. This entire file is a mock; swap MockBookingRepository for the real
+// ApiBookingRepository in booking_providers.dart.
 import 'dart:math';
 
 import 'package:hyperarena/core/mocks/mock_data.dart';

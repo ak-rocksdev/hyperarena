@@ -154,10 +154,7 @@ class _HeaderRow extends StatelessWidget {
           _CircleIconButton(
             icon: Icons.notifications_outlined,
             showDot: true,
-            // Notifications screen route exists at AppRoutes.notifications;
-            // tap is wired by parent if needed. Keep button visual-only here
-            // to avoid pulling go_router into a presentational widget.
-            onTap: null,
+            onTap: () => context.push(AppRoutes.notifications),
           ),
           const SizedBox(width: 8),
           _CircleIconButton(

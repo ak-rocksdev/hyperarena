@@ -4,6 +4,8 @@ import 'package:hyperarena/features/gamification/data/models/badge.dart';
 
 // ── Badge list ──────────────────────────────────────────────────
 
+// TODO(gamification-api): replace MockData.badges with real
+// /v1/player/badges (or equivalent gamification) endpoint when BE lands.
 final badgeListProvider = FutureProvider<List<Badge>>((ref) async {
   return MockData.badges;
 });
@@ -22,6 +24,8 @@ class PlayerStats {
   });
 }
 
+// TODO(gamification-api): replace MockData.bookings / MockData.currentProfile
+// with real /v1/player/stats endpoint when BE lands.
 final playerStatsProvider = Provider<PlayerStats>((ref) {
   final bookings = MockData.bookings;
   final profile = MockData.currentProfile;

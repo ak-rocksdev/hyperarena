@@ -39,6 +39,44 @@ class VaWaitingScreen extends ConsumerStatefulWidget {
 }
 
 class _VaWaitingScreenState extends ConsumerState<VaWaitingScreen> {
+  bool _localExpired = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // If already expired at mount time, navigate immediately after first frame
+    final alreadyExpired = widget.intent.expiresAt != null &&
+        widget.intent.expiresAt!.isBefore(DateTime.now());
+    if (alreadyExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _localExpired = true;
+          _navigateToExpiredSuccess();
+        }
+      });
+    }
+  }
+
+  void _navigateToExpiredSuccess() {
+    if (!mounted) return;
+    if (widget.sessionId != null) {
+      ref.invalidate(
+        marketplaceSessionDetailProvider(widget.sessionId.toString()),
+      );
+    }
+    context.go(
+      '/payment/success/${widget.purchaseId}?status=expired',
+      extra: {
+        'sessionId': widget.sessionId,
+        'sessionLabel': widget.sessionLabel,
+        'sessionStartAt': widget.sessionStartAt,
+        'venueName': widget.venueName,
+        'amount': widget.amount,
+        'paymentMethodLabel': widget.paymentMethodLabel,
+      },
+    );
+  }
+
   Future<void> _confirmCancel() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -91,23 +129,27 @@ class _VaWaitingScreenState extends ConsumerState<VaWaitingScreen> {
   Widget build(BuildContext context) {
     final statusAsync = ref.watch(purchaseStatusStreamProvider(widget.purchaseId));
 
-    // Auto-navigate when status becomes terminal
+    // Auto-navigate when server confirms terminal status
     ref.listen<AsyncValue<PurchaseStatus>>(
       purchaseStatusStreamProvider(widget.purchaseId),
       (prev, next) {
         next.whenData((status) {
           if (status.status != 'confirmed' && status.status != 'expired') return;
-          context.go(
-            '/payment/success/${widget.purchaseId}?status=${status.status}',
-            extra: {
-              'sessionId': widget.sessionId,
-              'sessionLabel': widget.sessionLabel,
-              'sessionStartAt': widget.sessionStartAt,
-              'venueName': widget.venueName,
-              'amount': widget.amount,
-              'paymentMethodLabel': widget.paymentMethodLabel,
-            },
-          );
+          if (status.status == 'expired') {
+            _navigateToExpiredSuccess();
+          } else {
+            context.go(
+              '/payment/success/${widget.purchaseId}?status=${status.status}',
+              extra: {
+                'sessionId': widget.sessionId,
+                'sessionLabel': widget.sessionLabel,
+                'sessionStartAt': widget.sessionStartAt,
+                'venueName': widget.venueName,
+                'amount': widget.amount,
+                'paymentMethodLabel': widget.paymentMethodLabel,
+              },
+            );
+          }
         });
       },
     );
@@ -137,7 +179,17 @@ class _VaWaitingScreenState extends ConsumerState<VaWaitingScreen> {
             const RefundPolicyCard(),
             const SizedBox(height: 16),
             if (widget.intent.expiresAt != null)
-              Center(child: CountdownTimer(expiresAt: widget.intent.expiresAt!)),
+              Center(
+                child: CountdownTimer(
+                  expiresAt: widget.intent.expiresAt!,
+                  onExpired: () {
+                    if (!_localExpired) {
+                      setState(() => _localExpired = true);
+                      _navigateToExpiredSuccess();
+                    }
+                  },
+                ),
+              ),
             const SizedBox(height: 24),
             const _InstructionsBlock(),
             const SizedBox(height: 24),
@@ -164,21 +216,24 @@ class _VaWaitingScreenState extends ConsumerState<VaWaitingScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            OutlinedButton(
-              onPressed: _confirmCancel,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red.shade700,
-                side: BorderSide(color: Colors.red.shade300),
-                minimumSize: const Size.fromHeight(48),
+            // Hide stale action buttons once locally expired
+            if (!_localExpired) ...[
+              const SizedBox(height: 24),
+              OutlinedButton(
+                onPressed: _confirmCancel,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red.shade700,
+                  side: BorderSide(color: Colors.red.shade300),
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: const Text('Batalkan Pesanan'),
               ),
-              child: const Text('Batalkan Pesanan'),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => context.go(AppRoutes.home(UserRole.player)),
-              child: const Text('Bayar Nanti'),
-            ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => context.go(AppRoutes.home(UserRole.player)),
+                child: const Text('Bayar Nanti'),
+              ),
+            ],
           ],
         ),
       ),

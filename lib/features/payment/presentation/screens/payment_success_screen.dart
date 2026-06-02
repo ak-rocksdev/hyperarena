@@ -80,6 +80,20 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
     context.go(AppRoutes.home(UserRole.player));
   }
 
+  /// "Pesan Ulang" — go back to session detail so user can re-checkout.
+  /// Invalidates the session cache first so fresh participant/status data
+  /// loads before the user lands on the detail page.
+  void _onReorder() {
+    if (widget.sessionId != null) {
+      ref.invalidate(
+        marketplaceSessionDetailProvider(widget.sessionId.toString()),
+      );
+      context.go(AppRoutes.marketplaceSession(widget.sessionId.toString()));
+    } else {
+      context.go(AppRoutes.home(UserRole.player));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final (icon, color, title, subtitle) = switch (widget.status) {
@@ -99,7 +113,7 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
         Icons.cancel,
         Colors.red.shade600,
         'Pembayaran Kedaluwarsa',
-        'Waktu pembayaran sudah habis. Silakan booking ulang jika ingin melanjutkan.',
+        'Waktu pembayaran sudah habis. Slot di sesi sudah dilepas, silakan pesan kembali jika masih ingin gabung.',
       ),
       _ => (
         Icons.info,
@@ -107,11 +121,6 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
         'Status Tidak Diketahui',
         'Hubungi admin klub jika ada masalah.',
       ),
-    };
-
-    final (buttonText, buttonStyle) = switch (widget.status) {
-      'expired' => ('Kembali ke Beranda', _secondaryStyle()),
-      _ => ('Selesai', _primaryStyle()),
     };
 
     final userName = ref.watch(authNotifierProvider)?.name ?? 'Anda';
@@ -153,17 +162,29 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
                 ),
               ],
               const SizedBox(height: 24),
-              if (widget.status == 'expired')
-                OutlinedButton(
-                  onPressed: _onFinish,
-                  style: buttonStyle,
-                  child: Text(buttonText),
-                )
-              else
+              // Expired variant: dual-button terminal state
+              if (widget.status == 'expired') ...[
+                FilledButton.icon(
+                  onPressed: _onReorder,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Pesan Ulang'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () =>
+                      context.go(AppRoutes.home(UserRole.player)),
+                  child: const Text('Kembali ke Beranda'),
+                ),
+              ] else
                 ElevatedButton(
                   onPressed: _onFinish,
-                  style: buttonStyle,
-                  child: Text(buttonText),
+                  style: _primaryStyle(),
+                  child: const Text('Selesai'),
                 ),
             ],
           ),
@@ -180,12 +201,6 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen>
   ButtonStyle _primaryStyle() => ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        minimumSize: const Size.fromHeight(48),
-      );
-
-  ButtonStyle _secondaryStyle() => OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        side: const BorderSide(color: AppColors.primary),
         minimumSize: const Size.fromHeight(48),
       );
 }

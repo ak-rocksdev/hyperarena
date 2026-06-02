@@ -745,6 +745,36 @@ class _BottomBar extends ConsumerWidget {
       );
     }
 
+    // User had a recent failed purchase for this session — offer fresh re-book.
+    // The amber prior_failed_purchase banner above provides context; this
+    // button surfaces the recovery action prominently.
+    if (!userStatus.isBooked && userStatus.priorFailedPurchase != null) {
+      return FilledButton(
+        onPressed: joinState.isLoading ? null : () => _onJoinTap(context, ref),
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          minimumSize: const Size(160, AppDimensions.buttonHeightMd),
+        ),
+        child: joinState.isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.refresh, size: 18),
+                  SizedBox(width: 6),
+                  Text('Pesan Ulang'),
+                ],
+              ),
+      );
+    }
+
     // Session full
     if (isFull) {
       return FilledButton(

@@ -2,8 +2,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class CountdownTimer extends StatefulWidget {
-  const CountdownTimer({super.key, required this.expiresAt});
+  const CountdownTimer({
+    super.key,
+    required this.expiresAt,
+    this.onExpired,
+  });
+
   final DateTime expiresAt;
+
+  /// Called exactly once when the countdown reaches zero.
+  /// Safe to trigger navigation from here — fires after the current frame.
+  final VoidCallback? onExpired;
 
   @override
   State<CountdownTimer> createState() => _CountdownTimerState();
@@ -12,6 +21,7 @@ class CountdownTimer extends StatefulWidget {
 class _CountdownTimerState extends State<CountdownTimer> {
   Timer? _timer;
   Duration _remaining = Duration.zero;
+  bool _calledExpired = false;
 
   @override
   void initState() {
@@ -29,7 +39,16 @@ class _CountdownTimerState extends State<CountdownTimer> {
   void _tick() {
     if (!mounted) return;
     final remaining = widget.expiresAt.difference(DateTime.now());
-    setState(() => _remaining = remaining.isNegative ? Duration.zero : remaining);
+    final isZero = remaining.isNegative || remaining == Duration.zero;
+    setState(() => _remaining = isZero ? Duration.zero : remaining);
+
+    if (isZero && !_calledExpired) {
+      _calledExpired = true;
+      // Fire after the current frame so callers can safely trigger navigation
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onExpired?.call();
+      });
+    }
   }
 
   String _format(Duration d) {

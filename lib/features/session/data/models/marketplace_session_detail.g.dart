@@ -44,6 +44,11 @@ _$UserSessionStatusImpl _$$UserSessionStatusImplFromJson(
       : PriorFailedPurchase.fromJson(
           json['prior_failed_purchase'] as Map<String, dynamic>,
         ),
+  pendingPurchase: json['pending_purchase'] == null
+      ? null
+      : PendingPurchase.fromJson(
+          json['pending_purchase'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$$UserSessionStatusImplToJson(
@@ -56,6 +61,7 @@ Map<String, dynamic> _$$UserSessionStatusImplToJson(
   'can_review': instance.canReview,
   'review_blocked_reason': instance.reviewBlockedReason,
   'prior_failed_purchase': instance.priorFailedPurchase,
+  'pending_purchase': instance.pendingPurchase,
 };
 
 _$PriorFailedPurchaseImpl _$$PriorFailedPurchaseImplFromJson(
@@ -74,4 +80,42 @@ Map<String, dynamic> _$$PriorFailedPurchaseImplToJson(
   'purchase_id': instance.purchaseId,
   'status': _statusToJson(instance.status),
   'failed_at': instance.failedAt?.toIso8601String(),
+};
+
+_$PendingPurchaseImpl _$$PendingPurchaseImplFromJson(
+  Map<String, dynamic> json,
+) => _$PendingPurchaseImpl(
+  purchaseId: (json['purchase_id'] as num).toInt(),
+  method: json['method'] as String,
+  provider: json['provider'] as String,
+  amountBase: (json['amount_base'] as num).toInt(),
+  feeAmount: (json['fee_amount'] as num).toInt(),
+  amountTotal: (json['amount_total'] as num).toInt(),
+  vaNumber: json['va_number'] as String?,
+  vaBank: json['va_bank'] as String?,
+  expiresAt: json['expires_at'] == null
+      ? null
+      : DateTime.parse(json['expires_at'] as String),
+  bankDetails: json['bank_details'] == null
+      ? null
+      : ManualBankDetails.fromJson(
+          json['bank_details'] as Map<String, dynamic>,
+        ),
+  proofUploadUrl: json['proof_upload_url'] as String?,
+);
+
+Map<String, dynamic> _$$PendingPurchaseImplToJson(
+  _$PendingPurchaseImpl instance,
+) => <String, dynamic>{
+  'purchase_id': instance.purchaseId,
+  'method': instance.method,
+  'provider': instance.provider,
+  'amount_base': instance.amountBase,
+  'fee_amount': instance.feeAmount,
+  'amount_total': instance.amountTotal,
+  'va_number': instance.vaNumber,
+  'va_bank': instance.vaBank,
+  'expires_at': instance.expiresAt?.toIso8601String(),
+  'bank_details': instance.bankDetails,
+  'proof_upload_url': instance.proofUploadUrl,
 };

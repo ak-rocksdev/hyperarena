@@ -6,6 +6,41 @@ part of 'purchase_full_detail.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_$PurchaseResumeImpl _$$PurchaseResumeImplFromJson(Map<String, dynamic> json) =>
+    _$PurchaseResumeImpl(
+      method: json['method'] as String,
+      provider: json['provider'] as String,
+      amountBase: (json['amount_base'] as num).toInt(),
+      feeAmount: (json['fee_amount'] as num).toInt(),
+      amountTotal: (json['amount_total'] as num).toInt(),
+      vaNumber: json['va_number'] as String?,
+      vaBank: json['va_bank'] as String?,
+      expiresAt: json['expires_at'] == null
+          ? null
+          : DateTime.parse(json['expires_at'] as String),
+      bankDetails: json['bank_details'] == null
+          ? null
+          : ManualBankDetails.fromJson(
+              json['bank_details'] as Map<String, dynamic>,
+            ),
+      proofUploadUrl: json['proof_upload_url'] as String?,
+    );
+
+Map<String, dynamic> _$$PurchaseResumeImplToJson(
+  _$PurchaseResumeImpl instance,
+) => <String, dynamic>{
+  'method': instance.method,
+  'provider': instance.provider,
+  'amount_base': instance.amountBase,
+  'fee_amount': instance.feeAmount,
+  'amount_total': instance.amountTotal,
+  'va_number': instance.vaNumber,
+  'va_bank': instance.vaBank,
+  'expires_at': instance.expiresAt?.toIso8601String(),
+  'bank_details': instance.bankDetails,
+  'proof_upload_url': instance.proofUploadUrl,
+};
+
 _$PurchaseFullDetailImpl _$$PurchaseFullDetailImplFromJson(
   Map<String, dynamic> json,
 ) => _$PurchaseFullDetailImpl(
@@ -37,6 +72,9 @@ _$PurchaseFullDetailImpl _$$PurchaseFullDetailImplFromJson(
   session: json['session'] == null
       ? null
       : DetailSession.fromJson(json['session'] as Map<String, dynamic>),
+  resume: json['resume'] == null
+      ? null
+      : PurchaseResume.fromJson(json['resume'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$$PurchaseFullDetailImplToJson(
@@ -60,6 +98,7 @@ Map<String, dynamic> _$$PurchaseFullDetailImplToJson(
   'payment_proof_path': instance.paymentProofPath,
   'tenant': instance.tenant,
   'session': instance.session,
+  'resume': instance.resume,
 };
 
 _$DetailTenantImpl _$$DetailTenantImplFromJson(Map<String, dynamic> json) =>

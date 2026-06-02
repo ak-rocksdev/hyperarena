@@ -15,6 +15,415 @@ final _privateConstructorUsedError = UnsupportedError(
   'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
 );
 
+PurchaseResume _$PurchaseResumeFromJson(Map<String, dynamic> json) {
+  return _PurchaseResume.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PurchaseResume {
+  String get method => throw _privateConstructorUsedError;
+  String get provider => throw _privateConstructorUsedError;
+  @JsonKey(name: 'amount_base')
+  int get amountBase => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fee_amount')
+  int get feeAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'amount_total')
+  int get amountTotal => throw _privateConstructorUsedError;
+  @JsonKey(name: 'va_number')
+  String? get vaNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'va_bank')
+  String? get vaBank => throw _privateConstructorUsedError;
+  @JsonKey(name: 'expires_at')
+  DateTime? get expiresAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'bank_details')
+  ManualBankDetails? get bankDetails => throw _privateConstructorUsedError;
+  @JsonKey(name: 'proof_upload_url')
+  String? get proofUploadUrl => throw _privateConstructorUsedError;
+
+  /// Serializes this PurchaseResume to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of PurchaseResume
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PurchaseResumeCopyWith<PurchaseResume> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PurchaseResumeCopyWith<$Res> {
+  factory $PurchaseResumeCopyWith(
+    PurchaseResume value,
+    $Res Function(PurchaseResume) then,
+  ) = _$PurchaseResumeCopyWithImpl<$Res, PurchaseResume>;
+  @useResult
+  $Res call({
+    String method,
+    String provider,
+    @JsonKey(name: 'amount_base') int amountBase,
+    @JsonKey(name: 'fee_amount') int feeAmount,
+    @JsonKey(name: 'amount_total') int amountTotal,
+    @JsonKey(name: 'va_number') String? vaNumber,
+    @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
+    @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,
+  });
+
+  $ManualBankDetailsCopyWith<$Res>? get bankDetails;
+}
+
+/// @nodoc
+class _$PurchaseResumeCopyWithImpl<$Res, $Val extends PurchaseResume>
+    implements $PurchaseResumeCopyWith<$Res> {
+  _$PurchaseResumeCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PurchaseResume
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? method = null,
+    Object? provider = null,
+    Object? amountBase = null,
+    Object? feeAmount = null,
+    Object? amountTotal = null,
+    Object? vaNumber = freezed,
+    Object? vaBank = freezed,
+    Object? expiresAt = freezed,
+    Object? bankDetails = freezed,
+    Object? proofUploadUrl = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            method: null == method
+                ? _value.method
+                : method // ignore: cast_nullable_to_non_nullable
+                      as String,
+            provider: null == provider
+                ? _value.provider
+                : provider // ignore: cast_nullable_to_non_nullable
+                      as String,
+            amountBase: null == amountBase
+                ? _value.amountBase
+                : amountBase // ignore: cast_nullable_to_non_nullable
+                      as int,
+            feeAmount: null == feeAmount
+                ? _value.feeAmount
+                : feeAmount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            amountTotal: null == amountTotal
+                ? _value.amountTotal
+                : amountTotal // ignore: cast_nullable_to_non_nullable
+                      as int,
+            vaNumber: freezed == vaNumber
+                ? _value.vaNumber
+                : vaNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            vaBank: freezed == vaBank
+                ? _value.vaBank
+                : vaBank // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            expiresAt: freezed == expiresAt
+                ? _value.expiresAt
+                : expiresAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            bankDetails: freezed == bankDetails
+                ? _value.bankDetails
+                : bankDetails // ignore: cast_nullable_to_non_nullable
+                      as ManualBankDetails?,
+            proofUploadUrl: freezed == proofUploadUrl
+                ? _value.proofUploadUrl
+                : proofUploadUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of PurchaseResume
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ManualBankDetailsCopyWith<$Res>? get bankDetails {
+    if (_value.bankDetails == null) {
+      return null;
+    }
+
+    return $ManualBankDetailsCopyWith<$Res>(_value.bankDetails!, (value) {
+      return _then(_value.copyWith(bankDetails: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$PurchaseResumeImplCopyWith<$Res>
+    implements $PurchaseResumeCopyWith<$Res> {
+  factory _$$PurchaseResumeImplCopyWith(
+    _$PurchaseResumeImpl value,
+    $Res Function(_$PurchaseResumeImpl) then,
+  ) = __$$PurchaseResumeImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String method,
+    String provider,
+    @JsonKey(name: 'amount_base') int amountBase,
+    @JsonKey(name: 'fee_amount') int feeAmount,
+    @JsonKey(name: 'amount_total') int amountTotal,
+    @JsonKey(name: 'va_number') String? vaNumber,
+    @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
+    @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,
+  });
+
+  @override
+  $ManualBankDetailsCopyWith<$Res>? get bankDetails;
+}
+
+/// @nodoc
+class __$$PurchaseResumeImplCopyWithImpl<$Res>
+    extends _$PurchaseResumeCopyWithImpl<$Res, _$PurchaseResumeImpl>
+    implements _$$PurchaseResumeImplCopyWith<$Res> {
+  __$$PurchaseResumeImplCopyWithImpl(
+    _$PurchaseResumeImpl _value,
+    $Res Function(_$PurchaseResumeImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PurchaseResume
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? method = null,
+    Object? provider = null,
+    Object? amountBase = null,
+    Object? feeAmount = null,
+    Object? amountTotal = null,
+    Object? vaNumber = freezed,
+    Object? vaBank = freezed,
+    Object? expiresAt = freezed,
+    Object? bankDetails = freezed,
+    Object? proofUploadUrl = freezed,
+  }) {
+    return _then(
+      _$PurchaseResumeImpl(
+        method: null == method
+            ? _value.method
+            : method // ignore: cast_nullable_to_non_nullable
+                  as String,
+        provider: null == provider
+            ? _value.provider
+            : provider // ignore: cast_nullable_to_non_nullable
+                  as String,
+        amountBase: null == amountBase
+            ? _value.amountBase
+            : amountBase // ignore: cast_nullable_to_non_nullable
+                  as int,
+        feeAmount: null == feeAmount
+            ? _value.feeAmount
+            : feeAmount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        amountTotal: null == amountTotal
+            ? _value.amountTotal
+            : amountTotal // ignore: cast_nullable_to_non_nullable
+                  as int,
+        vaNumber: freezed == vaNumber
+            ? _value.vaNumber
+            : vaNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        vaBank: freezed == vaBank
+            ? _value.vaBank
+            : vaBank // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        expiresAt: freezed == expiresAt
+            ? _value.expiresAt
+            : expiresAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        bankDetails: freezed == bankDetails
+            ? _value.bankDetails
+            : bankDetails // ignore: cast_nullable_to_non_nullable
+                  as ManualBankDetails?,
+        proofUploadUrl: freezed == proofUploadUrl
+            ? _value.proofUploadUrl
+            : proofUploadUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PurchaseResumeImpl implements _PurchaseResume {
+  const _$PurchaseResumeImpl({
+    required this.method,
+    required this.provider,
+    @JsonKey(name: 'amount_base') required this.amountBase,
+    @JsonKey(name: 'fee_amount') required this.feeAmount,
+    @JsonKey(name: 'amount_total') required this.amountTotal,
+    @JsonKey(name: 'va_number') this.vaNumber,
+    @JsonKey(name: 'va_bank') this.vaBank,
+    @JsonKey(name: 'expires_at') this.expiresAt,
+    @JsonKey(name: 'bank_details') this.bankDetails,
+    @JsonKey(name: 'proof_upload_url') this.proofUploadUrl,
+  });
+
+  factory _$PurchaseResumeImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PurchaseResumeImplFromJson(json);
+
+  @override
+  final String method;
+  @override
+  final String provider;
+  @override
+  @JsonKey(name: 'amount_base')
+  final int amountBase;
+  @override
+  @JsonKey(name: 'fee_amount')
+  final int feeAmount;
+  @override
+  @JsonKey(name: 'amount_total')
+  final int amountTotal;
+  @override
+  @JsonKey(name: 'va_number')
+  final String? vaNumber;
+  @override
+  @JsonKey(name: 'va_bank')
+  final String? vaBank;
+  @override
+  @JsonKey(name: 'expires_at')
+  final DateTime? expiresAt;
+  @override
+  @JsonKey(name: 'bank_details')
+  final ManualBankDetails? bankDetails;
+  @override
+  @JsonKey(name: 'proof_upload_url')
+  final String? proofUploadUrl;
+
+  @override
+  String toString() {
+    return 'PurchaseResume(method: $method, provider: $provider, amountBase: $amountBase, feeAmount: $feeAmount, amountTotal: $amountTotal, vaNumber: $vaNumber, vaBank: $vaBank, expiresAt: $expiresAt, bankDetails: $bankDetails, proofUploadUrl: $proofUploadUrl)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PurchaseResumeImpl &&
+            (identical(other.method, method) || other.method == method) &&
+            (identical(other.provider, provider) ||
+                other.provider == provider) &&
+            (identical(other.amountBase, amountBase) ||
+                other.amountBase == amountBase) &&
+            (identical(other.feeAmount, feeAmount) ||
+                other.feeAmount == feeAmount) &&
+            (identical(other.amountTotal, amountTotal) ||
+                other.amountTotal == amountTotal) &&
+            (identical(other.vaNumber, vaNumber) ||
+                other.vaNumber == vaNumber) &&
+            (identical(other.vaBank, vaBank) || other.vaBank == vaBank) &&
+            (identical(other.expiresAt, expiresAt) ||
+                other.expiresAt == expiresAt) &&
+            (identical(other.bankDetails, bankDetails) ||
+                other.bankDetails == bankDetails) &&
+            (identical(other.proofUploadUrl, proofUploadUrl) ||
+                other.proofUploadUrl == proofUploadUrl));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    method,
+    provider,
+    amountBase,
+    feeAmount,
+    amountTotal,
+    vaNumber,
+    vaBank,
+    expiresAt,
+    bankDetails,
+    proofUploadUrl,
+  );
+
+  /// Create a copy of PurchaseResume
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PurchaseResumeImplCopyWith<_$PurchaseResumeImpl> get copyWith =>
+      __$$PurchaseResumeImplCopyWithImpl<_$PurchaseResumeImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PurchaseResumeImplToJson(this);
+  }
+}
+
+abstract class _PurchaseResume implements PurchaseResume {
+  const factory _PurchaseResume({
+    required final String method,
+    required final String provider,
+    @JsonKey(name: 'amount_base') required final int amountBase,
+    @JsonKey(name: 'fee_amount') required final int feeAmount,
+    @JsonKey(name: 'amount_total') required final int amountTotal,
+    @JsonKey(name: 'va_number') final String? vaNumber,
+    @JsonKey(name: 'va_bank') final String? vaBank,
+    @JsonKey(name: 'expires_at') final DateTime? expiresAt,
+    @JsonKey(name: 'bank_details') final ManualBankDetails? bankDetails,
+    @JsonKey(name: 'proof_upload_url') final String? proofUploadUrl,
+  }) = _$PurchaseResumeImpl;
+
+  factory _PurchaseResume.fromJson(Map<String, dynamic> json) =
+      _$PurchaseResumeImpl.fromJson;
+
+  @override
+  String get method;
+  @override
+  String get provider;
+  @override
+  @JsonKey(name: 'amount_base')
+  int get amountBase;
+  @override
+  @JsonKey(name: 'fee_amount')
+  int get feeAmount;
+  @override
+  @JsonKey(name: 'amount_total')
+  int get amountTotal;
+  @override
+  @JsonKey(name: 'va_number')
+  String? get vaNumber;
+  @override
+  @JsonKey(name: 'va_bank')
+  String? get vaBank;
+  @override
+  @JsonKey(name: 'expires_at')
+  DateTime? get expiresAt;
+  @override
+  @JsonKey(name: 'bank_details')
+  ManualBankDetails? get bankDetails;
+  @override
+  @JsonKey(name: 'proof_upload_url')
+  String? get proofUploadUrl;
+
+  /// Create a copy of PurchaseResume
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PurchaseResumeImplCopyWith<_$PurchaseResumeImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 PurchaseFullDetail _$PurchaseFullDetailFromJson(Map<String, dynamic> json) {
   return _PurchaseFullDetail.fromJson(json);
 }
@@ -51,6 +460,7 @@ mixin _$PurchaseFullDetail {
   String? get paymentProofPath => throw _privateConstructorUsedError;
   DetailTenant? get tenant => throw _privateConstructorUsedError;
   DetailSession? get session => throw _privateConstructorUsedError;
+  PurchaseResume? get resume => throw _privateConstructorUsedError;
 
   /// Serializes this PurchaseFullDetail to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -88,10 +498,12 @@ abstract class $PurchaseFullDetailCopyWith<$Res> {
     @JsonKey(name: 'payment_proof_path') String? paymentProofPath,
     DetailTenant? tenant,
     DetailSession? session,
+    PurchaseResume? resume,
   });
 
   $DetailTenantCopyWith<$Res>? get tenant;
   $DetailSessionCopyWith<$Res>? get session;
+  $PurchaseResumeCopyWith<$Res>? get resume;
 }
 
 /// @nodoc
@@ -127,6 +539,7 @@ class _$PurchaseFullDetailCopyWithImpl<$Res, $Val extends PurchaseFullDetail>
     Object? paymentProofPath = freezed,
     Object? tenant = freezed,
     Object? session = freezed,
+    Object? resume = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -202,6 +615,10 @@ class _$PurchaseFullDetailCopyWithImpl<$Res, $Val extends PurchaseFullDetail>
                 ? _value.session
                 : session // ignore: cast_nullable_to_non_nullable
                       as DetailSession?,
+            resume: freezed == resume
+                ? _value.resume
+                : resume // ignore: cast_nullable_to_non_nullable
+                      as PurchaseResume?,
           )
           as $Val,
     );
@@ -234,6 +651,20 @@ class _$PurchaseFullDetailCopyWithImpl<$Res, $Val extends PurchaseFullDetail>
       return _then(_value.copyWith(session: value) as $Val);
     });
   }
+
+  /// Create a copy of PurchaseFullDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PurchaseResumeCopyWith<$Res>? get resume {
+    if (_value.resume == null) {
+      return null;
+    }
+
+    return $PurchaseResumeCopyWith<$Res>(_value.resume!, (value) {
+      return _then(_value.copyWith(resume: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -264,12 +695,15 @@ abstract class _$$PurchaseFullDetailImplCopyWith<$Res>
     @JsonKey(name: 'payment_proof_path') String? paymentProofPath,
     DetailTenant? tenant,
     DetailSession? session,
+    PurchaseResume? resume,
   });
 
   @override
   $DetailTenantCopyWith<$Res>? get tenant;
   @override
   $DetailSessionCopyWith<$Res>? get session;
+  @override
+  $PurchaseResumeCopyWith<$Res>? get resume;
 }
 
 /// @nodoc
@@ -304,6 +738,7 @@ class __$$PurchaseFullDetailImplCopyWithImpl<$Res>
     Object? paymentProofPath = freezed,
     Object? tenant = freezed,
     Object? session = freezed,
+    Object? resume = freezed,
   }) {
     return _then(
       _$PurchaseFullDetailImpl(
@@ -379,6 +814,10 @@ class __$$PurchaseFullDetailImplCopyWithImpl<$Res>
             ? _value.session
             : session // ignore: cast_nullable_to_non_nullable
                   as DetailSession?,
+        resume: freezed == resume
+            ? _value.resume
+            : resume // ignore: cast_nullable_to_non_nullable
+                  as PurchaseResume?,
       ),
     );
   }
@@ -406,6 +845,7 @@ class _$PurchaseFullDetailImpl implements _PurchaseFullDetail {
     @JsonKey(name: 'payment_proof_path') this.paymentProofPath,
     this.tenant,
     this.session,
+    this.resume,
   });
 
   factory _$PurchaseFullDetailImpl.fromJson(Map<String, dynamic> json) =>
@@ -459,10 +899,12 @@ class _$PurchaseFullDetailImpl implements _PurchaseFullDetail {
   final DetailTenant? tenant;
   @override
   final DetailSession? session;
+  @override
+  final PurchaseResume? resume;
 
   @override
   String toString() {
-    return 'PurchaseFullDetail(id: $id, reference: $reference, status: $status, amountPaid: $amountPaid, feeAmount: $feeAmount, amountTotal: $amountTotal, currency: $currency, paymentProvider: $paymentProvider, paymentMethod: $paymentMethod, createdAt: $createdAt, confirmedAt: $confirmedAt, productLabel: $productLabel, vaNumber: $vaNumber, vaBank: $vaBank, expiresAt: $expiresAt, paymentProofPath: $paymentProofPath, tenant: $tenant, session: $session)';
+    return 'PurchaseFullDetail(id: $id, reference: $reference, status: $status, amountPaid: $amountPaid, feeAmount: $feeAmount, amountTotal: $amountTotal, currency: $currency, paymentProvider: $paymentProvider, paymentMethod: $paymentMethod, createdAt: $createdAt, confirmedAt: $confirmedAt, productLabel: $productLabel, vaNumber: $vaNumber, vaBank: $vaBank, expiresAt: $expiresAt, paymentProofPath: $paymentProofPath, tenant: $tenant, session: $session, resume: $resume)';
   }
 
   @override
@@ -500,12 +942,13 @@ class _$PurchaseFullDetailImpl implements _PurchaseFullDetail {
             (identical(other.paymentProofPath, paymentProofPath) ||
                 other.paymentProofPath == paymentProofPath) &&
             (identical(other.tenant, tenant) || other.tenant == tenant) &&
-            (identical(other.session, session) || other.session == session));
+            (identical(other.session, session) || other.session == session) &&
+            (identical(other.resume, resume) || other.resume == resume));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     reference,
@@ -525,7 +968,8 @@ class _$PurchaseFullDetailImpl implements _PurchaseFullDetail {
     paymentProofPath,
     tenant,
     session,
-  );
+    resume,
+  ]);
 
   /// Create a copy of PurchaseFullDetail
   /// with the given fields replaced by the non-null parameter values.
@@ -564,6 +1008,7 @@ abstract class _PurchaseFullDetail implements PurchaseFullDetail {
     @JsonKey(name: 'payment_proof_path') final String? paymentProofPath,
     final DetailTenant? tenant,
     final DetailSession? session,
+    final PurchaseResume? resume,
   }) = _$PurchaseFullDetailImpl;
 
   factory _PurchaseFullDetail.fromJson(Map<String, dynamic> json) =
@@ -617,6 +1062,8 @@ abstract class _PurchaseFullDetail implements PurchaseFullDetail {
   DetailTenant? get tenant;
   @override
   DetailSession? get session;
+  @override
+  PurchaseResume? get resume;
 
   /// Create a copy of PurchaseFullDetail
   /// with the given fields replaced by the non-null parameter values.

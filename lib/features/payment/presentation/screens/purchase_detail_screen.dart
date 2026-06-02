@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
+import 'package:hyperarena/features/payment/data/models/purchase_full_detail.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
@@ -134,6 +136,29 @@ class PurchaseDetailScreen extends ConsumerWidget {
 
               const SizedBox(height: 24),
 
+              // Resume payment CTA — only when pending and resume data available
+              if (p.status == 'pending_payment' && p.resume != null) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _navigateToResumePayment(
+                      context,
+                      p.resume!,
+                      p.id,
+                      p.session?.displayTitle ?? p.productLabel ?? 'Sesi',
+                    ),
+                    icon: const Icon(Icons.payment),
+                    label: const Text('Lanjutkan Pembayaran'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.warning,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
               // Re-book CTA
               if (eligibility.eligible) ...[
                 SizedBox(
@@ -176,6 +201,46 @@ class PurchaseDetailScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  void _navigateToResumePayment(
+    BuildContext context,
+    PurchaseResume resume,
+    int purchaseId,
+    String sessionLabel,
+  ) {
+    if (resume.provider == 'automatic') {
+      final intent = PaymentIntent(
+        purchaseId: purchaseId,
+        status: 'pending_payment',
+        provider: resume.provider,
+        paymentMethod: resume.method,
+        amountBase: resume.amountBase,
+        feeAmount: resume.feeAmount,
+        amountTotal: resume.amountTotal,
+        vaNumber: resume.vaNumber,
+        vaBank: resume.vaBank,
+        expiresAt: resume.expiresAt,
+        bankDetails: resume.bankDetails,
+        proofUploadUrl: resume.proofUploadUrl,
+      );
+      context.push('/payment/va/$purchaseId', extra: {
+        'amount': resume.amountTotal,
+        'intent': intent,
+        'sessionLabel': sessionLabel,
+        'paymentMethodLabel':
+            'Virtual Account ${(resume.vaBank ?? '').toUpperCase()}',
+      });
+    } else {
+      final bankDetails = resume.bankDetails;
+      if (bankDetails == null) return; // guard: manual flow needs bank details
+      context.push('/payment/manual/$purchaseId', extra: {
+        'amount': resume.amountTotal,
+        'bankDetails': bankDetails,
+        'sessionLabel': sessionLabel,
+        'paymentMethodLabel': 'Transfer Manual',
+      });
+    }
   }
 
   bool _shouldShowReason(String status) =>

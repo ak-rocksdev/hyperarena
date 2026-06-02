@@ -377,6 +377,8 @@ mixin _$UserSessionStatus {
   @JsonKey(name: 'prior_failed_purchase')
   PriorFailedPurchase? get priorFailedPurchase =>
       throw _privateConstructorUsedError;
+  @JsonKey(name: 'pending_purchase')
+  PendingPurchase? get pendingPurchase => throw _privateConstructorUsedError;
 
   /// Serializes this UserSessionStatus to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -405,9 +407,11 @@ abstract class $UserSessionStatusCopyWith<$Res> {
     @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
     @JsonKey(name: 'prior_failed_purchase')
     PriorFailedPurchase? priorFailedPurchase,
+    @JsonKey(name: 'pending_purchase') PendingPurchase? pendingPurchase,
   });
 
   $PriorFailedPurchaseCopyWith<$Res>? get priorFailedPurchase;
+  $PendingPurchaseCopyWith<$Res>? get pendingPurchase;
 }
 
 /// @nodoc
@@ -432,6 +436,7 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
     Object? canReview = null,
     Object? reviewBlockedReason = freezed,
     Object? priorFailedPurchase = freezed,
+    Object? pendingPurchase = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -463,6 +468,10 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
                 ? _value.priorFailedPurchase
                 : priorFailedPurchase // ignore: cast_nullable_to_non_nullable
                       as PriorFailedPurchase?,
+            pendingPurchase: freezed == pendingPurchase
+                ? _value.pendingPurchase
+                : pendingPurchase // ignore: cast_nullable_to_non_nullable
+                      as PendingPurchase?,
           )
           as $Val,
     );
@@ -481,6 +490,20 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
       value,
     ) {
       return _then(_value.copyWith(priorFailedPurchase: value) as $Val);
+    });
+  }
+
+  /// Create a copy of UserSessionStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PendingPurchaseCopyWith<$Res>? get pendingPurchase {
+    if (_value.pendingPurchase == null) {
+      return null;
+    }
+
+    return $PendingPurchaseCopyWith<$Res>(_value.pendingPurchase!, (value) {
+      return _then(_value.copyWith(pendingPurchase: value) as $Val);
     });
   }
 }
@@ -504,10 +527,13 @@ abstract class _$$UserSessionStatusImplCopyWith<$Res>
     @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
     @JsonKey(name: 'prior_failed_purchase')
     PriorFailedPurchase? priorFailedPurchase,
+    @JsonKey(name: 'pending_purchase') PendingPurchase? pendingPurchase,
   });
 
   @override
   $PriorFailedPurchaseCopyWith<$Res>? get priorFailedPurchase;
+  @override
+  $PendingPurchaseCopyWith<$Res>? get pendingPurchase;
 }
 
 /// @nodoc
@@ -531,6 +557,7 @@ class __$$UserSessionStatusImplCopyWithImpl<$Res>
     Object? canReview = null,
     Object? reviewBlockedReason = freezed,
     Object? priorFailedPurchase = freezed,
+    Object? pendingPurchase = freezed,
   }) {
     return _then(
       _$UserSessionStatusImpl(
@@ -562,6 +589,10 @@ class __$$UserSessionStatusImplCopyWithImpl<$Res>
             ? _value.priorFailedPurchase
             : priorFailedPurchase // ignore: cast_nullable_to_non_nullable
                   as PriorFailedPurchase?,
+        pendingPurchase: freezed == pendingPurchase
+            ? _value.pendingPurchase
+            : pendingPurchase // ignore: cast_nullable_to_non_nullable
+                  as PendingPurchase?,
       ),
     );
   }
@@ -578,6 +609,7 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
     @JsonKey(name: 'can_review') this.canReview = false,
     @JsonKey(name: 'review_blocked_reason') this.reviewBlockedReason,
     @JsonKey(name: 'prior_failed_purchase') this.priorFailedPurchase,
+    @JsonKey(name: 'pending_purchase') this.pendingPurchase,
   });
 
   factory _$UserSessionStatusImpl.fromJson(Map<String, dynamic> json) =>
@@ -604,10 +636,13 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
   @override
   @JsonKey(name: 'prior_failed_purchase')
   final PriorFailedPurchase? priorFailedPurchase;
+  @override
+  @JsonKey(name: 'pending_purchase')
+  final PendingPurchase? pendingPurchase;
 
   @override
   String toString() {
-    return 'UserSessionStatus(creditBalance: $creditBalance, isBooked: $isBooked, bookingId: $bookingId, paymentStatus: $paymentStatus, canReview: $canReview, reviewBlockedReason: $reviewBlockedReason, priorFailedPurchase: $priorFailedPurchase)';
+    return 'UserSessionStatus(creditBalance: $creditBalance, isBooked: $isBooked, bookingId: $bookingId, paymentStatus: $paymentStatus, canReview: $canReview, reviewBlockedReason: $reviewBlockedReason, priorFailedPurchase: $priorFailedPurchase, pendingPurchase: $pendingPurchase)';
   }
 
   @override
@@ -628,7 +663,9 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
             (identical(other.reviewBlockedReason, reviewBlockedReason) ||
                 other.reviewBlockedReason == reviewBlockedReason) &&
             (identical(other.priorFailedPurchase, priorFailedPurchase) ||
-                other.priorFailedPurchase == priorFailedPurchase));
+                other.priorFailedPurchase == priorFailedPurchase) &&
+            (identical(other.pendingPurchase, pendingPurchase) ||
+                other.pendingPurchase == pendingPurchase));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -642,6 +679,7 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
     canReview,
     reviewBlockedReason,
     priorFailedPurchase,
+    pendingPurchase,
   );
 
   /// Create a copy of UserSessionStatus
@@ -672,6 +710,7 @@ abstract class _UserSessionStatus implements UserSessionStatus {
     @JsonKey(name: 'review_blocked_reason') final String? reviewBlockedReason,
     @JsonKey(name: 'prior_failed_purchase')
     final PriorFailedPurchase? priorFailedPurchase,
+    @JsonKey(name: 'pending_purchase') final PendingPurchase? pendingPurchase,
   }) = _$UserSessionStatusImpl;
 
   factory _UserSessionStatus.fromJson(Map<String, dynamic> json) =
@@ -698,6 +737,9 @@ abstract class _UserSessionStatus implements UserSessionStatus {
   @override
   @JsonKey(name: 'prior_failed_purchase')
   PriorFailedPurchase? get priorFailedPurchase;
+  @override
+  @JsonKey(name: 'pending_purchase')
+  PendingPurchase? get pendingPurchase;
 
   /// Create a copy of UserSessionStatus
   /// with the given fields replaced by the non-null parameter values.
@@ -937,5 +979,439 @@ abstract class _PriorFailedPurchase implements PriorFailedPurchase {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PriorFailedPurchaseImplCopyWith<_$PriorFailedPurchaseImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+PendingPurchase _$PendingPurchaseFromJson(Map<String, dynamic> json) {
+  return _PendingPurchase.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PendingPurchase {
+  @JsonKey(name: 'purchase_id')
+  int get purchaseId => throw _privateConstructorUsedError;
+  String get method => throw _privateConstructorUsedError;
+  String get provider => throw _privateConstructorUsedError;
+  @JsonKey(name: 'amount_base')
+  int get amountBase => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fee_amount')
+  int get feeAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'amount_total')
+  int get amountTotal => throw _privateConstructorUsedError;
+  @JsonKey(name: 'va_number')
+  String? get vaNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'va_bank')
+  String? get vaBank => throw _privateConstructorUsedError;
+  @JsonKey(name: 'expires_at')
+  DateTime? get expiresAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'bank_details')
+  ManualBankDetails? get bankDetails => throw _privateConstructorUsedError;
+  @JsonKey(name: 'proof_upload_url')
+  String? get proofUploadUrl => throw _privateConstructorUsedError;
+
+  /// Serializes this PendingPurchase to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of PendingPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PendingPurchaseCopyWith<PendingPurchase> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PendingPurchaseCopyWith<$Res> {
+  factory $PendingPurchaseCopyWith(
+    PendingPurchase value,
+    $Res Function(PendingPurchase) then,
+  ) = _$PendingPurchaseCopyWithImpl<$Res, PendingPurchase>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'purchase_id') int purchaseId,
+    String method,
+    String provider,
+    @JsonKey(name: 'amount_base') int amountBase,
+    @JsonKey(name: 'fee_amount') int feeAmount,
+    @JsonKey(name: 'amount_total') int amountTotal,
+    @JsonKey(name: 'va_number') String? vaNumber,
+    @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
+    @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,
+  });
+
+  $ManualBankDetailsCopyWith<$Res>? get bankDetails;
+}
+
+/// @nodoc
+class _$PendingPurchaseCopyWithImpl<$Res, $Val extends PendingPurchase>
+    implements $PendingPurchaseCopyWith<$Res> {
+  _$PendingPurchaseCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PendingPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? purchaseId = null,
+    Object? method = null,
+    Object? provider = null,
+    Object? amountBase = null,
+    Object? feeAmount = null,
+    Object? amountTotal = null,
+    Object? vaNumber = freezed,
+    Object? vaBank = freezed,
+    Object? expiresAt = freezed,
+    Object? bankDetails = freezed,
+    Object? proofUploadUrl = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            purchaseId: null == purchaseId
+                ? _value.purchaseId
+                : purchaseId // ignore: cast_nullable_to_non_nullable
+                      as int,
+            method: null == method
+                ? _value.method
+                : method // ignore: cast_nullable_to_non_nullable
+                      as String,
+            provider: null == provider
+                ? _value.provider
+                : provider // ignore: cast_nullable_to_non_nullable
+                      as String,
+            amountBase: null == amountBase
+                ? _value.amountBase
+                : amountBase // ignore: cast_nullable_to_non_nullable
+                      as int,
+            feeAmount: null == feeAmount
+                ? _value.feeAmount
+                : feeAmount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            amountTotal: null == amountTotal
+                ? _value.amountTotal
+                : amountTotal // ignore: cast_nullable_to_non_nullable
+                      as int,
+            vaNumber: freezed == vaNumber
+                ? _value.vaNumber
+                : vaNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            vaBank: freezed == vaBank
+                ? _value.vaBank
+                : vaBank // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            expiresAt: freezed == expiresAt
+                ? _value.expiresAt
+                : expiresAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            bankDetails: freezed == bankDetails
+                ? _value.bankDetails
+                : bankDetails // ignore: cast_nullable_to_non_nullable
+                      as ManualBankDetails?,
+            proofUploadUrl: freezed == proofUploadUrl
+                ? _value.proofUploadUrl
+                : proofUploadUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of PendingPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ManualBankDetailsCopyWith<$Res>? get bankDetails {
+    if (_value.bankDetails == null) {
+      return null;
+    }
+
+    return $ManualBankDetailsCopyWith<$Res>(_value.bankDetails!, (value) {
+      return _then(_value.copyWith(bankDetails: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$PendingPurchaseImplCopyWith<$Res>
+    implements $PendingPurchaseCopyWith<$Res> {
+  factory _$$PendingPurchaseImplCopyWith(
+    _$PendingPurchaseImpl value,
+    $Res Function(_$PendingPurchaseImpl) then,
+  ) = __$$PendingPurchaseImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'purchase_id') int purchaseId,
+    String method,
+    String provider,
+    @JsonKey(name: 'amount_base') int amountBase,
+    @JsonKey(name: 'fee_amount') int feeAmount,
+    @JsonKey(name: 'amount_total') int amountTotal,
+    @JsonKey(name: 'va_number') String? vaNumber,
+    @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
+    @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,
+  });
+
+  @override
+  $ManualBankDetailsCopyWith<$Res>? get bankDetails;
+}
+
+/// @nodoc
+class __$$PendingPurchaseImplCopyWithImpl<$Res>
+    extends _$PendingPurchaseCopyWithImpl<$Res, _$PendingPurchaseImpl>
+    implements _$$PendingPurchaseImplCopyWith<$Res> {
+  __$$PendingPurchaseImplCopyWithImpl(
+    _$PendingPurchaseImpl _value,
+    $Res Function(_$PendingPurchaseImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PendingPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? purchaseId = null,
+    Object? method = null,
+    Object? provider = null,
+    Object? amountBase = null,
+    Object? feeAmount = null,
+    Object? amountTotal = null,
+    Object? vaNumber = freezed,
+    Object? vaBank = freezed,
+    Object? expiresAt = freezed,
+    Object? bankDetails = freezed,
+    Object? proofUploadUrl = freezed,
+  }) {
+    return _then(
+      _$PendingPurchaseImpl(
+        purchaseId: null == purchaseId
+            ? _value.purchaseId
+            : purchaseId // ignore: cast_nullable_to_non_nullable
+                  as int,
+        method: null == method
+            ? _value.method
+            : method // ignore: cast_nullable_to_non_nullable
+                  as String,
+        provider: null == provider
+            ? _value.provider
+            : provider // ignore: cast_nullable_to_non_nullable
+                  as String,
+        amountBase: null == amountBase
+            ? _value.amountBase
+            : amountBase // ignore: cast_nullable_to_non_nullable
+                  as int,
+        feeAmount: null == feeAmount
+            ? _value.feeAmount
+            : feeAmount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        amountTotal: null == amountTotal
+            ? _value.amountTotal
+            : amountTotal // ignore: cast_nullable_to_non_nullable
+                  as int,
+        vaNumber: freezed == vaNumber
+            ? _value.vaNumber
+            : vaNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        vaBank: freezed == vaBank
+            ? _value.vaBank
+            : vaBank // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        expiresAt: freezed == expiresAt
+            ? _value.expiresAt
+            : expiresAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        bankDetails: freezed == bankDetails
+            ? _value.bankDetails
+            : bankDetails // ignore: cast_nullable_to_non_nullable
+                  as ManualBankDetails?,
+        proofUploadUrl: freezed == proofUploadUrl
+            ? _value.proofUploadUrl
+            : proofUploadUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PendingPurchaseImpl implements _PendingPurchase {
+  const _$PendingPurchaseImpl({
+    @JsonKey(name: 'purchase_id') required this.purchaseId,
+    required this.method,
+    required this.provider,
+    @JsonKey(name: 'amount_base') required this.amountBase,
+    @JsonKey(name: 'fee_amount') required this.feeAmount,
+    @JsonKey(name: 'amount_total') required this.amountTotal,
+    @JsonKey(name: 'va_number') this.vaNumber,
+    @JsonKey(name: 'va_bank') this.vaBank,
+    @JsonKey(name: 'expires_at') this.expiresAt,
+    @JsonKey(name: 'bank_details') this.bankDetails,
+    @JsonKey(name: 'proof_upload_url') this.proofUploadUrl,
+  });
+
+  factory _$PendingPurchaseImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PendingPurchaseImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'purchase_id')
+  final int purchaseId;
+  @override
+  final String method;
+  @override
+  final String provider;
+  @override
+  @JsonKey(name: 'amount_base')
+  final int amountBase;
+  @override
+  @JsonKey(name: 'fee_amount')
+  final int feeAmount;
+  @override
+  @JsonKey(name: 'amount_total')
+  final int amountTotal;
+  @override
+  @JsonKey(name: 'va_number')
+  final String? vaNumber;
+  @override
+  @JsonKey(name: 'va_bank')
+  final String? vaBank;
+  @override
+  @JsonKey(name: 'expires_at')
+  final DateTime? expiresAt;
+  @override
+  @JsonKey(name: 'bank_details')
+  final ManualBankDetails? bankDetails;
+  @override
+  @JsonKey(name: 'proof_upload_url')
+  final String? proofUploadUrl;
+
+  @override
+  String toString() {
+    return 'PendingPurchase(purchaseId: $purchaseId, method: $method, provider: $provider, amountBase: $amountBase, feeAmount: $feeAmount, amountTotal: $amountTotal, vaNumber: $vaNumber, vaBank: $vaBank, expiresAt: $expiresAt, bankDetails: $bankDetails, proofUploadUrl: $proofUploadUrl)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PendingPurchaseImpl &&
+            (identical(other.purchaseId, purchaseId) ||
+                other.purchaseId == purchaseId) &&
+            (identical(other.method, method) || other.method == method) &&
+            (identical(other.provider, provider) ||
+                other.provider == provider) &&
+            (identical(other.amountBase, amountBase) ||
+                other.amountBase == amountBase) &&
+            (identical(other.feeAmount, feeAmount) ||
+                other.feeAmount == feeAmount) &&
+            (identical(other.amountTotal, amountTotal) ||
+                other.amountTotal == amountTotal) &&
+            (identical(other.vaNumber, vaNumber) ||
+                other.vaNumber == vaNumber) &&
+            (identical(other.vaBank, vaBank) || other.vaBank == vaBank) &&
+            (identical(other.expiresAt, expiresAt) ||
+                other.expiresAt == expiresAt) &&
+            (identical(other.bankDetails, bankDetails) ||
+                other.bankDetails == bankDetails) &&
+            (identical(other.proofUploadUrl, proofUploadUrl) ||
+                other.proofUploadUrl == proofUploadUrl));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    purchaseId,
+    method,
+    provider,
+    amountBase,
+    feeAmount,
+    amountTotal,
+    vaNumber,
+    vaBank,
+    expiresAt,
+    bankDetails,
+    proofUploadUrl,
+  );
+
+  /// Create a copy of PendingPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PendingPurchaseImplCopyWith<_$PendingPurchaseImpl> get copyWith =>
+      __$$PendingPurchaseImplCopyWithImpl<_$PendingPurchaseImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PendingPurchaseImplToJson(this);
+  }
+}
+
+abstract class _PendingPurchase implements PendingPurchase {
+  const factory _PendingPurchase({
+    @JsonKey(name: 'purchase_id') required final int purchaseId,
+    required final String method,
+    required final String provider,
+    @JsonKey(name: 'amount_base') required final int amountBase,
+    @JsonKey(name: 'fee_amount') required final int feeAmount,
+    @JsonKey(name: 'amount_total') required final int amountTotal,
+    @JsonKey(name: 'va_number') final String? vaNumber,
+    @JsonKey(name: 'va_bank') final String? vaBank,
+    @JsonKey(name: 'expires_at') final DateTime? expiresAt,
+    @JsonKey(name: 'bank_details') final ManualBankDetails? bankDetails,
+    @JsonKey(name: 'proof_upload_url') final String? proofUploadUrl,
+  }) = _$PendingPurchaseImpl;
+
+  factory _PendingPurchase.fromJson(Map<String, dynamic> json) =
+      _$PendingPurchaseImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'purchase_id')
+  int get purchaseId;
+  @override
+  String get method;
+  @override
+  String get provider;
+  @override
+  @JsonKey(name: 'amount_base')
+  int get amountBase;
+  @override
+  @JsonKey(name: 'fee_amount')
+  int get feeAmount;
+  @override
+  @JsonKey(name: 'amount_total')
+  int get amountTotal;
+  @override
+  @JsonKey(name: 'va_number')
+  String? get vaNumber;
+  @override
+  @JsonKey(name: 'va_bank')
+  String? get vaBank;
+  @override
+  @JsonKey(name: 'expires_at')
+  DateTime? get expiresAt;
+  @override
+  @JsonKey(name: 'bank_details')
+  ManualBankDetails? get bankDetails;
+  @override
+  @JsonKey(name: 'proof_upload_url')
+  String? get proofUploadUrl;
+
+  /// Create a copy of PendingPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PendingPurchaseImplCopyWith<_$PendingPurchaseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

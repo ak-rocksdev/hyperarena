@@ -7,6 +7,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session_detail.dart';
@@ -695,9 +696,30 @@ class _BottomBar extends ConsumerWidget {
     MarketplaceSessionJoinState joinState,
     bool isFull,
   ) {
-    // Already booked — show status based on payment
+    // Already booked — check if payment is pending and resumable
     if (userStatus.isBooked) {
       final status = userStatus.paymentStatus;
+      final pending = userStatus.pendingPurchase;
+
+      // Active CTA when pending_payment + resume data available
+      if (status == 'pending_payment' && pending != null) {
+        return FilledButton.icon(
+          onPressed: () => _navigateToResumePayment(
+            context,
+            pending,
+            session.safeTitle,
+          ),
+          icon: const Icon(Icons.payment, size: 18),
+          label: const Text('Lanjutkan Pembayaran'),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.warning,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(160, AppDimensions.buttonHeightMd),
+          ),
+        );
+      }
+
+      // Passive status pills for all other booked states
       final isPending = status == 'pending_payment' ||
           status == 'pending_confirmation';
 
@@ -821,6 +843,45 @@ class _BottomBar extends ConsumerWidget {
             )
           : const Text('Gabung Sekarang'),
     );
+  }
+
+  void _navigateToResumePayment(
+    BuildContext context,
+    PendingPurchase pending,
+    String sessionLabel,
+  ) {
+    if (pending.provider == 'automatic') {
+      final intent = PaymentIntent(
+        purchaseId: pending.purchaseId,
+        status: 'pending_payment',
+        provider: pending.provider,
+        paymentMethod: pending.method,
+        amountBase: pending.amountBase,
+        feeAmount: pending.feeAmount,
+        amountTotal: pending.amountTotal,
+        vaNumber: pending.vaNumber,
+        vaBank: pending.vaBank,
+        expiresAt: pending.expiresAt,
+        bankDetails: pending.bankDetails,
+        proofUploadUrl: pending.proofUploadUrl,
+      );
+      context.push('/payment/va/${pending.purchaseId}', extra: {
+        'amount': pending.amountTotal,
+        'intent': intent,
+        'sessionLabel': sessionLabel,
+        'paymentMethodLabel':
+            'Virtual Account ${(pending.vaBank ?? '').toUpperCase()}',
+      });
+    } else {
+      final bankDetails = pending.bankDetails;
+      if (bankDetails == null) return;
+      context.push('/payment/manual/${pending.purchaseId}', extra: {
+        'amount': pending.amountTotal,
+        'bankDetails': bankDetails,
+        'sessionLabel': sessionLabel,
+        'paymentMethodLabel': 'Transfer Manual',
+      });
+    }
   }
 
   Future<void> _onJoinTap(BuildContext context, WidgetRef ref) async {

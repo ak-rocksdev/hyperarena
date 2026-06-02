@@ -1,5 +1,6 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hyperarena/features/payment/data/models/payment_method.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/tenant_payment_info.dart';
@@ -38,6 +39,7 @@ class UserSessionStatus with _$UserSessionStatus {
     @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
     @JsonKey(name: 'prior_failed_purchase')
     PriorFailedPurchase? priorFailedPurchase,
+    @JsonKey(name: 'pending_purchase') PendingPurchase? pendingPurchase,
   }) = _UserSessionStatus;
 
   factory UserSessionStatus.fromJson(Map<String, dynamic> json) =>
@@ -80,4 +82,27 @@ class PriorFailedPurchase with _$PriorFailedPurchase {
 
   factory PriorFailedPurchase.fromJson(Map<String, dynamic> json) =>
       _$PriorFailedPurchaseFromJson(json);
+}
+
+/// Surfaces when a member has a pending_payment purchase for this session
+/// (is_booked=true, payment_status=pending_payment). Drives the active
+/// "Lanjutkan Pembayaran" CTA in the session detail bottom bar.
+@freezed
+class PendingPurchase with _$PendingPurchase {
+  const factory PendingPurchase({
+    @JsonKey(name: 'purchase_id') required int purchaseId,
+    required String method,
+    required String provider,
+    @JsonKey(name: 'amount_base') required int amountBase,
+    @JsonKey(name: 'fee_amount') required int feeAmount,
+    @JsonKey(name: 'amount_total') required int amountTotal,
+    @JsonKey(name: 'va_number') String? vaNumber,
+    @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
+    @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,
+  }) = _PendingPurchase;
+
+  factory PendingPurchase.fromJson(Map<String, dynamic> json) =>
+      _$PendingPurchaseFromJson(json);
 }

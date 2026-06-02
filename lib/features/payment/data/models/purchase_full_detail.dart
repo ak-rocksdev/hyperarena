@@ -1,8 +1,28 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hyperarena/features/payment/data/models/payment_method.dart';
 
 part 'purchase_full_detail.freezed.dart';
 part 'purchase_full_detail.g.dart';
+
+@freezed
+class PurchaseResume with _$PurchaseResume {
+  const factory PurchaseResume({
+    required String method,
+    required String provider,
+    @JsonKey(name: 'amount_base') required int amountBase,
+    @JsonKey(name: 'fee_amount') required int feeAmount,
+    @JsonKey(name: 'amount_total') required int amountTotal,
+    @JsonKey(name: 'va_number') String? vaNumber,
+    @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
+    @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,
+  }) = _PurchaseResume;
+
+  factory PurchaseResume.fromJson(Map<String, dynamic> json) =>
+      _$PurchaseResumeFromJson(json);
+}
 
 @freezed
 class PurchaseFullDetail with _$PurchaseFullDetail {
@@ -25,6 +45,7 @@ class PurchaseFullDetail with _$PurchaseFullDetail {
     @JsonKey(name: 'payment_proof_path') String? paymentProofPath,
     DetailTenant? tenant,
     DetailSession? session,
+    PurchaseResume? resume,
   }) = _PurchaseFullDetail;
 
   factory PurchaseFullDetail.fromJson(Map<String, dynamic> json) =>

@@ -40,6 +40,8 @@ mixin _$MarketplaceSession {
   List<SessionParticipant> get participants =>
       throw _privateConstructorUsedError;
   bool get isEnrolled => throw _privateConstructorUsedError;
+  @JsonKey(name: 'payment_status')
+  String? get paymentStatus => throw _privateConstructorUsedError;
   String? get title => throw _privateConstructorUsedError;
   @JsonKey(name: 'display_title')
   String? get displayTitle => throw _privateConstructorUsedError;
@@ -80,6 +82,7 @@ abstract class $MarketplaceSessionCopyWith<$Res> {
     List<SessionCoach> coaches,
     List<SessionParticipant> participants,
     bool isEnrolled,
+    @JsonKey(name: 'payment_status') String? paymentStatus,
     String? title,
     @JsonKey(name: 'display_title') String? displayTitle,
     @JsonKey(name: 'photo_path') String? photoPath,
@@ -118,6 +121,7 @@ class _$MarketplaceSessionCopyWithImpl<$Res, $Val extends MarketplaceSession>
     Object? coaches = null,
     Object? participants = null,
     Object? isEnrolled = null,
+    Object? paymentStatus = freezed,
     Object? title = freezed,
     Object? displayTitle = freezed,
     Object? photoPath = freezed,
@@ -177,6 +181,10 @@ class _$MarketplaceSessionCopyWithImpl<$Res, $Val extends MarketplaceSession>
                 ? _value.isEnrolled
                 : isEnrolled // ignore: cast_nullable_to_non_nullable
                       as bool,
+            paymentStatus: freezed == paymentStatus
+                ? _value.paymentStatus
+                : paymentStatus // ignore: cast_nullable_to_non_nullable
+                      as String?,
             title: freezed == title
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
@@ -251,6 +259,7 @@ abstract class _$$MarketplaceSessionImplCopyWith<$Res>
     List<SessionCoach> coaches,
     List<SessionParticipant> participants,
     bool isEnrolled,
+    @JsonKey(name: 'payment_status') String? paymentStatus,
     String? title,
     @JsonKey(name: 'display_title') String? displayTitle,
     @JsonKey(name: 'photo_path') String? photoPath,
@@ -290,6 +299,7 @@ class __$$MarketplaceSessionImplCopyWithImpl<$Res>
     Object? coaches = null,
     Object? participants = null,
     Object? isEnrolled = null,
+    Object? paymentStatus = freezed,
     Object? title = freezed,
     Object? displayTitle = freezed,
     Object? photoPath = freezed,
@@ -349,6 +359,10 @@ class __$$MarketplaceSessionImplCopyWithImpl<$Res>
             ? _value.isEnrolled
             : isEnrolled // ignore: cast_nullable_to_non_nullable
                   as bool,
+        paymentStatus: freezed == paymentStatus
+            ? _value.paymentStatus
+            : paymentStatus // ignore: cast_nullable_to_non_nullable
+                  as String?,
         title: freezed == title
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
@@ -388,6 +402,7 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     final List<SessionCoach> coaches = const [],
     final List<SessionParticipant> participants = const [],
     this.isEnrolled = false,
+    @JsonKey(name: 'payment_status') this.paymentStatus,
     this.title,
     @JsonKey(name: 'display_title') this.displayTitle,
     @JsonKey(name: 'photo_path') this.photoPath,
@@ -449,6 +464,9 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
   @JsonKey()
   final bool isEnrolled;
   @override
+  @JsonKey(name: 'payment_status')
+  final String? paymentStatus;
+  @override
   final String? title;
   @override
   @JsonKey(name: 'display_title')
@@ -469,7 +487,7 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
 
   @override
   String toString() {
-    return 'MarketplaceSession(id: $id, name: $name, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, bookedCount: $bookedCount, notes: $notes, tenant: $tenant, venue: $venue, coaches: $coaches, participants: $participants, isEnrolled: $isEnrolled, title: $title, displayTitle: $displayTitle, photoPath: $photoPath, photoUrls: $photoUrls)';
+    return 'MarketplaceSession(id: $id, name: $name, type: $type, startAt: $startAt, durationMinutes: $durationMinutes, capacity: $capacity, bookedCount: $bookedCount, notes: $notes, tenant: $tenant, venue: $venue, coaches: $coaches, participants: $participants, isEnrolled: $isEnrolled, paymentStatus: $paymentStatus, title: $title, displayTitle: $displayTitle, photoPath: $photoPath, photoUrls: $photoUrls)';
   }
 
   @override
@@ -497,6 +515,8 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
             ) &&
             (identical(other.isEnrolled, isEnrolled) ||
                 other.isEnrolled == isEnrolled) &&
+            (identical(other.paymentStatus, paymentStatus) ||
+                other.paymentStatus == paymentStatus) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.displayTitle, displayTitle) ||
                 other.displayTitle == displayTitle) &&
@@ -525,6 +545,7 @@ class _$MarketplaceSessionImpl implements _MarketplaceSession {
     const DeepCollectionEquality().hash(_coaches),
     const DeepCollectionEquality().hash(_participants),
     isEnrolled,
+    paymentStatus,
     title,
     displayTitle,
     photoPath,
@@ -564,6 +585,7 @@ abstract class _MarketplaceSession implements MarketplaceSession {
     final List<SessionCoach> coaches,
     final List<SessionParticipant> participants,
     final bool isEnrolled,
+    @JsonKey(name: 'payment_status') final String? paymentStatus,
     final String? title,
     @JsonKey(name: 'display_title') final String? displayTitle,
     @JsonKey(name: 'photo_path') final String? photoPath,
@@ -604,6 +626,9 @@ abstract class _MarketplaceSession implements MarketplaceSession {
   List<SessionParticipant> get participants;
   @override
   bool get isEnrolled;
+  @override
+  @JsonKey(name: 'payment_status')
+  String? get paymentStatus;
   @override
   String? get title;
   @override

@@ -39,6 +39,11 @@ _$UserSessionStatusImpl _$$UserSessionStatusImplFromJson(
   paymentStatus: json['payment_status'] as String?,
   canReview: json['can_review'] as bool? ?? false,
   reviewBlockedReason: json['review_blocked_reason'] as String?,
+  priorFailedPurchase: json['prior_failed_purchase'] == null
+      ? null
+      : PriorFailedPurchase.fromJson(
+          json['prior_failed_purchase'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$$UserSessionStatusImplToJson(
@@ -50,4 +55,23 @@ Map<String, dynamic> _$$UserSessionStatusImplToJson(
   'payment_status': instance.paymentStatus,
   'can_review': instance.canReview,
   'review_blocked_reason': instance.reviewBlockedReason,
+  'prior_failed_purchase': instance.priorFailedPurchase,
+};
+
+_$PriorFailedPurchaseImpl _$$PriorFailedPurchaseImplFromJson(
+  Map<String, dynamic> json,
+) => _$PriorFailedPurchaseImpl(
+  purchaseId: (json['purchase_id'] as num).toInt(),
+  status: json['status'] as String,
+  failedAt: json['failed_at'] == null
+      ? null
+      : DateTime.parse(json['failed_at'] as String),
+);
+
+Map<String, dynamic> _$$PriorFailedPurchaseImplToJson(
+  _$PriorFailedPurchaseImpl instance,
+) => <String, dynamic>{
+  'purchase_id': instance.purchaseId,
+  'status': instance.status,
+  'failed_at': instance.failedAt?.toIso8601String(),
 };

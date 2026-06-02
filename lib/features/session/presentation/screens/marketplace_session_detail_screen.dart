@@ -190,6 +190,15 @@ class _DetailBody extends ConsumerWidget {
                   ],
                   const SizedBox(height: AppDimensions.lg),
 
+                  // Prior failed purchase banner — shown when member had a
+                  // non-confirmed purchase for this session in the last 30 days
+                  // and is not currently booked.
+                  if (userStatus.priorFailedPurchase != null &&
+                      !userStatus.isBooked)
+                    _PriorFailedBanner(
+                      prior: userStatus.priorFailedPurchase!,
+                    ),
+
                   // Date & time card
                   _InfoCard(
                     icon: Icons.calendar_today,
@@ -468,6 +477,81 @@ class _EmptySlotAvatar extends StatelessWidget {
         Icons.person_outline,
         size: 18,
         color: AppColors.neutral400,
+      ),
+    );
+  }
+}
+
+// ── Prior failed purchase banner ──────────────────────────────
+
+/// Soft amber info banner shown above the session info cards when the
+/// current member previously had an expired/cancelled/rejected purchase
+/// for this session within the last 30 days and is not currently booked.
+class _PriorFailedBanner extends StatelessWidget {
+  final PriorFailedPurchase prior;
+
+  const _PriorFailedBanner({required this.prior});
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, title, subtitle) = switch (prior.status) {
+      'expired' => (
+        Icons.history,
+        'Anda pernah memesan sesi ini',
+        'Pembayaran sebelumnya kedaluwarsa. Slot sudah dilepas, silakan pesan kembali jika masih ingin gabung.',
+      ),
+      'cancelled' => (
+        Icons.cancel_outlined,
+        'Pesanan sebelumnya dibatalkan',
+        'Anda membatalkan pesanan untuk sesi ini. Silakan pesan kembali jika masih ingin gabung.',
+      ),
+      'rejected' => (
+        Icons.block,
+        'Pesanan sebelumnya ditolak',
+        'Pembayaran sebelumnya ditolak admin. Silakan pesan kembali jika masih ingin gabung.',
+      ),
+      _ => (
+        Icons.info_outline,
+        'Pesanan sebelumnya tidak berhasil',
+        'Silakan pesan kembali jika masih ingin gabung.',
+      ),
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppDimensions.md),
+      padding: const EdgeInsets.all(AppDimensions.md),
+      decoration: BoxDecoration(
+        color: AppColors.warningLight,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppColors.warningDark),
+          const SizedBox(width: AppDimensions.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.titleSmall.copyWith(
+                    color: AppColors.warningDark,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.xs),
+                Text(
+                  subtitle,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.warningDark,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

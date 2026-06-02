@@ -374,6 +374,9 @@ mixin _$UserSessionStatus {
   bool get canReview => throw _privateConstructorUsedError;
   @JsonKey(name: 'review_blocked_reason')
   String? get reviewBlockedReason => throw _privateConstructorUsedError;
+  @JsonKey(name: 'prior_failed_purchase')
+  PriorFailedPurchase? get priorFailedPurchase =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this UserSessionStatus to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -400,7 +403,11 @@ abstract class $UserSessionStatusCopyWith<$Res> {
     @JsonKey(name: 'payment_status') String? paymentStatus,
     @JsonKey(name: 'can_review') bool canReview,
     @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
+    @JsonKey(name: 'prior_failed_purchase')
+    PriorFailedPurchase? priorFailedPurchase,
   });
+
+  $PriorFailedPurchaseCopyWith<$Res>? get priorFailedPurchase;
 }
 
 /// @nodoc
@@ -424,6 +431,7 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
     Object? paymentStatus = freezed,
     Object? canReview = null,
     Object? reviewBlockedReason = freezed,
+    Object? priorFailedPurchase = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -451,9 +459,29 @@ class _$UserSessionStatusCopyWithImpl<$Res, $Val extends UserSessionStatus>
                 ? _value.reviewBlockedReason
                 : reviewBlockedReason // ignore: cast_nullable_to_non_nullable
                       as String?,
+            priorFailedPurchase: freezed == priorFailedPurchase
+                ? _value.priorFailedPurchase
+                : priorFailedPurchase // ignore: cast_nullable_to_non_nullable
+                      as PriorFailedPurchase?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of UserSessionStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PriorFailedPurchaseCopyWith<$Res>? get priorFailedPurchase {
+    if (_value.priorFailedPurchase == null) {
+      return null;
+    }
+
+    return $PriorFailedPurchaseCopyWith<$Res>(_value.priorFailedPurchase!, (
+      value,
+    ) {
+      return _then(_value.copyWith(priorFailedPurchase: value) as $Val);
+    });
   }
 }
 
@@ -474,7 +502,12 @@ abstract class _$$UserSessionStatusImplCopyWith<$Res>
     @JsonKey(name: 'payment_status') String? paymentStatus,
     @JsonKey(name: 'can_review') bool canReview,
     @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
+    @JsonKey(name: 'prior_failed_purchase')
+    PriorFailedPurchase? priorFailedPurchase,
   });
+
+  @override
+  $PriorFailedPurchaseCopyWith<$Res>? get priorFailedPurchase;
 }
 
 /// @nodoc
@@ -497,6 +530,7 @@ class __$$UserSessionStatusImplCopyWithImpl<$Res>
     Object? paymentStatus = freezed,
     Object? canReview = null,
     Object? reviewBlockedReason = freezed,
+    Object? priorFailedPurchase = freezed,
   }) {
     return _then(
       _$UserSessionStatusImpl(
@@ -524,6 +558,10 @@ class __$$UserSessionStatusImplCopyWithImpl<$Res>
             ? _value.reviewBlockedReason
             : reviewBlockedReason // ignore: cast_nullable_to_non_nullable
                   as String?,
+        priorFailedPurchase: freezed == priorFailedPurchase
+            ? _value.priorFailedPurchase
+            : priorFailedPurchase // ignore: cast_nullable_to_non_nullable
+                  as PriorFailedPurchase?,
       ),
     );
   }
@@ -539,6 +577,7 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
     @JsonKey(name: 'payment_status') this.paymentStatus,
     @JsonKey(name: 'can_review') this.canReview = false,
     @JsonKey(name: 'review_blocked_reason') this.reviewBlockedReason,
+    @JsonKey(name: 'prior_failed_purchase') this.priorFailedPurchase,
   });
 
   factory _$UserSessionStatusImpl.fromJson(Map<String, dynamic> json) =>
@@ -562,10 +601,13 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
   @override
   @JsonKey(name: 'review_blocked_reason')
   final String? reviewBlockedReason;
+  @override
+  @JsonKey(name: 'prior_failed_purchase')
+  final PriorFailedPurchase? priorFailedPurchase;
 
   @override
   String toString() {
-    return 'UserSessionStatus(creditBalance: $creditBalance, isBooked: $isBooked, bookingId: $bookingId, paymentStatus: $paymentStatus, canReview: $canReview, reviewBlockedReason: $reviewBlockedReason)';
+    return 'UserSessionStatus(creditBalance: $creditBalance, isBooked: $isBooked, bookingId: $bookingId, paymentStatus: $paymentStatus, canReview: $canReview, reviewBlockedReason: $reviewBlockedReason, priorFailedPurchase: $priorFailedPurchase)';
   }
 
   @override
@@ -584,7 +626,9 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
             (identical(other.canReview, canReview) ||
                 other.canReview == canReview) &&
             (identical(other.reviewBlockedReason, reviewBlockedReason) ||
-                other.reviewBlockedReason == reviewBlockedReason));
+                other.reviewBlockedReason == reviewBlockedReason) &&
+            (identical(other.priorFailedPurchase, priorFailedPurchase) ||
+                other.priorFailedPurchase == priorFailedPurchase));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -597,6 +641,7 @@ class _$UserSessionStatusImpl implements _UserSessionStatus {
     paymentStatus,
     canReview,
     reviewBlockedReason,
+    priorFailedPurchase,
   );
 
   /// Create a copy of UserSessionStatus
@@ -625,6 +670,8 @@ abstract class _UserSessionStatus implements UserSessionStatus {
     @JsonKey(name: 'payment_status') final String? paymentStatus,
     @JsonKey(name: 'can_review') final bool canReview,
     @JsonKey(name: 'review_blocked_reason') final String? reviewBlockedReason,
+    @JsonKey(name: 'prior_failed_purchase')
+    final PriorFailedPurchase? priorFailedPurchase,
   }) = _$UserSessionStatusImpl;
 
   factory _UserSessionStatus.fromJson(Map<String, dynamic> json) =
@@ -648,11 +695,230 @@ abstract class _UserSessionStatus implements UserSessionStatus {
   @override
   @JsonKey(name: 'review_blocked_reason')
   String? get reviewBlockedReason;
+  @override
+  @JsonKey(name: 'prior_failed_purchase')
+  PriorFailedPurchase? get priorFailedPurchase;
 
   /// Create a copy of UserSessionStatus
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UserSessionStatusImplCopyWith<_$UserSessionStatusImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+PriorFailedPurchase _$PriorFailedPurchaseFromJson(Map<String, dynamic> json) {
+  return _PriorFailedPurchase.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PriorFailedPurchase {
+  @JsonKey(name: 'purchase_id')
+  int get purchaseId => throw _privateConstructorUsedError;
+  String get status =>
+      throw _privateConstructorUsedError; // 'expired' | 'cancelled' | 'rejected'
+  @JsonKey(name: 'failed_at')
+  DateTime? get failedAt => throw _privateConstructorUsedError;
+
+  /// Serializes this PriorFailedPurchase to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of PriorFailedPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PriorFailedPurchaseCopyWith<PriorFailedPurchase> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PriorFailedPurchaseCopyWith<$Res> {
+  factory $PriorFailedPurchaseCopyWith(
+    PriorFailedPurchase value,
+    $Res Function(PriorFailedPurchase) then,
+  ) = _$PriorFailedPurchaseCopyWithImpl<$Res, PriorFailedPurchase>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'purchase_id') int purchaseId,
+    String status,
+    @JsonKey(name: 'failed_at') DateTime? failedAt,
+  });
+}
+
+/// @nodoc
+class _$PriorFailedPurchaseCopyWithImpl<$Res, $Val extends PriorFailedPurchase>
+    implements $PriorFailedPurchaseCopyWith<$Res> {
+  _$PriorFailedPurchaseCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PriorFailedPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? purchaseId = null,
+    Object? status = null,
+    Object? failedAt = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            purchaseId: null == purchaseId
+                ? _value.purchaseId
+                : purchaseId // ignore: cast_nullable_to_non_nullable
+                      as int,
+            status: null == status
+                ? _value.status
+                : status // ignore: cast_nullable_to_non_nullable
+                      as String,
+            failedAt: freezed == failedAt
+                ? _value.failedAt
+                : failedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$PriorFailedPurchaseImplCopyWith<$Res>
+    implements $PriorFailedPurchaseCopyWith<$Res> {
+  factory _$$PriorFailedPurchaseImplCopyWith(
+    _$PriorFailedPurchaseImpl value,
+    $Res Function(_$PriorFailedPurchaseImpl) then,
+  ) = __$$PriorFailedPurchaseImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'purchase_id') int purchaseId,
+    String status,
+    @JsonKey(name: 'failed_at') DateTime? failedAt,
+  });
+}
+
+/// @nodoc
+class __$$PriorFailedPurchaseImplCopyWithImpl<$Res>
+    extends _$PriorFailedPurchaseCopyWithImpl<$Res, _$PriorFailedPurchaseImpl>
+    implements _$$PriorFailedPurchaseImplCopyWith<$Res> {
+  __$$PriorFailedPurchaseImplCopyWithImpl(
+    _$PriorFailedPurchaseImpl _value,
+    $Res Function(_$PriorFailedPurchaseImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PriorFailedPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? purchaseId = null,
+    Object? status = null,
+    Object? failedAt = freezed,
+  }) {
+    return _then(
+      _$PriorFailedPurchaseImpl(
+        purchaseId: null == purchaseId
+            ? _value.purchaseId
+            : purchaseId // ignore: cast_nullable_to_non_nullable
+                  as int,
+        status: null == status
+            ? _value.status
+            : status // ignore: cast_nullable_to_non_nullable
+                  as String,
+        failedAt: freezed == failedAt
+            ? _value.failedAt
+            : failedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PriorFailedPurchaseImpl implements _PriorFailedPurchase {
+  const _$PriorFailedPurchaseImpl({
+    @JsonKey(name: 'purchase_id') required this.purchaseId,
+    required this.status,
+    @JsonKey(name: 'failed_at') this.failedAt,
+  });
+
+  factory _$PriorFailedPurchaseImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PriorFailedPurchaseImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'purchase_id')
+  final int purchaseId;
+  @override
+  final String status;
+  // 'expired' | 'cancelled' | 'rejected'
+  @override
+  @JsonKey(name: 'failed_at')
+  final DateTime? failedAt;
+
+  @override
+  String toString() {
+    return 'PriorFailedPurchase(purchaseId: $purchaseId, status: $status, failedAt: $failedAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PriorFailedPurchaseImpl &&
+            (identical(other.purchaseId, purchaseId) ||
+                other.purchaseId == purchaseId) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.failedAt, failedAt) ||
+                other.failedAt == failedAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, purchaseId, status, failedAt);
+
+  /// Create a copy of PriorFailedPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PriorFailedPurchaseImplCopyWith<_$PriorFailedPurchaseImpl> get copyWith =>
+      __$$PriorFailedPurchaseImplCopyWithImpl<_$PriorFailedPurchaseImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PriorFailedPurchaseImplToJson(this);
+  }
+}
+
+abstract class _PriorFailedPurchase implements PriorFailedPurchase {
+  const factory _PriorFailedPurchase({
+    @JsonKey(name: 'purchase_id') required final int purchaseId,
+    required final String status,
+    @JsonKey(name: 'failed_at') final DateTime? failedAt,
+  }) = _$PriorFailedPurchaseImpl;
+
+  factory _PriorFailedPurchase.fromJson(Map<String, dynamic> json) =
+      _$PriorFailedPurchaseImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'purchase_id')
+  int get purchaseId;
+  @override
+  String get status; // 'expired' | 'cancelled' | 'rejected'
+  @override
+  @JsonKey(name: 'failed_at')
+  DateTime? get failedAt;
+
+  /// Create a copy of PriorFailedPurchase
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PriorFailedPurchaseImplCopyWith<_$PriorFailedPurchaseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

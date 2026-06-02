@@ -36,8 +36,25 @@ class UserSessionStatus with _$UserSessionStatus {
     @JsonKey(name: 'payment_status') String? paymentStatus,
     @JsonKey(name: 'can_review') @Default(false) bool canReview,
     @JsonKey(name: 'review_blocked_reason') String? reviewBlockedReason,
+    @JsonKey(name: 'prior_failed_purchase')
+    PriorFailedPurchase? priorFailedPurchase,
   }) = _UserSessionStatus;
 
   factory UserSessionStatus.fromJson(Map<String, dynamic> json) =>
       _$UserSessionStatusFromJson(json);
+}
+
+/// Surfaces when a member previously had an expired/cancelled/rejected
+/// purchase for this session within the last 30 days AND is not currently
+/// booked. Drives the soft amber "Anda pernah memesan" banner.
+@freezed
+class PriorFailedPurchase with _$PriorFailedPurchase {
+  const factory PriorFailedPurchase({
+    @JsonKey(name: 'purchase_id') required int purchaseId,
+    required String status, // 'expired' | 'cancelled' | 'rejected'
+    @JsonKey(name: 'failed_at') DateTime? failedAt,
+  }) = _PriorFailedPurchase;
+
+  factory PriorFailedPurchase.fromJson(Map<String, dynamic> json) =>
+      _$PriorFailedPurchaseFromJson(json);
 }

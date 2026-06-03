@@ -29,5 +29,14 @@ void main() {
       final d = c.mapSuccess((v) => v * 2);
       expect(d.isFailure, true);
     });
+
+    test('mapSuccess preserves error and stackTrace on failure', () {
+      final err = Exception('original');
+      final st = StackTrace.current;
+      final c = SectionResult<int>.failure(err, st);
+      final d = c.mapSuccess((v) => v.toString()); // R = String
+      expect(d.errorOrNull, same(err));
+      expect((d as SectionFailure<String>).stackTrace, same(st));
+    });
   });
 }

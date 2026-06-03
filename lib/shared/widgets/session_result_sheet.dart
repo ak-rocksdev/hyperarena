@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/club/data/models/student_detail.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/widgets/zoomable_image.dart';
 
 /// Read-only modal showing one session's assessment + skill progress for
@@ -14,12 +16,24 @@ import 'package:hyperarena/shared/widgets/zoomable_image.dart';
 class SessionResultSheet extends StatelessWidget {
   final SessionHistoryItem session;
 
-  const SessionResultSheet({super.key, required this.session});
+  /// When true, shows a "Nilai Sesi Ini" CTA when the session has no
+  /// assessment yet. Set to true only from coach call sites.
+  final bool canGrade;
+
+  const SessionResultSheet({
+    super.key,
+    required this.session,
+    this.canGrade = false,
+  });
 
   /// Pushes the sheet via `showModalBottomSheet` with a draggable wrapper.
   /// Use this from the parent screen on row tap; do not place the widget
   /// inline.
-  static void show(BuildContext context, SessionHistoryItem session) {
+  static void show(
+    BuildContext context,
+    SessionHistoryItem session, {
+    bool canGrade = false,
+  }) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -29,7 +43,8 @@ class SessionResultSheet extends StatelessWidget {
         minChildSize: 0.4,
         maxChildSize: 0.95,
         expand: false,
-        builder: (_, _) => SessionResultSheet(session: session),
+        builder: (_, _) =>
+            SessionResultSheet(session: session, canGrade: canGrade),
       ),
     );
   }
@@ -83,7 +98,10 @@ class SessionResultSheet extends StatelessWidget {
               if (session.assessment != null)
                 _OverallScore(assessment: session.assessment!)
               else
-                _NoAssessmentNotice(),
+                _NoAssessmentNotice(
+                  sessionId: session.sessionId,
+                  canGrade: canGrade,
+                ),
 
               if (session.assessment?.notes != null &&
                   session.assessment!.notes!.isNotEmpty) ...[
@@ -232,6 +250,14 @@ class _OverallScore extends StatelessWidget {
 }
 
 class _NoAssessmentNotice extends StatelessWidget {
+  final String sessionId;
+  final bool canGrade;
+
+  const _NoAssessmentNotice({
+    required this.sessionId,
+    required this.canGrade,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -240,18 +266,35 @@ class _NoAssessmentNotice extends StatelessWidget {
         color: AppColors.neutral50,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.info_outline,
-              size: 16, color: AppColors.textTertiary),
-          const SizedBox(width: AppDimensions.sm),
-          Expanded(
-            child: Text(
-              'Penilaian untuk sesi ini belum tersedia.',
-              style: AppTypography.bodySmall
-                  .copyWith(color: AppColors.textTertiary),
-            ),
+          Row(
+            children: [
+              Icon(Icons.info_outline,
+                  size: 16, color: AppColors.textTertiary),
+              const SizedBox(width: AppDimensions.sm),
+              Expanded(
+                child: Text(
+                  'Penilaian untuk sesi ini belum tersedia.',
+                  style: AppTypography.bodySmall
+                      .copyWith(color: AppColors.textTertiary),
+                ),
+              ),
+            ],
           ),
+          if (canGrade) ...[
+            const SizedBox(height: AppDimensions.md),
+            FilledButton.icon(
+              icon: const Icon(Icons.edit_note),
+              label: const Text('Nilai Sesi Ini'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.push(AppRoutes.coachSessionDetail(sessionId));
+              },
+            ),
+          ],
         ],
       ),
     );

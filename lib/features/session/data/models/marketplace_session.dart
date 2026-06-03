@@ -27,6 +27,7 @@ class MarketplaceSession with _$MarketplaceSession {
     @Default([]) List<SessionCoach> coaches,
     @Default([]) List<SessionParticipant> participants,
     @Default(false) bool isEnrolled,
+    @JsonKey(name: 'payment_status') String? paymentStatus,
     String? title,
     @JsonKey(name: 'display_title') String? displayTitle,
     @JsonKey(name: 'photo_path') String? photoPath,

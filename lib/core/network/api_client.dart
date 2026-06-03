@@ -49,8 +49,14 @@ class ApiClient {
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
+    Map<String, dynamic>? extraHeaders,
   }) =>
-      _dio.post(path, data: data, queryParameters: queryParameters);
+      _dio.post(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: extraHeaders != null ? Options(headers: extraHeaders) : null,
+      );
 
   Future<Response> put(
     String path, {

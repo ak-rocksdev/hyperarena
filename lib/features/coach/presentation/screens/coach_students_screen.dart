@@ -30,11 +30,31 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   final _debouncer = Debouncer();
+  String? _activeFilter;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final filter =
+        GoRouterState.of(context).uri.queryParameters['filter'];
+    final sanitized = filter == 'ungraded' ? 'ungraded' : null;
+    if (sanitized != _activeFilter) {
+      _activeFilter = sanitized;
+      // Push filter into notifier after the current frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref
+              .read(coachStudentsListProvider.notifier)
+              .setFilter(_activeFilter);
+        }
+      });
+    }
   }
 
   @override
@@ -64,6 +84,7 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(coachStudentsListProvider);
+    final isFiltered = _activeFilter == 'ungraded';
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
@@ -78,6 +99,7 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
         children: [
           _buildHeaderStrip(state),
           _buildSearch(),
+          _buildFilterChipRow(context),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ref
@@ -86,7 +108,7 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
-                  ..._buildBody(state),
+                  ..._buildBody(state, isFiltered: isFiltered),
                   const SliverToBoxAdapter(
                     child: SizedBox(height: AppDimensions.lg),
                   ),
@@ -99,7 +121,45 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
     );
   }
 
-  List<Widget> _buildBody(CoachStudentsListState state) {
+  Widget _buildFilterChipRow(BuildContext context) {
+    final isActive = _activeFilter == 'ungraded';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.screenHorizontal,
+        AppDimensions.md,
+        AppDimensions.screenHorizontal,
+        AppDimensions.md,
+      ),
+      child: Wrap(
+        spacing: AppDimensions.sm,
+        children: [
+          _UngradedFilterChip(
+            isActive: isActive,
+            onTap: () {
+              if (isActive) {
+                context.go('/coach/students');
+              } else {
+                context.go('/coach/students?filter=ungraded');
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildBody(
+    CoachStudentsListState state, {
+    bool isFiltered = false,
+  }) {
+    // Defensive client-side re-filter: when ?filter=ungraded is active, keep
+    // only items where latestProgress == null. This is a safety net — if the
+    // BE already honours the filter param the result is a no-op. Once the BE
+    // filter is deployed everywhere this extra pass becomes invisible overhead.
+    final visibleItems = isFiltered
+        ? state.items.where((s) => s.latestProgress == null).toList()
+        : state.items;
+
     if (state.isLoading) {
       return [
         SliverPadding(
@@ -132,7 +192,18 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
         ),
       ];
     }
-    if (state.isEmpty) {
+    if (visibleItems.isEmpty && !state.isLoading) {
+      if (isFiltered) {
+        return [
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: Icons.check_circle_outline,
+              message: 'Semua murid sudah dinilai',
+            ),
+          ),
+        ];
+      }
       return [
         SliverFillRemaining(
           hasScrollBody: false,
@@ -151,14 +222,14 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
           horizontal: AppDimensions.screenHorizontal,
         ),
         sliver: SliverList.builder(
-          itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+          itemCount: visibleItems.length + (state.isLoadingMore ? 1 : 0),
           itemBuilder: (_, i) {
-            if (i >= state.items.length) {
+            if (i >= visibleItems.length) {
               return const ListLoadingIndicator();
             }
             return Padding(
               padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-              child: _StudentRosterCard(student: state.items[i]),
+              child: _StudentRosterCard(student: visibleItems[i]),
             );
           },
         ),
@@ -422,6 +493,7 @@ class _StudentRosterCard extends StatelessWidget {
   }
 
   Widget _buildMetaRow(Color accent) {
+    final isUngraded = student.latestProgress == null;
     return Padding(
       padding: const EdgeInsets.only(left: 56),
       child: Wrap(
@@ -435,13 +507,15 @@ class _StudentRosterCard extends StatelessWidget {
               vertical: 2,
             ),
             decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.12),
+              color: isUngraded
+                  ? AppColors.warningLight
+                  : accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
             ),
             child: Text(
               _statusLabel(student.latestProgress?.status),
               style: AppTypography.caption.copyWith(
-                color: accent,
+                color: isUngraded ? AppColors.warningDark : accent,
                 fontWeight: FontWeight.w700,
                 fontSize: 10,
               ),
@@ -498,6 +572,67 @@ class _StudentRosterCard extends StatelessWidget {
       'excellent' => 'Sangat Baik',
       _ => 'Belum Dinilai',
     };
+  }
+}
+
+/// Interactive filter chip for the "Belum Dinilai" filter.
+/// Uses AnimatedContainer so the background/border transition smoothly.
+class _UngradedFilterChip extends StatelessWidget {
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _UngradedFilterChip({required this.isActive, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md,
+          vertical: AppDimensions.xs,
+        ),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.warning.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+          border: Border.all(
+            color: isActive
+                ? AppColors.warning.withValues(alpha: 0.4)
+                : AppColors.neutral200,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isActive ? Icons.filter_alt : Icons.filter_alt_outlined,
+              size: 14,
+              color: isActive ? AppColors.warningDark : AppColors.textSecondary,
+            ),
+            const SizedBox(width: AppDimensions.xs),
+            Text(
+              'Belum Dinilai',
+              style: AppTypography.bodySmall.copyWith(
+                color: isActive ? AppColors.warningDark : AppColors.textSecondary,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+            if (isActive) ...[
+              const SizedBox(width: AppDimensions.xs),
+              const Icon(
+                Icons.close,
+                size: 14,
+                color: AppColors.warningDark,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 

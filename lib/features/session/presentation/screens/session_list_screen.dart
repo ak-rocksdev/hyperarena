@@ -214,7 +214,7 @@ class _MarketplaceSessionCard extends ConsumerWidget {
                           child: Text(
                             'oleh ${session.tenant!.name}',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.outline,
+                              color: AppColors.textSecondary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -308,6 +308,13 @@ class _MarketplaceSessionCard extends ConsumerWidget {
       );
     }
     if (s.isEnrolled) {
+      if (s.paymentStatus == 'pending_payment') {
+        return const _StatusPill(
+          label: 'Menunggu Pembayaran',
+          icon: Icons.hourglass_top,
+          color: AppColors.warning,
+        );
+      }
       return const _StatusPill(
         label: 'Terdaftar',
         icon: Icons.check_circle,

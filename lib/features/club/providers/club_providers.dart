@@ -67,11 +67,18 @@ final coachStudentsListProvider =
 
 class CoachStudentsListNotifier extends Notifier<CoachStudentsListState> {
   String? _searchQuery;
+  String? _filter;
 
   @override
   CoachStudentsListState build() {
     Future.microtask(loadInitial);
     return const CoachStudentsListState(isLoading: true);
+  }
+
+  void setFilter(String? value) {
+    if (_filter == value) return;
+    _filter = value;
+    loadInitial();
   }
 
   Future<void> loadInitial({String? search}) async {
@@ -80,7 +87,7 @@ class CoachStudentsListNotifier extends Notifier<CoachStudentsListState> {
     try {
       final page = await ref
           .read(clubRepositoryProvider)
-          .getCoachStudents(search: _searchQuery);
+          .getCoachStudents(search: _searchQuery, filter: _filter);
       state = CoachStudentsListState(
         items: page.items,
         nextCursor: page.nextCursor,
@@ -97,7 +104,11 @@ class CoachStudentsListNotifier extends Notifier<CoachStudentsListState> {
     try {
       final page = await ref
           .read(clubRepositoryProvider)
-          .getCoachStudents(cursor: state.nextCursor, search: _searchQuery);
+          .getCoachStudents(
+            cursor: state.nextCursor,
+            search: _searchQuery,
+            filter: _filter,
+          );
       state = state.copyWith(
         items: [...state.items, ...page.items],
         nextCursor: () => page.nextCursor,

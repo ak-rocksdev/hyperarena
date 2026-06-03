@@ -438,6 +438,11 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       if (isPlayer) ...[
                         _MenuItem(
+                          icon: Icons.receipt_long_outlined,
+                          label: 'Pesanan Saya',
+                          onTap: () => context.push(AppRoutes.myPurchases),
+                        ),
+                        _MenuItem(
                           icon: Icons.show_chart,
                           label: 'Perkembangan',
                           onTap: () => context.push(AppRoutes.career),

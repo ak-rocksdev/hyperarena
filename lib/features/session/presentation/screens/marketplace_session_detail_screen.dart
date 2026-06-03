@@ -7,6 +7,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session_detail.dart';
@@ -21,14 +22,66 @@ import 'package:hyperarena/core/utils/formatters.dart';
 
 /// Marketplace session detail screen.
 /// Fetches enriched data via [marketplaceSessionDetailProvider].
-class MarketplaceSessionDetailScreen extends ConsumerWidget {
+///
+/// Handles the `?joined=1` query parameter injected by [PaymentSuccessScreen]
+/// to show a success snackbar and pulse-highlight the newest participant row.
+class MarketplaceSessionDetailScreen extends ConsumerStatefulWidget {
   final String sessionId;
 
   const MarketplaceSessionDetailScreen({super.key, required this.sessionId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final asyncDetail = ref.watch(marketplaceSessionDetailProvider(sessionId));
+  ConsumerState<MarketplaceSessionDetailScreen> createState() =>
+      _MarketplaceSessionDetailScreenState();
+}
+
+class _MarketplaceSessionDetailScreenState
+    extends ConsumerState<MarketplaceSessionDetailScreen> {
+  /// True for the first render after arriving via ?joined=1.
+  /// Cleared after the first frame so back-and-forth doesn't repeat the UX.
+  bool _highlightJoined = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final justJoined =
+          GoRouterState.of(context).uri.queryParameters['joined'] == '1';
+      if (justJoined) {
+        _showJoinSuccess();
+        setState(() => _highlightJoined = true);
+        // Clear flag after animation has had time to play (1.5 s)
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) setState(() => _highlightJoined = false);
+        });
+      }
+    });
+  }
+
+  void _showJoinSuccess() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text('Anda berhasil bergabung di sesi ini!'),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final asyncDetail =
+        ref.watch(marketplaceSessionDetailProvider(widget.sessionId));
 
     return asyncDetail.when(
       loading: () => const Scaffold(
@@ -38,8 +91,8 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
         appBar: AppBar(),
         body: Center(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppDimensions.screenHorizontal),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.screenHorizontal),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -58,8 +111,8 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppDimensions.lg),
                 FilledButton(
-                  onPressed: () =>
-                      ref.invalidate(marketplaceSessionDetailProvider(sessionId)),
+                  onPressed: () => ref.invalidate(
+                      marketplaceSessionDetailProvider(widget.sessionId)),
                   child: const Text('Coba Lagi'),
                 ),
               ],
@@ -69,7 +122,8 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
       ),
       data: (detail) => _DetailBody(
         detail: detail,
-        sessionId: sessionId,
+        sessionId: widget.sessionId,
+        highlightJoined: _highlightJoined,
       ),
     );
   }
@@ -80,8 +134,13 @@ class MarketplaceSessionDetailScreen extends ConsumerWidget {
 class _DetailBody extends ConsumerWidget {
   final MarketplaceSessionDetail detail;
   final String sessionId;
+  final bool highlightJoined;
 
-  const _DetailBody({required this.detail, required this.sessionId});
+  const _DetailBody({
+    required this.detail,
+    required this.sessionId,
+    required this.highlightJoined,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -131,6 +190,17 @@ class _DetailBody extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: AppDimensions.lg),
+
+                  // Prior failed purchase banner — shown when member had a
+                  // non-confirmed purchase for this session in the last 30 days
+                  // and is not currently booked.
+                  if (userStatus.priorFailedPurchase != null &&
+                      !userStatus.isBooked) ...[
+                    _PriorFailedBanner(
+                      prior: userStatus.priorFailedPurchase!,
+                    ),
+                    const SizedBox(height: AppDimensions.md),
+                  ],
 
                   // Date & time card
                   _InfoCard(
@@ -190,6 +260,7 @@ class _DetailBody extends ConsumerWidget {
                   _ParticipantsGrid(
                     participants: session.participants,
                     capacity: session.capacity,
+                    highlightJoined: highlightJoined,
                   ),
 
                   // Notes section
@@ -314,15 +385,21 @@ class _CoachRow extends StatelessWidget {
 class _ParticipantsGrid extends StatelessWidget {
   final List<SessionParticipant> participants;
   final int capacity;
+  final bool highlightJoined;
 
   const _ParticipantsGrid({
     required this.participants,
     required this.capacity,
+    required this.highlightJoined,
   });
 
   @override
   Widget build(BuildContext context) {
     final emptySlots = capacity - participants.length;
+
+    // The most recently joined participant is the last in the list (BE appends
+    // in join order). We highlight that slot when arriving via ?joined=1.
+    final lastIndex = participants.length - 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,8 +414,14 @@ class _ParticipantsGrid extends StatelessWidget {
           runSpacing: AppDimensions.sm,
           children: [
             // Enrolled participants
-            ...participants.map(
-                (p) => _ParticipantAvatar(name: p.name, photoUrl: p.photoUrl)),
+            ...participants.indexed.map((entry) {
+              final (index, p) = entry;
+              final isNewJoin = highlightJoined && index == lastIndex;
+              return _PulseHighlight(
+                enabled: isNewJoin,
+                child: _ParticipantAvatar(name: p.name, photoUrl: p.photoUrl),
+              );
+            }),
             // Empty slots
             for (int i = 0; i < emptySlots; i++) const _EmptySlotAvatar(),
           ],
@@ -398,6 +481,140 @@ class _EmptySlotAvatar extends StatelessWidget {
         size: 18,
         color: AppColors.neutral400,
       ),
+    );
+  }
+}
+
+// ── Prior failed purchase banner ──────────────────────────────
+
+/// Soft amber info banner shown above the session info cards when the
+/// current member previously had an expired/cancelled/rejected purchase
+/// for this session within the last 30 days and is not currently booked.
+class _PriorFailedBanner extends StatelessWidget {
+  final PriorFailedPurchase prior;
+
+  const _PriorFailedBanner({required this.prior});
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, title, subtitle) = switch (prior.status) {
+      PriorFailedPurchaseStatus.expired => (
+        Icons.history,
+        'Anda pernah memesan sesi ini',
+        'Pembayaran sebelumnya kedaluwarsa. Slot sudah dilepas, silakan pesan kembali jika masih ingin gabung.',
+      ),
+      PriorFailedPurchaseStatus.cancelled => (
+        Icons.cancel_outlined,
+        'Pesanan sebelumnya dibatalkan',
+        'Anda membatalkan pesanan untuk sesi ini. Silakan pesan kembali jika masih ingin gabung.',
+      ),
+      PriorFailedPurchaseStatus.rejected => (
+        Icons.block,
+        'Pesanan sebelumnya ditolak',
+        'Pembayaran sebelumnya ditolak admin. Silakan pesan kembali jika masih ingin gabung.',
+      ),
+      PriorFailedPurchaseStatus.unknown => (
+        Icons.info_outline,
+        'Pesanan sebelumnya tidak berhasil',
+        'Silakan pesan kembali jika masih ingin gabung.',
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.md),
+      decoration: BoxDecoration(
+        color: AppColors.warningLight,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppColors.warningDark),
+          const SizedBox(width: AppDimensions.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.titleSmall.copyWith(
+                    color: AppColors.warningDark,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.xs),
+                Text(
+                  subtitle,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.warningDark,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Pulse highlight wrapper ────────────────────────────────────
+
+/// Wraps [child] in a one-shot background color animation that fades from
+/// [AppColors.primary50] to transparent over 1200 ms. Only active when
+/// [enabled] is true; renders [child] directly otherwise.
+class _PulseHighlight extends StatefulWidget {
+  const _PulseHighlight({required this.child, required this.enabled});
+
+  final Widget child;
+  final bool enabled;
+
+  @override
+  State<_PulseHighlight> createState() => _PulseHighlightState();
+}
+
+class _PulseHighlightState extends State<_PulseHighlight>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Color?> _bgColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _bgColor = ColorTween(
+      begin: AppColors.primary50,
+      end: Colors.transparent,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    if (widget.enabled) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.enabled) return widget.child;
+    return AnimatedBuilder(
+      animation: _bgColor,
+      builder: (_, child) => Container(
+        decoration: BoxDecoration(
+          color: _bgColor.value,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: child,
+      ),
+      child: widget.child,
     );
   }
 }
@@ -479,9 +696,30 @@ class _BottomBar extends ConsumerWidget {
     MarketplaceSessionJoinState joinState,
     bool isFull,
   ) {
-    // Already booked — show status based on payment
+    // Already booked — check if payment is pending and resumable
     if (userStatus.isBooked) {
       final status = userStatus.paymentStatus;
+      final pending = userStatus.pendingPurchase;
+
+      // Active CTA when pending_payment + resume data available
+      if (status == 'pending_payment' && pending != null) {
+        return FilledButton.icon(
+          onPressed: () => _navigateToResumePayment(
+            context,
+            pending,
+            session.safeTitle,
+          ),
+          icon: const Icon(Icons.payment, size: 18),
+          label: const Text('Lanjutkan Pembayaran'),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.warning,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(160, AppDimensions.buttonHeightMd),
+          ),
+        );
+      }
+
+      // Passive status pills for all other booked states
       final isPending = status == 'pending_payment' ||
           status == 'pending_confirmation';
 
@@ -504,6 +742,36 @@ class _BottomBar extends ConsumerWidget {
           disabledForegroundColor: Colors.white,
           minimumSize: const Size(160, AppDimensions.buttonHeightMd),
         ),
+      );
+    }
+
+    // User had a recent failed purchase for this session — offer fresh re-book.
+    // The amber prior_failed_purchase banner above provides context; this
+    // button surfaces the recovery action prominently.
+    if (!userStatus.isBooked && userStatus.priorFailedPurchase != null) {
+      return FilledButton(
+        onPressed: joinState.isLoading ? null : () => _onJoinTap(context, ref),
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          minimumSize: const Size(160, AppDimensions.buttonHeightMd),
+        ),
+        child: joinState.isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.refresh, size: 18),
+                  SizedBox(width: 6),
+                  Text('Pesan Ulang'),
+                ],
+              ),
       );
     }
 
@@ -545,8 +813,10 @@ class _BottomBar extends ConsumerWidget {
       );
     }
 
-    // Has credits — show badge
-    if (userStatus.creditBalance >= 1) {
+    // Credit-mode session + has credits — show "X kredit" badge.
+    // Nominal-price sessions always route through payment checkout
+    // regardless of the user's credit balance.
+    if (pricing.paymentMode == 'credit' && userStatus.creditBalance >= 1) {
       return FilledButton(
         onPressed: joinState.isLoading ? null : () => _onJoinTap(context, ref),
         style: FilledButton.styleFrom(
@@ -605,51 +875,100 @@ class _BottomBar extends ConsumerWidget {
     );
   }
 
+  void _navigateToResumePayment(
+    BuildContext context,
+    PendingPurchase pending,
+    String sessionLabel,
+  ) {
+    if (pending.provider == 'automatic') {
+      final intent = PaymentIntent(
+        purchaseId: pending.purchaseId,
+        status: 'pending_payment',
+        provider: pending.provider,
+        paymentMethod: pending.method,
+        amountBase: pending.amountBase,
+        feeAmount: pending.feeAmount,
+        amountTotal: pending.amountTotal,
+        vaNumber: pending.vaNumber,
+        vaBank: pending.vaBank,
+        expiresAt: pending.expiresAt,
+        bankDetails: pending.bankDetails,
+        proofUploadUrl: pending.proofUploadUrl,
+      );
+      context.push('/payment/va/${pending.purchaseId}', extra: {
+        'amount': pending.amountTotal,
+        'intent': intent,
+        'sessionLabel': sessionLabel,
+        'paymentMethodLabel':
+            'Virtual Account ${(pending.vaBank ?? '').toUpperCase()}',
+      });
+    } else {
+      final bankDetails = pending.bankDetails;
+      if (bankDetails == null) return;
+      context.push('/payment/manual/${pending.purchaseId}', extra: {
+        'amount': pending.amountTotal,
+        'bankDetails': bankDetails,
+        'sessionLabel': sessionLabel,
+        'paymentMethodLabel': 'Transfer Manual',
+      });
+    }
+  }
+
   Future<void> _onJoinTap(BuildContext context, WidgetRef ref) async {
     AppHaptics.tap();
-    if (userStatus.creditBalance >= 1) {
-      // Show credit confirmation sheet
+
+    // ── Credit path: only when session is credit-mode AND user has credits.
+    // Nominal-price sessions always fall through to the paid checkout flow.
+    if (pricing.paymentMode == 'credit' && userStatus.creditBalance >= 1) {
       final confirmed = await showCreditConfirmationSheet(
         context: context,
         creditBalance: userStatus.creditBalance,
       );
       if (confirmed != true || !context.mounted) return;
-    }
 
-    // Call join API
-    final notifier = ref.read(marketplaceSessionJoinProvider.notifier);
-    final response = await notifier.join(int.parse(sessionId));
-    if (!context.mounted) return;
+      final notifier = ref.read(marketplaceSessionJoinProvider.notifier);
+      final response = await notifier.join(int.parse(sessionId));
+      if (!context.mounted) return;
 
-    if (response == null) {
-      final error =
-          ref.read(marketplaceSessionJoinProvider).error ?? 'Gagal bergabung';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
-      return;
-    }
+      if (response == null) {
+        final error =
+            ref.read(marketplaceSessionJoinProvider).error ?? 'Gagal bergabung';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+        return;
+      }
 
-    // Navigate based on result
-    final effectivePrice = pricing.effectivePrice ?? 0;
-    if (response.usedCredit) {
       context.go(
         AppRoutes.marketplaceSessionConfirmation(sessionId),
         extra: {
           'sessionName': session.safeTitle,
-          'price': effectivePrice,
+          'price': pricing.effectivePrice ?? 0,
         },
       );
-    } else {
-      context.go(
-        AppRoutes.marketplaceSessionPayment(sessionId),
-        extra: {
-          'joinResponse': response,
-          'tenantPayment': tenantPayment,
-          'sessionName': session.safeTitle,
-          'price': effectivePrice,
-        },
-      );
+      return;
     }
+
+    // ── Paid path: navigate to checkout (P4b) ────────────────────────────
+    final productId = pricing.productId;
+    final tenantSlug = session.tenant?.slug;
+    final amount = pricing.effectivePrice ?? 0;
+
+    if (productId == null || tenantSlug == null || tenantSlug.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Data produk tidak lengkap, coba lagi nanti')),
+      );
+      return;
+    }
+
+    context.push('/payment/checkout', extra: {
+      'tenantSlug': tenantSlug,
+      'productId': productId,
+      'sessionId': int.parse(sessionId),
+      'productLabel': session.safeTitle,
+      'amount': amount,
+      'sessionStartAt': session.startAt,
+      'venueName': session.venue?.name,
+    });
   }
 }

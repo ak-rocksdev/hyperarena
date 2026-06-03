@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hyperarena/features/notification/utils/notification_route_resolver.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 void main() {
   late NotificationRouteResolver resolver;
@@ -48,6 +49,38 @@ void main() {
 
   test('session type with missing session_id returns null', () {
     final route = resolver.resolve('booking_confirmed', {});
+    expect(route, isNull);
+  });
+
+  test('coach_assigned_to_session resolves to /coach/sessions/{id}', () {
+    final route = resolver.resolve(
+      'coach_assigned_to_session',
+      {'session_id': '42'},
+    );
+    expect(route, AppRoutes.coachSessionDetail('42'));
+  });
+
+  test('session_schedule_change resolves to /coach/sessions/{id}', () {
+    final route = resolver.resolve(
+      'session_schedule_change',
+      {'session_id': '7'},
+    );
+    expect(route, AppRoutes.coachSessionDetail('7'));
+  });
+
+  test('assessment_reminder resolves to /coach/sessions/{id}', () {
+    final route = resolver.resolve(
+      'assessment_reminder',
+      {'session_id': '99'},
+    );
+    expect(route, AppRoutes.coachSessionDetail('99'));
+  });
+
+  test('coach_assigned_to_session returns null when session_id missing', () {
+    final route = resolver.resolve(
+      'coach_assigned_to_session',
+      {},
+    );
     expect(route, isNull);
   });
 }

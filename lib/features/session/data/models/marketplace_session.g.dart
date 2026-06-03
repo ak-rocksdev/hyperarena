@@ -34,6 +34,7 @@ _$MarketplaceSessionImpl _$$MarketplaceSessionImplFromJson(
           .toList() ??
       const [],
   isEnrolled: json['is_enrolled'] as bool? ?? false,
+  paymentStatus: json['payment_status'] as String?,
   title: json['title'] as String?,
   displayTitle: json['display_title'] as String?,
   photoPath: json['photo_path'] as String?,
@@ -58,6 +59,7 @@ Map<String, dynamic> _$$MarketplaceSessionImplToJson(
   'coaches': instance.coaches,
   'participants': instance.participants,
   'is_enrolled': instance.isEnrolled,
+  'payment_status': instance.paymentStatus,
   'title': instance.title,
   'display_title': instance.displayTitle,
   'photo_path': instance.photoPath,

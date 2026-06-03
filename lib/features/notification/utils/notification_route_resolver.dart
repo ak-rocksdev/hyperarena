@@ -15,6 +15,11 @@ class NotificationRouteResolver {
         _marketplaceSessionRoute(data),
       'purchase_confirmed' => AppRoutes.notifications,
       'payout_approved' => AppRoutes.organizerEarnings,
+      'organizer.new_purchase' => _organizerPurchaseRoute(data),
+      'coach_assigned_to_session' ||
+      'session_schedule_change' ||
+      'assessment_reminder' =>
+        _coachSessionRoute(data),
       _ => null,
     };
   }
@@ -29,5 +34,19 @@ class NotificationRouteResolver {
     final sessionId = data['session_id']?.toString();
     if (sessionId == null) return null;
     return AppRoutes.marketplaceSession(sessionId);
+  }
+
+  String _organizerPurchaseRoute(Map<String, dynamic> data) {
+    final sessionId = data['session_id']?.toString();
+    if (sessionId != null && sessionId.isNotEmpty) {
+      return AppRoutes.organizerParticipants(sessionId);
+    }
+    return AppRoutes.organizerEarnings;
+  }
+
+  String? _coachSessionRoute(Map<String, dynamic> data) {
+    final sessionId = data['session_id']?.toString();
+    if (sessionId == null) return null;
+    return AppRoutes.coachSessionDetail(sessionId);
   }
 }

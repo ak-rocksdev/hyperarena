@@ -133,4 +133,8 @@ abstract final class AppRoutes {
 
   // ── Gamification routes ───────────────────────────────────────
   static const achievements = '/player/achievements';
+
+  // ── Purchase history routes ────────────────────────────────────
+  static const myPurchases = '/purchases';
+  static String purchaseDetail(String id) => '/purchases/$id';
 }

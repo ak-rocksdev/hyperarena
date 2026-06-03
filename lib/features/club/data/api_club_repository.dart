@@ -28,6 +28,7 @@ class ApiClubRepository {
     int? perPage,
     String? cursor,
     String? search,
+    String? filter,
   }) async {
     try {
       final res = await _apiClient.get(
@@ -36,6 +37,7 @@ class ApiClubRepository {
           'per_page': ?perPage,
           'cursor': ?cursor,
           if (search != null && search.isNotEmpty) 'search': search,
+          if (filter != null && filter.isNotEmpty) 'filter': filter,
         },
       );
       return CursorPage.fromJson<CoachStudentRosterItem>(

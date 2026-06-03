@@ -1,12 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/features/coach/data/api_coach_repository.dart';
 import 'package:hyperarena/features/coach/data/coach_repository.dart';
-import 'package:hyperarena/features/coach/data/mock_coach_repository.dart';
 import 'package:hyperarena/features/coach/data/models/coach.dart';
+import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
+import 'package:hyperarena/shared/providers/marketplace_providers.dart';
 // ── DI ──────────────────────────────────────────────────────────
 
 final coachRepositoryProvider = Provider<CoachRepository>((ref) {
-  return MockCoachRepository();
+  return ApiCoachRepository(
+    ref.watch(marketplaceCoachRepoProvider),
+    ref.watch(coachSessionRepoProvider),
+  );
 });
 
 // ── Filter state ────────────────────────────────────────────────

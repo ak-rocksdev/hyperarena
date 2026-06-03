@@ -61,6 +61,14 @@ import 'package:hyperarena/features/coach/presentation/screens/marketplace_coach
 import 'package:hyperarena/features/session/presentation/screens/marketplace_session_confirmation_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/marketplace_session_detail_screen.dart';
 import 'package:hyperarena/features/session/presentation/screens/marketplace_session_payment_screen.dart';
+import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
+import 'package:hyperarena/features/payment/data/models/payment_method.dart';
+import 'package:hyperarena/features/payment/presentation/screens/checkout_screen.dart';
+import 'package:hyperarena/features/payment/presentation/screens/manual_payment_screen.dart';
+import 'package:hyperarena/features/payment/presentation/screens/my_purchases_screen.dart';
+import 'package:hyperarena/features/payment/presentation/screens/payment_success_screen.dart';
+import 'package:hyperarena/features/payment/presentation/screens/purchase_detail_screen.dart';
+import 'package:hyperarena/features/payment/presentation/screens/va_waiting_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/marketplace_venue_detail_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/venue_detail_screen.dart';
@@ -674,6 +682,83 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.ownerBookingQueue,
         builder: (_, _) => const OwnerBookingQueueScreen(),
+      ),
+
+      // ── Payment flow routes (P4b) ─────────────────────────
+      GoRoute(
+        path: '/payment/checkout',
+        builder: (ctx, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return CheckoutScreen(
+            tenantSlug: extra['tenantSlug'] as String,
+            productId: extra['productId'] as int,
+            sessionId: extra['sessionId'] as int,
+            productLabel: extra['productLabel'] as String,
+            amount: extra['amount'] as int,
+            sessionStartAt: extra['sessionStartAt'] as DateTime?,
+            venueName: extra['venueName'] as String?,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/payment/manual/:purchaseId',
+        builder: (ctx, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return ManualPaymentScreen(
+            purchaseId: int.parse(state.pathParameters['purchaseId']!),
+            amount: extra['amount'] as int,
+            bankDetails: extra['bankDetails'] as ManualBankDetails,
+            sessionId: extra['sessionId'] as int?,
+            sessionLabel: extra['sessionLabel'] as String?,
+            sessionStartAt: extra['sessionStartAt'] as DateTime?,
+            venueName: extra['venueName'] as String?,
+            paymentMethodLabel: extra['paymentMethodLabel'] as String?,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/payment/va/:purchaseId',
+        builder: (ctx, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return VaWaitingScreen(
+            purchaseId: int.parse(state.pathParameters['purchaseId']!),
+            amount: extra['amount'] as int,
+            intent: extra['intent'] as PaymentIntent,
+            sessionId: extra['sessionId'] as int?,
+            sessionLabel: extra['sessionLabel'] as String?,
+            sessionStartAt: extra['sessionStartAt'] as DateTime?,
+            venueName: extra['venueName'] as String?,
+            paymentMethodLabel: extra['paymentMethodLabel'] as String?,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/payment/success/:purchaseId',
+        builder: (ctx, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return PaymentSuccessScreen(
+            purchaseId: int.parse(state.pathParameters['purchaseId']!),
+            status: state.uri.queryParameters['status'] ?? 'confirmed',
+            sessionId: extra?['sessionId'] as int?,
+            sessionLabel: extra?['sessionLabel'] as String?,
+            sessionStartAt: extra?['sessionStartAt'] as DateTime?,
+            venueName: extra?['venueName'] as String?,
+            amount: extra?['amount'] as int?,
+            paymentMethodLabel: extra?['paymentMethodLabel'] as String?,
+          );
+        },
+      ),
+
+      // ── Purchase history routes ────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.myPurchases,
+        builder: (_, _) => const MyPurchasesScreen(),
+      ),
+      GoRoute(
+        path: '/purchases/:purchaseId',
+        builder: (_, state) => PurchaseDetailScreen(
+          purchaseId: int.parse(state.pathParameters['purchaseId']!),
+        ),
       ),
     ],
   );

@@ -36,14 +36,20 @@ class EnrollmentDialog extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => Padding(
+      // Keyboard inset is handled via viewInsets.bottom on the outer Padding;
+      // SafeArea(bottom: true) keeps the action buttons clear of the device
+      // gesture/nav bar.
+      builder: (ctx) => Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom,
         ),
-        child: EnrollmentDialog(
-          studentProfileId: studentProfileId,
-          studentName: studentName,
-          existing: existing,
+        child: SafeArea(
+          top: false,
+          child: EnrollmentDialog(
+            studentProfileId: studentProfileId,
+            studentName: studentName,
+            existing: existing,
+          ),
         ),
       ),
     );

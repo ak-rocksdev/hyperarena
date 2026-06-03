@@ -48,6 +48,12 @@ class _CoachScheduleScreenState extends ConsumerState<CoachScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(coachSessionListProvider);
+    final filter =
+        GoRouterState.of(context).uri.queryParameters['filter'];
+
+    if (filter == 'unmarked' || filter == 'ungraded') {
+      return _buildFilteredView(context, state, filter!);
+    }
 
     return DefaultTabController(
       length: 2,
@@ -99,6 +105,86 @@ class _CoachScheduleScreenState extends ConsumerState<CoachScheduleScreen> {
                       ),
                     ],
                   ),
+      ),
+    );
+  }
+
+  Widget _buildFilteredView(
+    BuildContext context,
+    CoachSessionListState state,
+    String filter,
+  ) {
+    final wantedState =
+        filter == 'unmarked' ? 'needs_attendance' : 'needs_grading';
+    final bannerText = filter == 'unmarked'
+        ? 'Menampilkan sesi yang perlu di-mark kehadirannya'
+        : 'Menampilkan sesi yang perlu dinilai';
+    final emptyMessage = filter == 'unmarked'
+        ? 'Tidak ada sesi yang perlu di-mark'
+        : 'Tidak ada sesi yang perlu dinilai';
+
+    final filtered = state.items
+        .where((s) => s.completionState == wantedState)
+        .toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Jadwal Coaching'),
+      ),
+      body: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.all(AppDimensions.base),
+            padding: const EdgeInsets.all(AppDimensions.base),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.1),
+              borderRadius:
+                  BorderRadius.circular(AppDimensions.radiusMd),
+              border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.filter_alt, color: AppColors.warning),
+                const SizedBox(width: AppDimensions.sm),
+                Expanded(
+                  child: Text(
+                    bannerText,
+                    style: AppTypography.bodySmall,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.go('/coach/schedule'),
+                  child: const Text('Tutup'),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: state.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : filtered.isEmpty
+                    ? EmptyState(
+                        icon: Icons.check_circle_outline,
+                        message: emptyMessage,
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppDimensions.screenHorizontal,
+                          AppDimensions.screenHorizontal,
+                          AppDimensions.screenHorizontal,
+                          AppDimensions.xxxl,
+                        ),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, i) => Padding(
+                          padding: const EdgeInsets.only(
+                              bottom: AppDimensions.md),
+                          child: _CoachSessionCard(session: filtered[i]),
+                        ),
+                      ),
+          ),
+        ],
       ),
     );
   }

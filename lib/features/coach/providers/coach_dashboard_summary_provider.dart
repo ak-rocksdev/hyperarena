@@ -8,11 +8,14 @@ import 'package:hyperarena/features/coach/data/models/coach_dashboard_summary.da
 import 'package:hyperarena/features/coach/data/models/coach_performance.dart';
 import 'package:hyperarena/features/coach/providers/coach_id_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
+import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
 
 final apiCoachDashboardRepositoryProvider =
-    Provider<ApiCoachDashboardRepository>(
-        (ref) => ApiCoachDashboardRepository(ref.watch(apiClientProvider)));
+    Provider<ApiCoachDashboardRepository>((ref) => ApiCoachDashboardRepository(
+          ref.watch(apiClientProvider),
+          ref.watch(coachSessionRepoProvider),
+        ));
 
 Future<SectionResult<T>> _safe<T>(Future<T> Function() f) async {
   try {

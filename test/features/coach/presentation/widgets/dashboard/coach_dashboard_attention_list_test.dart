@@ -39,9 +39,12 @@ void main() {
     expect(find.text('?'), findsOneWidget);
   });
 
-  testWidgets('renders up to 5 items', (tester) async {
+  testWidgets('renders all items the provider returns (provider caps at 5)',
+      (tester) async {
+    // The provider caps the list at 5 before passing it to this widget.
+    // The widget's responsibility is simply to render all received items.
     final students = List.generate(
-      7,
+      5,
       (i) => CoachStudentRosterItem(
         studentProfileId: 'id-$i',
         fullName: 'Student $i',
@@ -61,7 +64,6 @@ void main() {
     for (var i = 0; i < 5; i++) {
       expect(find.text('Student $i'), findsOneWidget);
     }
-    expect(find.text('Student 5'), findsNothing);
   });
 
   testWidgets('tap on student row navigates to /coach/students/{id}',

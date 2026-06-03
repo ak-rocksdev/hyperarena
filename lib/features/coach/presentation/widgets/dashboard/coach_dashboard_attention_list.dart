@@ -33,10 +33,7 @@ class CoachDashboardAttentionList extends StatelessWidget {
               message: 'Semua murid sudah dinilai',
             ),
           SectionSuccess(:final value) => Column(
-              children: value
-                  .take(5)
-                  .map((s) => _StudentRow(student: s))
-                  .toList(),
+              children: value.map((s) => _StudentRow(student: s)).toList(),
             ),
         },
       ],

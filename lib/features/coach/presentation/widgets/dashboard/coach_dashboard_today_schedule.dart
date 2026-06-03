@@ -15,7 +15,9 @@ import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
 
 class CoachDashboardTodaySchedule extends ConsumerWidget {
-  const CoachDashboardTodaySchedule({super.key});
+  const CoachDashboardTodaySchedule({super.key, this.sessionsTomorrow = 0});
+
+  final int sessionsTomorrow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,6 +55,15 @@ class CoachDashboardTodaySchedule extends ConsumerWidget {
             );
           },
         ),
+        if (sessionsTomorrow > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: AppDimensions.sm),
+            child: Text(
+              'Besok: $sessionsTomorrow sesi',
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textTertiary),
+            ),
+          ),
       ],
     );
   }

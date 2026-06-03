@@ -76,4 +76,37 @@ void main() {
 
     expect(find.text('Tidak ada jadwal hari ini'), findsOneWidget);
   });
+
+  testWidgets('renders "Besok: N sesi" hint when sessionsTomorrow > 0',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          coachScheduleProvider.overrideWith(
+              (ref) => Future.value(<CoachingBooking>[])),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: CoachDashboardTodaySchedule(sessionsTomorrow: 3)),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Besok: 3 sesi'), findsOneWidget);
+  });
+
+  testWidgets('hint hidden when sessionsTomorrow is 0', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          coachScheduleProvider.overrideWith(
+              (ref) => Future.value(<CoachingBooking>[])),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: CoachDashboardTodaySchedule()),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.textContaining('Besok:'), findsNothing);
+  });
 }

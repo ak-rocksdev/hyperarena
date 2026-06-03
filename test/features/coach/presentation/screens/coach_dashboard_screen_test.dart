@@ -110,7 +110,7 @@ void main() {
     expect(find.text('Jadwal Hari Ini'), findsOneWidget);
 
     // Performance card labels
-    expect(find.text('Earnings'), findsOneWidget);
+    expect(find.text('Penghasilan'), findsOneWidget);
     expect(find.text('Sesi'), findsOneWidget);
     expect(find.text('Murid Aktif'), findsOneWidget);
 

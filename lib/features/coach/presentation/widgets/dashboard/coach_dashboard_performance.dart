@@ -29,7 +29,7 @@ class CoachDashboardPerformance extends ConsumerWidget {
       SectionSuccess(:final value) => Row(
           children: [
             Expanded(child: _Card(
-              label: 'Earnings',
+              label: 'Penghasilan',
               value: Formatters.formatCurrency(value.earningsThisMonthCents, currency),
               sub: '${value.sessionsThisMonth} sesi bulan ini',
             )),

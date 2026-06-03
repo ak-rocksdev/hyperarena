@@ -30,11 +30,31 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   final _debouncer = Debouncer();
+  String? _activeFilter;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final filter =
+        GoRouterState.of(context).uri.queryParameters['filter'];
+    final sanitized = filter == 'ungraded' ? 'ungraded' : null;
+    if (sanitized != _activeFilter) {
+      _activeFilter = sanitized;
+      // Push filter into notifier after the current frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref
+              .read(coachStudentsListProvider.notifier)
+              .setFilter(_activeFilter);
+        }
+      });
+    }
   }
 
   @override
@@ -64,6 +84,7 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(coachStudentsListProvider);
+    final isFiltered = _activeFilter == 'ungraded';
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
@@ -78,6 +99,7 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
         children: [
           _buildHeaderStrip(state),
           _buildSearch(),
+          if (isFiltered) _buildFilterBanner(context, state),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ref
@@ -86,7 +108,7 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
-                  ..._buildBody(state),
+                  ..._buildBody(state, isFiltered: isFiltered),
                   const SliverToBoxAdapter(
                     child: SizedBox(height: AppDimensions.lg),
                   ),
@@ -99,7 +121,48 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
     );
   }
 
-  List<Widget> _buildBody(CoachStudentsListState state) {
+  Widget _buildFilterBanner(
+    BuildContext context,
+    CoachStudentsListState state,
+  ) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        AppDimensions.base,
+        AppDimensions.base,
+        AppDimensions.base,
+        0,
+      ),
+      padding: const EdgeInsets.all(AppDimensions.base),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.filter_alt, color: AppColors.warning),
+          const SizedBox(width: AppDimensions.sm),
+          Expanded(
+            child: Text(
+              state.total != null
+                  ? 'Menampilkan ${state.total} murid yang belum dinilai'
+                  : 'Menampilkan murid yang belum dinilai',
+              style: AppTypography.bodySmall,
+            ),
+          ),
+          TextButton(
+            onPressed: () => context.go('/coach/students'),
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildBody(
+    CoachStudentsListState state, {
+    bool isFiltered = false,
+  }) {
     if (state.isLoading) {
       return [
         SliverPadding(
@@ -133,6 +196,17 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
       ];
     }
     if (state.isEmpty) {
+      if (isFiltered) {
+        return [
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: Icons.check_circle_outline,
+              message: 'Semua murid sudah dinilai',
+            ),
+          ),
+        ];
+      }
       return [
         SliverFillRemaining(
           hasScrollBody: false,

@@ -33,13 +33,19 @@ final coachDashboardSummaryProvider =
   final repo = ref.watch(apiCoachDashboardRepositoryProvider);
   final coachId = ref.watch(coachIdProvider);
 
-  final results = await Future.wait([
-    _safe<CoachPerformance>(() => repo.getPerformance(coachId: coachId)),
-    _safe<CoachActionCounts>(() => repo.getActionCounts(coachId: coachId)),
-    _safe<List<CoachStudentRosterItem>>(
-        () => repo.getAttentionList(coachId: coachId)),
-    _safe<Map<Sport, int>>(() => repo.getSportBreakdown(coachId: coachId)),
-  ]);
+  final perfFuture =
+      _safe<CoachPerformance>(() => repo.getPerformance(coachId: coachId));
+  final actionsFuture =
+      _safe<CoachActionCounts>(() => repo.getActionCounts(coachId: coachId));
+  final attentionFuture = _safe<List<CoachStudentRosterItem>>(
+      () => repo.getAttentionList(coachId: coachId));
+  final sportFuture =
+      _safe<Map<Sport, int>>(() => repo.getSportBreakdown(coachId: coachId));
+
+  final perf = await perfFuture;
+  final actions = await actionsFuture;
+  final attention = await attentionFuture;
+  final sport = await sportFuture;
 
   int sessionsTomorrow = 0;
   try {
@@ -59,10 +65,10 @@ final coachDashboardSummaryProvider =
   }
 
   return CoachDashboardSummary(
-    performance: results[0] as SectionResult<CoachPerformance>,
-    actions: results[1] as SectionResult<CoachActionCounts>,
-    attentionList: results[2] as SectionResult<List<CoachStudentRosterItem>>,
-    sportBreakdown: results[3] as SectionResult<Map<Sport, int>>,
+    performance: perf,
+    actions: actions,
+    attentionList: attention,
+    sportBreakdown: sport,
     sessionsTomorrow: sessionsTomorrow,
   );
 });

@@ -5,6 +5,7 @@ import 'package:hyperarena/features/club/data/models/coach_student.dart';
 import 'package:hyperarena/features/coach/data/api_coach_session_repository.dart';
 import 'package:hyperarena/features/coach/data/models/coach_action_counts.dart';
 import 'package:hyperarena/features/coach/data/models/coach_performance.dart';
+import 'package:hyperarena/features/coach/data/models/coach_session.dart';
 
 /// Backs the dashboard's aggregate summary. Each method maps to one
 /// SectionResult slot in CoachDashboardSummary. When a BE summary endpoint
@@ -23,6 +24,14 @@ class ApiCoachDashboardRepository {
   final ApiCoachSessionRepository _sessions;
   final ApiClubRepository _students;
 
+  // Memoize the sessions page so getPerformance + getActionCounts +
+  // getSportBreakdown share one HTTP call per dashboard load. The
+  // provider that creates this repo is autoDispose, so the cache
+  // naturally invalidates on pull-to-refresh / role switch / logout.
+  Future<PageResult<CoachSession>>? _sessionsPage;
+  Future<PageResult<CoachSession>> _getSessionsOnce() =>
+      _sessionsPage ??= _sessions.getSessions();
+
   /// Derives performance metrics client-side from the first page of
   /// `ApiCoachSessionRepository.getSessions()`.
   ///
@@ -39,7 +48,7 @@ class ApiCoachDashboardRepository {
   /// **Scope:** Only the first page of sessions is considered. A BE summary
   /// endpoint should replace this client-side aggregation once available.
   Future<CoachPerformance> getPerformance({required String coachId}) async {
-    final page = await _sessions.getSessions();
+    final page = await _getSessionsOnce();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     // Week starts on Monday (weekday == 1).
@@ -90,7 +99,7 @@ class ApiCoachDashboardRepository {
     // accept first-page approximation — backlog beyond page 1 is rare in
     // practice and the BE summary endpoint (out-of-scope follow-up) will
     // replace this client-side aggregation with an authoritative count.
-    final page = await _sessions.getSessions();
+    final page = await _getSessionsOnce();
 
     // ATTENDANCE UNMARKED: completionState == 'needs_attendance' means the
     // session's start time has passed but attendance has not been recorded.

@@ -60,7 +60,22 @@ class ApiCoachDashboardRepository {
     return page.items.where((s) => s.latestProgress == null).take(5).toList();
   }
 
+  /// Returns sessions-per-sport in the last 90 days as a best-effort
+  /// approximation. The coach-sessions list endpoint does not include a
+  /// `sport` field per session, so a true sport breakdown requires a dedicated
+  /// BE summary endpoint (planned follow-up). Until then this method returns
+  /// an empty map, which causes the widget to hide itself gracefully rather
+  /// than throw.
+  ///
+  /// Replace this implementation with the authoritative BE call once
+  /// `GET /v1/coach/dashboard/sport-breakdown` (or equivalent) ships.
   Future<Map<Sport, int>> getSportBreakdown({required String coachId}) async {
-    throw UnimplementedError('Phase 7: getSportBreakdown');
+    // The coach-sessions list endpoint (`GET /v1/coach/sessions`) does not
+    // include a per-session sport field; CoachSession only carries `type`
+    // (a nullable string unrelated to the Sport enum). Without sport-keyed
+    // data a client-side tally is not possible from a single fetch.
+    // Returning an empty map keeps the dashboard intact and hides the
+    // SportBreakdown section until the BE endpoint is available.
+    return const <Sport, int>{};
   }
 }

@@ -11,18 +11,16 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
-import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 import 'package:hyperarena/features/coach/data/models/assessment.dart';
-import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/coach/providers/assessment_provider.dart';
-import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_greeting.dart';
+import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_today_schedule.dart';
+
 class CoachDashboardScreen extends ConsumerWidget {
   const CoachDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheduleAsync = ref.watch(coachScheduleProvider);
     final assessmentsAsync = ref.watch(assessmentListProvider);
 
     return Scaffold(
@@ -43,47 +41,7 @@ class CoachDashboardScreen extends ConsumerWidget {
               const SizedBox(height: AppDimensions.xl),
 
               // ── 3. Jadwal Hari Ini ───────────────────────────────
-              Text('Jadwal Hari Ini', style: AppTypography.titleMedium),
-              const SizedBox(height: AppDimensions.md),
-              AsyncValueWidget<List<CoachingBooking>>(
-                value: scheduleAsync,
-                data: (bookings) {
-                  final now = DateTime.now();
-                  final todayBookings = bookings
-                      .where((b) =>
-                          b.date.year == now.year &&
-                          b.date.month == now.month &&
-                          b.date.day == now.day)
-                      .toList();
-
-                  if (todayBookings.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppDimensions.lg,
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Tidak ada jadwal hari ini',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textTertiary,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: todayBookings
-                        .map((booking) => Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: AppDimensions.sm,
-                              ),
-                              child: _ScheduleCard(booking: booking),
-                            ))
-                        .toList(),
-                  );
-                },
-              ),
+              const CoachDashboardTodaySchedule(),
               const SizedBox(height: AppDimensions.xl),
 
               // ── 4. Penilaian Terbaru ─────────────────────────────
@@ -220,87 +178,6 @@ class _StatCard extends StatelessWidget {
             label,
             style: AppTypography.caption,
             textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Schedule Card (today's booking) ────────────────────────────────────
-class _ScheduleCard extends StatelessWidget {
-  final CoachingBooking booking;
-
-  const _ScheduleCard({required this.booking});
-
-  @override
-  Widget build(BuildContext context) {
-    final sportTheme = Theme.of(context).extension<SportThemeExtension>()!;
-    final statusTheme =
-        Theme.of(context).extension<BookingStatusThemeExtension>()!;
-
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.base),
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        boxShadow: AppShadows.xs,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Time range
-          Text(
-            Formatters.formatTimeRange(booking.startTime, booking.endTime),
-            style: AppTypography.labelMedium.copyWith(
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: AppDimensions.sm),
-
-          // Student name
-          Text(booking.playerName, style: AppTypography.titleSmall),
-          const SizedBox(height: AppDimensions.sm),
-
-          // Sport pill + Status badge
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.sm,
-                  vertical: AppDimensions.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: sportTheme.backgroundColor(booking.sport),
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.radiusFull),
-                ),
-                child: Text(
-                  SportChipSelector.sportLabel(booking.sport),
-                  style: AppTypography.badge.copyWith(
-                    color: sportTheme.textColor(booking.sport),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppDimensions.sm),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.sm,
-                  vertical: AppDimensions.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: statusTheme.backgroundColor(booking.status),
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.radiusFull),
-                ),
-                child: Text(
-                  StatusBadge.statusLabel(booking.status),
-                  style: AppTypography.badge.copyWith(
-                    color: statusTheme.textColor(booking.status),
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),

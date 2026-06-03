@@ -5,22 +5,26 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_action_items.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_greeting.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_recent_assessments.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_today_schedule.dart';
 import 'package:hyperarena/features/coach/providers/assessment_provider.dart';
+import 'package:hyperarena/features/coach/providers/coach_dashboard_summary_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
 
 class CoachDashboardScreen extends ConsumerWidget {
   const CoachDashboardScreen({super.key});
 
   Future<void> _refresh(WidgetRef ref) async {
+    ref.invalidate(coachDashboardSummaryProvider);
     ref.invalidate(coachScheduleProvider);
     ref.invalidate(assessmentListProvider);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final summaryAsync = ref.watch(coachDashboardSummaryProvider);
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
@@ -30,16 +34,25 @@ class CoachDashboardScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                SizedBox(height: AppDimensions.base),
-                CoachDashboardGreeting(),
-                SizedBox(height: AppDimensions.xl),
-                _QuickStatsRow(), // TEMPORARY — replaced in Phase 8
-                SizedBox(height: AppDimensions.xl),
-                CoachDashboardTodaySchedule(),
-                SizedBox(height: AppDimensions.xl),
-                CoachDashboardRecentAssessments(),
-                SizedBox(height: AppDimensions.xxl),
+              children: [
+                const SizedBox(height: AppDimensions.base),
+                const CoachDashboardGreeting(),
+                const SizedBox(height: AppDimensions.xl),
+                summaryAsync.when(
+                  data: (s) => CoachDashboardActionItems(
+                    result: s.actions,
+                    onRetry: () => ref.invalidate(coachDashboardSummaryProvider),
+                  ),
+                  loading: () => const SizedBox(height: 60),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+                const SizedBox(height: AppDimensions.xl),
+                const _QuickStatsRow(), // TEMPORARY — replaced in Phase 8
+                const SizedBox(height: AppDimensions.xl),
+                const CoachDashboardTodaySchedule(),
+                const SizedBox(height: AppDimensions.xl),
+                const CoachDashboardRecentAssessments(),
+                const SizedBox(height: AppDimensions.xxl),
               ],
             ),
           ),

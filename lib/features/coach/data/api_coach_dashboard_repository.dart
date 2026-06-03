@@ -35,8 +35,9 @@ class ApiCoachDashboardRepository {
   Future<CoachPerformance> getPerformance({required String coachId}) async {
     final page = await _sessions.getSessions();
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     // Week starts on Monday (weekday == 1).
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final weekStart = today.subtract(Duration(days: now.weekday - 1));
     final monthStart = DateTime(now.year, now.month, 1);
     final last30 = now.subtract(const Duration(days: 30));
 

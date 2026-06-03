@@ -28,7 +28,11 @@ mixin _$NotificationItem {
   DateTime get createdAt => throw _privateConstructorUsedError;
   bool get isRead => throw _privateConstructorUsedError;
   String? get actionRoute => throw _privateConstructorUsedError;
-  String? get relatedId => throw _privateConstructorUsedError;
+  String? get relatedId =>
+      throw _privateConstructorUsedError; // Informational only — BE has already filtered the list by activeRole.
+  // Defensive default 'all' so older clients survive missing field.
+  @JsonKey(name: 'target_role')
+  String get targetRole => throw _privateConstructorUsedError;
 
   /// Serializes this NotificationItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -56,6 +60,7 @@ abstract class $NotificationItemCopyWith<$Res> {
     bool isRead,
     String? actionRoute,
     String? relatedId,
+    @JsonKey(name: 'target_role') String targetRole,
   });
 }
 
@@ -82,6 +87,7 @@ class _$NotificationItemCopyWithImpl<$Res, $Val extends NotificationItem>
     Object? isRead = null,
     Object? actionRoute = freezed,
     Object? relatedId = freezed,
+    Object? targetRole = null,
   }) {
     return _then(
       _value.copyWith(
@@ -117,6 +123,10 @@ class _$NotificationItemCopyWithImpl<$Res, $Val extends NotificationItem>
                 ? _value.relatedId
                 : relatedId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            targetRole: null == targetRole
+                ? _value.targetRole
+                : targetRole // ignore: cast_nullable_to_non_nullable
+                      as String,
           )
           as $Val,
     );
@@ -141,6 +151,7 @@ abstract class _$$NotificationItemImplCopyWith<$Res>
     bool isRead,
     String? actionRoute,
     String? relatedId,
+    @JsonKey(name: 'target_role') String targetRole,
   });
 }
 
@@ -166,6 +177,7 @@ class __$$NotificationItemImplCopyWithImpl<$Res>
     Object? isRead = null,
     Object? actionRoute = freezed,
     Object? relatedId = freezed,
+    Object? targetRole = null,
   }) {
     return _then(
       _$NotificationItemImpl(
@@ -201,6 +213,10 @@ class __$$NotificationItemImplCopyWithImpl<$Res>
             ? _value.relatedId
             : relatedId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        targetRole: null == targetRole
+            ? _value.targetRole
+            : targetRole // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -218,6 +234,7 @@ class _$NotificationItemImpl implements _NotificationItem {
     this.isRead = false,
     this.actionRoute,
     this.relatedId,
+    @JsonKey(name: 'target_role') this.targetRole = 'all',
   });
 
   factory _$NotificationItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -240,10 +257,15 @@ class _$NotificationItemImpl implements _NotificationItem {
   final String? actionRoute;
   @override
   final String? relatedId;
+  // Informational only — BE has already filtered the list by activeRole.
+  // Defensive default 'all' so older clients survive missing field.
+  @override
+  @JsonKey(name: 'target_role')
+  final String targetRole;
 
   @override
   String toString() {
-    return 'NotificationItem(id: $id, type: $type, title: $title, body: $body, createdAt: $createdAt, isRead: $isRead, actionRoute: $actionRoute, relatedId: $relatedId)';
+    return 'NotificationItem(id: $id, type: $type, title: $title, body: $body, createdAt: $createdAt, isRead: $isRead, actionRoute: $actionRoute, relatedId: $relatedId, targetRole: $targetRole)';
   }
 
   @override
@@ -261,7 +283,9 @@ class _$NotificationItemImpl implements _NotificationItem {
             (identical(other.actionRoute, actionRoute) ||
                 other.actionRoute == actionRoute) &&
             (identical(other.relatedId, relatedId) ||
-                other.relatedId == relatedId));
+                other.relatedId == relatedId) &&
+            (identical(other.targetRole, targetRole) ||
+                other.targetRole == targetRole));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -276,6 +300,7 @@ class _$NotificationItemImpl implements _NotificationItem {
     isRead,
     actionRoute,
     relatedId,
+    targetRole,
   );
 
   /// Create a copy of NotificationItem
@@ -305,6 +330,7 @@ abstract class _NotificationItem implements NotificationItem {
     final bool isRead,
     final String? actionRoute,
     final String? relatedId,
+    @JsonKey(name: 'target_role') final String targetRole,
   }) = _$NotificationItemImpl;
 
   factory _NotificationItem.fromJson(Map<String, dynamic> json) =
@@ -325,7 +351,11 @@ abstract class _NotificationItem implements NotificationItem {
   @override
   String? get actionRoute;
   @override
-  String? get relatedId;
+  String? get relatedId; // Informational only — BE has already filtered the list by activeRole.
+  // Defensive default 'all' so older clients survive missing field.
+  @override
+  @JsonKey(name: 'target_role')
+  String get targetRole;
 
   /// Create a copy of NotificationItem
   /// with the given fields replaced by the non-null parameter values.

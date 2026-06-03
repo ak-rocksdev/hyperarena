@@ -17,6 +17,7 @@ _$NotificationItemImpl _$$NotificationItemImplFromJson(
   isRead: json['is_read'] as bool? ?? false,
   actionRoute: json['action_route'] as String?,
   relatedId: json['related_id'] as String?,
+  targetRole: json['target_role'] as String? ?? 'all',
 );
 
 Map<String, dynamic> _$$NotificationItemImplToJson(
@@ -30,6 +31,7 @@ Map<String, dynamic> _$$NotificationItemImplToJson(
   'is_read': instance.isRead,
   'action_route': instance.actionRoute,
   'related_id': instance.relatedId,
+  'target_role': instance.targetRole,
 };
 
 const _$NotificationTypeEnumMap = {
@@ -44,4 +46,7 @@ const _$NotificationTypeEnumMap = {
   NotificationType.paymentRejected: 'paymentRejected',
   NotificationType.badge: 'badge',
   NotificationType.general: 'general',
+  NotificationType.coachAssignedToSession: 'coachAssignedToSession',
+  NotificationType.sessionScheduleChange: 'sessionScheduleChange',
+  NotificationType.assessmentReminder: 'assessmentReminder',
 };

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/utils/section_result.dart';
@@ -52,12 +53,9 @@ final coachDashboardSummaryProvider =
     final schedule = await ref.watch(coachScheduleProvider.future);
     final now = DateTime.now();
     final tomorrowDay = DateTime(now.year, now.month, now.day + 1);
-    sessionsTomorrow = schedule.where((b) {
-      final d = b.date;
-      return d.year == tomorrowDay.year &&
-          d.month == tomorrowDay.month &&
-          d.day == tomorrowDay.day;
-    }).length;
+    sessionsTomorrow = schedule
+        .where((b) => DateUtils.isSameDay(b.date, tomorrowDay))
+        .length;
   } catch (_) {
     // Leave sessionsTomorrow at 0 — schedule failure must not collapse
     // the rest of the summary. The Today Schedule widget reads

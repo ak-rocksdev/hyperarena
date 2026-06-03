@@ -32,10 +32,7 @@ class CoachDashboardTodaySchedule extends ConsumerWidget {
           data: (bookings) {
             final now = DateTime.now();
             final todayBookings = bookings
-                .where((b) =>
-                    b.date.year == now.year &&
-                    b.date.month == now.month &&
-                    b.date.day == now.day)
+                .where((b) => DateUtils.isSameDay(b.date, now))
                 .toList();
 
             if (todayBookings.isEmpty) {

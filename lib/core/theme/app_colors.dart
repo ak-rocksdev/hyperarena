@@ -42,6 +42,11 @@ abstract final class AppColors {
   static const accent800 = Color(0xFF9A3412);
   static const accent900 = Color(0xFF7C2D12);
 
+  // ── Role accents ────────────────────────────────────────────
+  /// Background tint for the coach role pill. Distinct enough from the
+  /// `primary` brand accent to read as "role indicator" rather than CTA.
+  static const coachAccent = Color(0xFF14B8A6); // teal-500
+
   // ── Neutral: Slate ──────────────────────────────────────────
   static const neutral50 = Color(0xFFF8FAFC);
   static const neutral100 = Color(0xFFF1F5F9);

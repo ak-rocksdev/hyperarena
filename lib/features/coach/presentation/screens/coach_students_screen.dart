@@ -99,7 +99,7 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
         children: [
           _buildHeaderStrip(state),
           _buildSearch(),
-          if (isFiltered) _buildFilterBanner(context, state),
+          _buildFilterChipRow(context),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ref
@@ -121,38 +121,27 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
     );
   }
 
-  Widget _buildFilterBanner(
-    BuildContext context,
-    CoachStudentsListState state,
-  ) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(
-        AppDimensions.base,
-        AppDimensions.base,
-        AppDimensions.base,
-        0,
+  Widget _buildFilterChipRow(BuildContext context) {
+    final isActive = _activeFilter == 'ungraded';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.screenHorizontal,
+        AppDimensions.md,
+        AppDimensions.screenHorizontal,
+        AppDimensions.md,
       ),
-      padding: const EdgeInsets.all(AppDimensions.base),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
-      ),
-      child: Row(
+      child: Wrap(
+        spacing: AppDimensions.sm,
         children: [
-          const Icon(Icons.filter_alt, color: AppColors.warning),
-          const SizedBox(width: AppDimensions.sm),
-          Expanded(
-            child: Text(
-              state.total != null
-                  ? 'Menampilkan ${state.total} murid yang belum dinilai'
-                  : 'Menampilkan murid yang belum dinilai',
-              style: AppTypography.bodySmall,
-            ),
-          ),
-          TextButton(
-            onPressed: () => context.go('/coach/students'),
-            child: const Text('Tutup'),
+          _UngradedFilterChip(
+            isActive: isActive,
+            onTap: () {
+              if (isActive) {
+                context.go('/coach/students');
+              } else {
+                context.go('/coach/students?filter=ungraded');
+              }
+            },
           ),
         ],
       ),
@@ -163,6 +152,14 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
     CoachStudentsListState state, {
     bool isFiltered = false,
   }) {
+    // Defensive client-side re-filter: when ?filter=ungraded is active, keep
+    // only items where latestProgress == null. This is a safety net — if the
+    // BE already honours the filter param the result is a no-op. Once the BE
+    // filter is deployed everywhere this extra pass becomes invisible overhead.
+    final visibleItems = isFiltered
+        ? state.items.where((s) => s.latestProgress == null).toList()
+        : state.items;
+
     if (state.isLoading) {
       return [
         SliverPadding(
@@ -195,7 +192,7 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
         ),
       ];
     }
-    if (state.isEmpty) {
+    if (visibleItems.isEmpty && !state.isLoading) {
       if (isFiltered) {
         return [
           const SliverFillRemaining(
@@ -225,14 +222,14 @@ class _CoachStudentsScreenState extends ConsumerState<CoachStudentsScreen> {
           horizontal: AppDimensions.screenHorizontal,
         ),
         sliver: SliverList.builder(
-          itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+          itemCount: visibleItems.length + (state.isLoadingMore ? 1 : 0),
           itemBuilder: (_, i) {
-            if (i >= state.items.length) {
+            if (i >= visibleItems.length) {
               return const ListLoadingIndicator();
             }
             return Padding(
               padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-              child: _StudentRosterCard(student: state.items[i]),
+              child: _StudentRosterCard(student: visibleItems[i]),
             );
           },
         ),
@@ -575,6 +572,67 @@ class _StudentRosterCard extends StatelessWidget {
       'excellent' => 'Sangat Baik',
       _ => 'Belum Dinilai',
     };
+  }
+}
+
+/// Interactive filter chip for the "Belum Dinilai" filter.
+/// Uses AnimatedContainer so the background/border transition smoothly.
+class _UngradedFilterChip extends StatelessWidget {
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _UngradedFilterChip({required this.isActive, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md,
+          vertical: AppDimensions.xs,
+        ),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.warning.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+          border: Border.all(
+            color: isActive
+                ? AppColors.warning.withValues(alpha: 0.4)
+                : AppColors.neutral200,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isActive ? Icons.filter_alt : Icons.filter_alt_outlined,
+              size: 14,
+              color: isActive ? AppColors.warningDark : AppColors.textSecondary,
+            ),
+            const SizedBox(width: AppDimensions.xs),
+            Text(
+              'Belum Dinilai',
+              style: AppTypography.bodySmall.copyWith(
+                color: isActive ? AppColors.warningDark : AppColors.textSecondary,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+            if (isActive) ...[
+              const SizedBox(width: AppDimensions.xs),
+              const Icon(
+                Icons.close,
+                size: 14,
+                color: AppColors.warningDark,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 

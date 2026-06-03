@@ -33,11 +33,16 @@ class ApiCoachDashboardRepository {
   Future<PageResult<CoachSession>> _getSessionsOnce() =>
       _sessionsPage ??= _sessions.getSessions();
 
-  // Memoize the roster page so getActionCounts + getAttentionList share one
-  // HTTP call per dashboard load. Mirrors the _getSessionsOnce pattern.
-  Future<CursorPage<CoachStudentRosterItem>>? _studentsPage;
-  Future<CursorPage<CoachStudentRosterItem>> _getStudentsOnce() =>
-      _studentsPage ??= _students.getCoachStudents();
+  // Memoize the ungraded roster page so getActionCounts + getAttentionList
+  // share one HTTP call per dashboard load. Using ?filter=ungraded means
+  // CursorPage.total gives the authoritative count directly from BE, avoiding
+  // the mismatch where the old unfiltered fetch counted ungraded client-side
+  // from the first page only. Falls back gracefully to items.length if BE
+  // doesn't yet support the filter param.
+  Future<CursorPage<CoachStudentRosterItem>>? _ungradedStudentsPage;
+  Future<CursorPage<CoachStudentRosterItem>> _getUngradedStudentsOnce() =>
+      _ungradedStudentsPage ??=
+          _students.getCoachStudents(filter: 'ungraded');
 
   /// Derives performance metrics client-side from the first page of
   /// `ApiCoachSessionRepository.getSessions()`.
@@ -120,13 +125,13 @@ class ApiCoachDashboardRepository {
         .where((s) => s.completionState == 'needs_grading')
         .length;
 
-    // STUDENTS UNGRADED: count of unique students with no recorded progress,
-    // derived from the same roster source as getAttentionList. This ensures
-    // the count matches the destination list ("26 murid belum dinilai" means
-    // exactly 26 unique students, not 26 student-session instances).
-    final roster = await _getStudentsOnce();
-    final studentsUngraded =
-        roster.items.where((s) => s.latestProgress == null).length;
+    // STUDENTS UNGRADED: fetch with ?filter=ungraded so BE returns the
+    // authoritative total directly. CursorPage.total is the BE-computed count
+    // across all pages. Falls back to items.length if BE returns null total
+    // (i.e. older BE that doesn't compute it). This aligns the dashboard count
+    // with the "Murid Saya" screen filtered list count.
+    final ungradedRoster = await _getUngradedStudentsOnce();
+    final studentsUngraded = ungradedRoster.total ?? ungradedRoster.items.length;
 
     return CoachActionCounts(
       absencesUnmarked: absences,
@@ -136,8 +141,10 @@ class ApiCoachDashboardRepository {
   }
 
   Future<List<CoachStudentRosterItem>> getAttentionList({required String coachId}) async {
-    final page = await _getStudentsOnce();
-    return page.items.where((s) => s.latestProgress == null).take(5).toList();
+    // Reuse the memoized ungraded fetch — BE already filtered, so no client-
+    // side where() needed. take(5) picks the first 5 ungraded students.
+    final page = await _getUngradedStudentsOnce();
+    return page.items.take(5).toList();
   }
 
   /// Returns sessions-per-sport in the last 90 days as a best-effort

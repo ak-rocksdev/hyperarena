@@ -63,13 +63,13 @@ class ApiCoachDashboardRepository {
 
       final startTime = s.startAt;
 
-      if (startTime.isAfter(weekStart)) {
+      if (!startTime.isBefore(weekStart)) {
         sessionsWeek += 1;
       }
-      if (startTime.isAfter(monthStart)) {
+      if (!startTime.isBefore(monthStart)) {
         sessionsMonth += 1;
       }
-      if (startTime.isAfter(last30)) {
+      if (!startTime.isBefore(last30)) {
         // Sum bookedStudentsCount as a proxy for unique active students — see
         // doc comment above for limitations.
         activeStudents30dayApprox += s.bookedStudentsCount;

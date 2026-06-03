@@ -422,6 +422,7 @@ class _StudentRosterCard extends StatelessWidget {
   }
 
   Widget _buildMetaRow(Color accent) {
+    final isUngraded = student.latestProgress == null;
     return Padding(
       padding: const EdgeInsets.only(left: 56),
       child: Wrap(
@@ -435,13 +436,15 @@ class _StudentRosterCard extends StatelessWidget {
               vertical: 2,
             ),
             decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.12),
+              color: isUngraded
+                  ? AppColors.warningLight
+                  : accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
             ),
             child: Text(
               _statusLabel(student.latestProgress?.status),
               style: AppTypography.caption.copyWith(
-                color: accent,
+                color: isUngraded ? AppColors.warningDark : accent,
                 fontWeight: FontWeight.w700,
                 fontSize: 10,
               ),

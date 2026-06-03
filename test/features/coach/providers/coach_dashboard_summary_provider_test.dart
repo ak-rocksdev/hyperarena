@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/features/auth/data/models/user.dart';
+import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/club/data/models/coach_student.dart';
 import 'package:hyperarena/features/coach/data/api_coach_dashboard_repository.dart';
 import 'package:hyperarena/features/coach/data/models/coach_action_counts.dart';
@@ -11,6 +13,20 @@ import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart
 import 'package:mocktail/mocktail.dart';
 
 class _MockRepo extends Mock implements ApiCoachDashboardRepository {}
+
+class _StubAuth extends AuthNotifier {
+  _StubAuth(this._user);
+  final User? _user;
+  @override
+  User? build() => _user;
+}
+
+const _testCoach = User(
+  id: 'u-test-coach',
+  name: 'Test Coach',
+  email: 't@x.com',
+  role: UserRole.coach,
+);
 
 void main() {
   late _MockRepo repo;
@@ -37,6 +53,7 @@ void main() {
         .thenAnswer((_) async => <Sport, int>{});
 
     final container = ProviderContainer(overrides: [
+      authNotifierProvider.overrideWith(() => _StubAuth(_testCoach)),
       apiCoachDashboardRepositoryProvider.overrideWithValue(repo),
       coachScheduleProvider.overrideWith((ref) => Future.value(<CoachingBooking>[])),
     ]);
@@ -64,6 +81,7 @@ void main() {
         .thenAnswer((_) async => <Sport, int>{});
 
     final container = ProviderContainer(overrides: [
+      authNotifierProvider.overrideWith(() => _StubAuth(_testCoach)),
       apiCoachDashboardRepositoryProvider.overrideWithValue(repo),
       coachScheduleProvider.overrideWith((ref) => Future.value(<CoachingBooking>[])),
     ]);

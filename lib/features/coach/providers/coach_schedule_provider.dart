@@ -5,7 +5,7 @@ import 'package:hyperarena/features/coach/providers/coach_providers.dart';
 
 final coachScheduleProvider =
     FutureProvider<List<CoachingBooking>>((ref) async {
-  final repo = ref.read(coachRepositoryProvider);
+  final repo = ref.watch(coachRepositoryProvider);
   final coachId = ref.watch(coachIdProvider);
   return repo.getCoachBookings(coachId: coachId);
 });

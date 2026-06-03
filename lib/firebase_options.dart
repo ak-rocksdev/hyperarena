@@ -50,19 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCyRo1Pbk6fl0Ou5trb5Kou335N1U3Z_HA',
-    appId: '1:189846066499:android:7cb570f1dfff7df92f4bf6',
-    messagingSenderId: '189846066499',
-    projectId: 'hyperarena-9227f',
-    storageBucket: 'hyperarena-9227f.firebasestorage.app',
+    apiKey: 'AIzaSyB7aUmhmUoS9FqhiAUrtohX3BHqwjlTWgs',
+    appId: '1:852312819323:android:a5ef0893899e595fbec4de',
+    messagingSenderId: '852312819323',
+    projectId: 'hyperarena-684cb',
+    storageBucket: 'hyperarena-684cb.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAersEAkkmSZjr9lkL9x3svYlQjtgxfOzI',
-    appId: '1:189846066499:ios:ad32a6ec4f94ec292f4bf6',
-    messagingSenderId: '189846066499',
-    projectId: 'hyperarena-9227f',
-    storageBucket: 'hyperarena-9227f.firebasestorage.app',
+    apiKey: 'AIzaSyAMkU0lsyVivEXa-B9Gm8ezLLPbE6ArJB4',
+    appId: '1:852312819323:ios:9b9a645d42919b9fbec4de',
+    messagingSenderId: '852312819323',
+    projectId: 'hyperarena-684cb',
+    storageBucket: 'hyperarena-684cb.firebasestorage.app',
     iosBundleId: 'com.hyperarena.hyperarena',
   );
+
 }

@@ -41,15 +41,22 @@ final coachDashboardSummaryProvider =
     _safe<Map<Sport, int>>(() => repo.getSportBreakdown(coachId: coachId)),
   ]);
 
-  final schedule = await ref.watch(coachScheduleProvider.future);
-  final now = DateTime.now();
-  final tomorrow = now.add(const Duration(days: 1));
-  final sessionsTomorrow = schedule
-      .where((b) =>
-          b.date.year == tomorrow.year &&
-          b.date.month == tomorrow.month &&
-          b.date.day == tomorrow.day)
-      .length;
+  int sessionsTomorrow = 0;
+  try {
+    final schedule = await ref.watch(coachScheduleProvider.future);
+    final now = DateTime.now();
+    final tomorrowDay = DateTime(now.year, now.month, now.day + 1);
+    sessionsTomorrow = schedule.where((b) {
+      final d = b.date;
+      return d.year == tomorrowDay.year &&
+          d.month == tomorrowDay.month &&
+          d.day == tomorrowDay.day;
+    }).length;
+  } catch (_) {
+    // Leave sessionsTomorrow at 0 — schedule failure must not collapse
+    // the rest of the summary. The Today Schedule widget reads
+    // coachScheduleProvider directly and renders its own error state.
+  }
 
   return CoachDashboardSummary(
     performance: results[0] as SectionResult<CoachPerformance>,

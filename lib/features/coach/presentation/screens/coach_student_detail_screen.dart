@@ -733,7 +733,8 @@ class _SessionRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => SessionResultSheet.show(context, session),
+        onTap: () =>
+            SessionResultSheet.show(context, session, canGrade: true),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Row(

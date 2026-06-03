@@ -10,6 +10,12 @@ import 'package:hyperarena/features/coach/data/models/coach_performance.dart';
 /// SectionResult slot in CoachDashboardSummary. When a BE summary endpoint
 /// does not yet exist, the implementation derives the value from existing
 /// list endpoints.
+///
+/// The `coachId` parameter on each public method is accepted for API
+/// symmetry but is currently unused — the underlying `ApiCoachSessionRepository`
+/// and `ApiClubRepository` calls identify the coach from the bearer token.
+/// The parameter will become load-bearing when impersonation or multi-tenant
+/// coach filtering ships.
 class ApiCoachDashboardRepository {
   ApiCoachDashboardRepository(this._apiClient, this._sessions, this._students);
   // ignore: unused_field

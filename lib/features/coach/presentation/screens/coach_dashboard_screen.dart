@@ -8,6 +8,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_action_items.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_attention_list.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_greeting.dart';
+import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_sport_breakdown.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_recent_assessments.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_today_schedule.dart';
 import 'package:hyperarena/features/coach/providers/assessment_provider.dart';
@@ -60,6 +61,12 @@ class CoachDashboardScreen extends ConsumerWidget {
                     onRetry: () => ref.invalidate(coachDashboardSummaryProvider),
                   ),
                   loading: () => const SizedBox(height: 60),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+                const SizedBox(height: AppDimensions.xl),
+                summaryAsync.when(
+                  data: (s) => CoachDashboardSportBreakdown(result: s.sportBreakdown),
+                  loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
                 ),
                 const SizedBox(height: AppDimensions.xxl),

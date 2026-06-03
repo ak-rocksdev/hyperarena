@@ -96,13 +96,14 @@ All section widgets live in `lib/features/coach/presentation/widgets/dashboard/`
 
 ### 4.3 `CoachDashboardActionItems` *(new)*
 
-- **Input**: `CoachActionCounts { absencesUnmarked, assessmentsUngraded, studentsUngraded }` from `coachDashboardSummaryProvider`.
+- **Input**: `SectionResult<CoachActionCounts>` (selected from `coachDashboardSummaryProvider.actions`).
 - **Render rules**:
-  - If all three counts are 0, the widget renders `SizedBox.shrink()` (section hidden, no empty state).
-  - Else: a card surface with a warning-accent left border and one row per nonzero count: `icon + count + label + chevron`. Rows separated by hairline divider.
-- **Tap targets**:
-  - Absensi pending → schedule list filtered to `status=ongoing AND attendance=null` (route TBD in implementation plan — likely `/coach/schedule?filter=unmarked`).
-  - Penilaian sesi pending → session list filtered to `completed AND no_assessment` (likely `/coach/schedule?filter=ungraded`).
+  - `SectionResult.failure` → inline retry chip (does not blank the section).
+  - `SectionResult.success` with all three counts = 0 → `SizedBox.shrink()` (section hidden, no empty state).
+  - `SectionResult.success` with any nonzero count → card surface with warning-accent left border, one row per nonzero count: `icon + count + label + chevron`. Rows separated by hairline divider.
+- **Tap targets** (routes committed by this spec; if the target screen does not yet support the query param, implementation adds it):
+  - Absensi pending → `/coach/schedule?filter=unmarked` (filter expression: `status=ongoing AND attendance=null`).
+  - Penilaian sesi pending → `/coach/schedule?filter=ungraded` (filter expression: `status=completed AND assessment=null`).
   - Murid belum dinilai → `/coach/students?filter=ungraded`.
 
 ### 4.4 `CoachDashboardTodaySchedule`
@@ -115,11 +116,12 @@ All section widgets live in `lib/features/coach/presentation/widgets/dashboard/`
 
 ### 4.5 `CoachDashboardPerformance`
 
-- **Input**: `CoachPerformance` from `coachDashboardSummaryProvider`.
-- **Render**: three equal-width cards in a row.
-  - **Earnings**: formatted currency from `earningsThisMonthCents` (using `Formatters.currency` with tenant currency), sub-text "X sesi minggu ini".
-  - **Sesi**: `sessionsThisWeek` as the headline number, sub-text "[N] bulan ini".
-  - **Murid Aktif**: `activeStudentCount` as the headline number, sub-text showing number of sports.
+- **Input**: `SectionResult<CoachPerformance>` (selected from `coachDashboardSummaryProvider.performance`).
+- **Render**: three equal-width cards in a row. Headline number + sub-text per card. On `SectionResult.failure`, render inline retry banner inside the section (dashboard not blocked).
+  - **Earnings (bulan ini)**: headline = `earningsThisMonthCents` via `Formatters.currency` (tenant currency); sub-text = `"{sessionsThisMonth} sesi bulan ini"`. Both month-scoped — no week/month mix.
+  - **Sesi (minggu ini)**: headline = `sessionsThisWeek`; sub-text = `"{sessionsThisMonth} bulan ini"`. Week is the primary glance, month is the secondary context.
+  - **Murid Aktif**: headline = `activeStudentCount`; sub-text = `"{sportCount} sport"` where `sportCount = sportBreakdown.keys.length`.
+- **Definition of "active student"**: a unique student who appears in this coach's sessions or bookings within the last 30 days (any status). Computed by the BE summary endpoint or, if absent, by client-side dedup on the session/booking lists.
 - **Loading**: custom 3-card shimmer (do not reuse `AsyncValueWidget` shimmer here — that one is single-card vertical).
 - **Error**: inline retry banner inside the section. Does not blank the dashboard.
 - **Empty**: `EmptyState(icon: Icons.bar_chart, message: 'Belum ada data minggu ini')` if all counts are zero.
@@ -133,7 +135,7 @@ All section widgets live in `lib/features/coach/presentation/widgets/dashboard/`
 
 ### 4.7 `CoachDashboardAttentionList` *(new)*
 
-- **Input**: `List<Student>` (max 5) from `coachDashboardSummaryProvider.attentionList`.
+- **Input**: `SectionResult<List<Student>>` (selected from `coachDashboardSummaryProvider.attentionList`). The provider caps the list at 5 — the widget does not need to slice further.
 - **Definition of "perlu perhatian"**: a student who has **zero assessments** to date. (No date/threshold criteria. Single rule.)
 - **Render**: header "Perlu Perhatian" with subtitle "Murid belum dinilai" → up to 5 compact rows: avatar + name + sport pill + chevron.
 - **Tap row** → `/coach/students/{id}` (existing route; the student detail screen is where the coach can start the assessment flow).
@@ -141,7 +143,7 @@ All section widgets live in `lib/features/coach/presentation/widgets/dashboard/`
 
 ### 4.8 `CoachDashboardSportBreakdown` *(new)*
 
-- **Input**: `Map<Sport, int>` from `coachDashboardSummaryProvider.sportBreakdown`.
+- **Input**: `SectionResult<Map<Sport, int>>` (selected from `coachDashboardSummaryProvider.sportBreakdown`).
 - **Render**: a simple horizontal stacked bar or donut showing student count per sport. Built with a `CustomPainter` or a chart library already in `pubspec.yaml` — **do not add a new dependency** for this section.
 - **Hidden when** the map is empty or sums to 0 (coach has no students at all).
 - **No empty state UI** — the section disappears.
@@ -160,7 +162,8 @@ coachIdProvider (new)                   →  String   (throws if user/role missi
 coachRepositoryProvider                 →  ApiCoachRepository  (was MockCoachRepository)
    ↓
 coachDashboardSummaryProvider (new)     →  FutureProvider<CoachDashboardSummary>
-   parallel fetch via Future.wait:
+   parallel fetch — each sub-call wrapped in Result<T>, then combined
+   (see "Partial failure" below — no Future.wait strict-fail):
      • performance
      • action counts
      • attention list
@@ -173,15 +176,25 @@ assessmentListProvider    (existing — coachId fix)
 
 ### Data shapes (Freezed)
 
+The summary holds a `SectionResult<T>` per section so a single fetch failure does not invalidate the whole dashboard. The provider itself always succeeds with the summary; widgets read the section's `SectionResult` and render data, loading, or section-error inline.
+
 ```dart
+// Lightweight per-section result. Implementation can use sealed class or
+// dartz Either — choose whichever matches existing conventions.
+@freezed
+sealed class SectionResult<T> with _$SectionResult<T> {
+  const factory SectionResult.success(T value) = _Success<T>;
+  const factory SectionResult.failure(Object error, StackTrace? stackTrace) = _Failure<T>;
+}
+
 @freezed
 class CoachDashboardSummary with _$CoachDashboardSummary {
   const factory CoachDashboardSummary({
-    required CoachPerformance performance,
-    required CoachActionCounts actions,
-    required List<Student> attentionList,     // ≤ 5
-    required Map<Sport, int> sportBreakdown,
-    required int sessionsTomorrow,
+    required SectionResult<CoachPerformance> performance,
+    required SectionResult<CoachActionCounts> actions,
+    required SectionResult<List<Student>> attentionList,     // ≤ 5
+    required SectionResult<Map<Sport, int>> sportBreakdown,
+    required int sessionsTomorrow,   // derived from coachScheduleProvider, no separate fetch
   }) = _CoachDashboardSummary;
 }
 
@@ -208,16 +221,19 @@ class CoachActionCounts with _$CoachActionCounts {
 
 ### Backend endpoints
 
-| Section | Endpoint | Status |
-|---|---|---|
-| Today schedule | `GET /v1/coach/sessions?date=today` | exists (`ApiCoachSessionRepository`) |
-| Performance summary | `GET /v1/coach/me/summary?range={week,month}` | **verify** — may need new BE endpoint |
-| Ungraded students | `GET /v1/coach/students?has_assessment=false` | **verify** filter param |
-| Action counts | derived client-side from above | n/a |
-| Sport breakdown | `GET /v1/coach/students/sport-breakdown` | **verify** — may need new BE endpoint |
-| Recent assessments | existing path used today | already wired |
+The dashboard ships using **only existing list endpoints**. Any aggregation/derivation happens client-side. Adding dedicated summary endpoints is an out-of-scope BE follow-up (§9) — purely a performance optimization, not a blocker.
 
-For each "verify" row, the implementation plan will start by checking the Laravel BE. If the endpoint is missing, the fallback is: compute client-side from existing list endpoints. Adding new BE endpoints is a follow-up the BE team owns; the dashboard ships either way.
+| Section | Source | How |
+|---|---|---|
+| Today schedule | `GET /v1/coach/sessions?date=today` (exists, `ApiCoachSessionRepository`) | direct list |
+| Sessions tomorrow (count) | reuses `coachScheduleProvider` data | client-side filter on date |
+| Performance | existing coach session + enrollment endpoints | client-side aggregate: sum completed sessions in week/month, sum payouts from `coach_rates × completed_sessions`, dedup students in last 30 days |
+| Action counts | derived | client-side: count sessions with `attendance=null` (absences), count completed sessions with no assessment (ungraded), count students with zero assessments (studentsUngraded) |
+| Attention list | existing students endpoint | client-side filter `assessments.isEmpty`, take 5 |
+| Sport breakdown | existing students endpoint | client-side `groupBy(sport).count()` |
+| Recent assessments | existing assessments endpoint | already wired |
+
+If the BE team later ships `GET /v1/coach/me/summary` and `GET /v1/coach/students/sport-breakdown`, the repository methods swap to use them — the widget contracts do not change.
 
 ### Mandatory fixes
 
@@ -233,7 +249,7 @@ For each "verify" row, the implementation plan will start by checking the Larave
 
 ### Partial failure
 
-`Future.wait` is strict (one failure rejects the whole). Instead, each fetch is wrapped to resolve to a `Result<T>` (success or error). The widget reads the summary and renders per-section errors as inline retry banners. The dashboard never blanks because one query failed.
+A naive `Future.wait` is strict (one failure rejects the whole). Instead, each sub-fetch inside `coachDashboardSummaryProvider` is wrapped to resolve to `SectionResult.success(T)` or `SectionResult.failure(err, stack)` — the provider itself always returns a `CoachDashboardSummary`. Widgets read their own `SectionResult` field and render inline retry on failure. The dashboard never blanks because one query failed.
 
 ---
 
@@ -255,8 +271,11 @@ Rule: a section is **hidden** when the empty state would be noise (Action Items 
 
 ## 7. File Plan
 
-**Created:**
+**Created — app code:**
 ```
+lib/core/utils/
+└── section_result.dart                  (+ .freezed)   — shared, reusable beyond dashboard
+
 lib/features/coach/presentation/widgets/dashboard/
 ├── coach_dashboard_greeting.dart
 ├── coach_role_pill.dart
@@ -275,6 +294,25 @@ lib/features/coach/data/models/
 ├── coach_dashboard_summary.dart         (+ .freezed + .g)
 ├── coach_performance.dart               (+ .freezed + .g)
 └── coach_action_counts.dart             (+ .freezed + .g)
+```
+
+**Created — tests** (mirror app structure):
+```
+test/features/coach/presentation/widgets/dashboard/
+├── coach_dashboard_greeting_test.dart
+├── coach_role_pill_test.dart
+├── coach_dashboard_action_items_test.dart
+├── coach_dashboard_today_schedule_test.dart
+├── coach_dashboard_performance_test.dart
+├── coach_dashboard_recent_assessments_test.dart
+├── coach_dashboard_attention_list_test.dart
+└── coach_dashboard_sport_breakdown_test.dart
+
+test/features/coach/providers/
+└── coach_dashboard_summary_provider_test.dart
+
+integration_test/
+└── coach_dashboard_happy_path_test.dart
 ```
 
 **Modified:**

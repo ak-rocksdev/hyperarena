@@ -45,7 +45,7 @@ class ApiCoachDashboardRepository {
     // Week starts on Monday (weekday == 1).
     final weekStart = today.subtract(Duration(days: now.weekday - 1));
     final monthStart = DateTime(now.year, now.month, 1);
-    final last30 = now.subtract(const Duration(days: 30));
+    final last30 = today.subtract(const Duration(days: 30));
 
     int sessionsWeek = 0;
     int sessionsMonth = 0;

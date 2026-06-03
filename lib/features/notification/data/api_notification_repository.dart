@@ -1,6 +1,7 @@
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/features/notification/data/models/notification_item.dart';
 import 'package:hyperarena/features/notification/data/notification_repository.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class ApiNotificationRepository implements NotificationRepository {
   ApiNotificationRepository(this._apiClient);
@@ -37,6 +38,7 @@ class ApiNotificationRepository implements NotificationRepository {
   NotificationItem _parseNotification(Map<String, dynamic> json) {
     final data = (json['data'] as Map<String, dynamic>?) ?? {};
     final dataType = data['type'] as String? ?? 'general';
+    final targetRole = data['target_role'] as String? ?? 'all';
 
     return NotificationItem(
       id: json['id'] as String,
@@ -47,6 +49,7 @@ class ApiNotificationRepository implements NotificationRepository {
       isRead: json['read_at'] != null,
       actionRoute: _routeFor(dataType, data),
       relatedId: _relatedIdFor(dataType, data),
+      targetRole: targetRole,
     );
   }
 
@@ -60,6 +63,9 @@ class ApiNotificationRepository implements NotificationRepository {
       'session_full' => NotificationType.sessionFull,
       'payment_rejected' => NotificationType.paymentRejected,
       'payment_proof_uploaded' => NotificationType.paymentReminder,
+      'coach_assigned_to_session' => NotificationType.coachAssignedToSession,
+      'session_schedule_change' => NotificationType.sessionScheduleChange,
+      'assessment_reminder' => NotificationType.assessmentReminder,
       _ => NotificationType.general,
     };
   }
@@ -74,6 +80,9 @@ class ApiNotificationRepository implements NotificationRepository {
       'session_full' => 'Sesi Penuh',
       'payment_rejected' => 'Pembayaran Ditolak',
       'payment_proof_uploaded' => 'Bukti Pembayaran Diunggah',
+      'coach_assigned_to_session' => 'Anda terdaftar sebagai coach',
+      'session_schedule_change' => 'Perubahan jadwal sesi',
+      'assessment_reminder' => 'Penilaian belum diisi',
       _ => 'Notifikasi',
     };
   }
@@ -99,6 +108,12 @@ class ApiNotificationRepository implements NotificationRepository {
           final title = data['session_title'] as String? ?? 'sesi';
           return 'Sesi $title akan segera dimulai';
         }(),
+      'coach_assigned_to_session' =>
+        '${data['session_name'] ?? 'Sesi'} pada ${data['starts_at'] ?? ''}',
+      'session_schedule_change' =>
+        '${data['session_name'] ?? 'Sesi'} kini pada ${data['new_starts_at'] ?? ''}',
+      'assessment_reminder' =>
+        '${data['students_ungraded_count'] ?? 0} murid menunggu penilaian di sesi ${data['session_name'] ?? ''}',
       _ => (data['message'] as String?) ?? '',
     };
   }
@@ -115,6 +130,10 @@ class ApiNotificationRepository implements NotificationRepository {
               ? '/organizer/sessions/$sessionId/participants'
               : '/organizer/dashboard';
         }(),
+      'coach_assigned_to_session' ||
+      'session_schedule_change' ||
+      'assessment_reminder' =>
+        _coachSessionRoute(data),
       _ => null,
     };
   }
@@ -125,5 +144,11 @@ class ApiNotificationRepository implements NotificationRepository {
       'organizer.new_purchase' => data['purchase_id']?.toString(),
       _ => null,
     };
+  }
+
+  String? _coachSessionRoute(Map<String, dynamic> data) {
+    final sessionId = data['session_id']?.toString();
+    if (sessionId == null) return null;
+    return AppRoutes.coachSessionDetail(sessionId);
   }
 }

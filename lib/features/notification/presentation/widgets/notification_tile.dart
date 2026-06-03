@@ -142,6 +142,12 @@ class NotificationTile extends StatelessWidget {
         return Icons.emoji_events;
       case NotificationType.general:
         return Icons.notifications;
+      case NotificationType.coachAssignedToSession:
+        return Icons.sports;
+      case NotificationType.sessionScheduleChange:
+        return Icons.edit_calendar;
+      case NotificationType.assessmentReminder:
+        return Icons.assignment_late;
     }
   }
 
@@ -167,6 +173,11 @@ class NotificationTile extends StatelessWidget {
         return AppColors.accent;
       case NotificationType.general:
         return AppColors.neutral500;
+      case NotificationType.coachAssignedToSession:
+      case NotificationType.sessionScheduleChange:
+        return AppColors.info;
+      case NotificationType.assessmentReminder:
+        return AppColors.warning;
     }
   }
 

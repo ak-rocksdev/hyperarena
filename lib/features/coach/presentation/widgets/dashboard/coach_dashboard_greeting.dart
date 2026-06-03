@@ -5,6 +5,7 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_role_pill.dart';
 import 'package:hyperarena/features/notification/presentation/widgets/notification_bell.dart';
 
 class CoachDashboardGreeting extends ConsumerWidget {
@@ -21,29 +22,26 @@ class CoachDashboardGreeting extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authNotifierProvider);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${_greeting()}, ${Formatters.firstName(user?.name, fallback: 'Coach')}!',
-                style: AppTypography.headingLarge,
-              ),
-              const SizedBox(height: AppDimensions.xs),
-              Text(
-                'Kelola jadwal dan murid Anda',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            CoachRolePill(),
+            NotificationBell(),
+          ],
         ),
-        const NotificationBell(),
+        const SizedBox(height: AppDimensions.md),
+        Text(
+          '${_greeting()}, ${Formatters.firstName(user?.name, fallback: 'Coach')}!',
+          style: AppTypography.headingLarge,
+        ),
+        const SizedBox(height: AppDimensions.xs),
+        Text(
+          'Kelola jadwal dan murid Anda',
+          style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+        ),
       ],
     );
   }

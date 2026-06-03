@@ -46,6 +46,24 @@ void main() {
 
     expect(find.textContaining('Coach'), findsOneWidget);
   });
+
+  testWidgets('greeting renders role pill', (tester) async {
+    const user = User(
+      id: 'u1',
+      name: 'Budi Santoso',
+      email: 'b@x.com',
+      role: UserRole.coach,
+      availableRoles: ['coach'],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [authNotifierProvider.overrideWith(() => _StubAuth(user))],
+        child: const MaterialApp(home: Scaffold(body: CoachDashboardGreeting())),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('MODE COACH'), findsOneWidget);
+  });
 }
 
 class _StubAuth extends AuthNotifier {

@@ -17,6 +17,7 @@ import 'package:hyperarena/features/coach/providers/assessment_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_booking_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_detail_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_providers.dart';
+import 'package:hyperarena/features/coach/providers/coach_dashboard_summary_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
 import 'package:hyperarena/features/coach/providers/scoring_config_provider.dart';
@@ -250,6 +251,7 @@ class AuthNotifier extends Notifier<User?> {
     ref.invalidate(coachDetailProvider);
     ref.invalidate(coachPackagesProvider);
     ref.invalidate(coachScheduleProvider);
+    ref.invalidate(coachDashboardSummaryProvider);
     ref.invalidate(coachSessionListProvider);
     ref.invalidate(coachSessionDetailProvider);
     ref.invalidate(coachSessionProgressProvider);

@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/club/data/models/coach_student.dart';
 import 'package:hyperarena/features/coach/data/models/coach_action_counts.dart';
@@ -9,9 +9,9 @@ import 'package:hyperarena/features/coach/data/models/coach_performance.dart';
 /// does not yet exist, the implementation derives the value from existing
 /// list endpoints.
 class ApiCoachDashboardRepository {
-  ApiCoachDashboardRepository(this._dio);
+  ApiCoachDashboardRepository(this._apiClient);
   // ignore: unused_field
-  final Dio _dio;
+  final ApiClient _apiClient;
 
   Future<CoachPerformance> getPerformance({required String coachId}) async {
     throw UnimplementedError('Phase 8: getPerformance');

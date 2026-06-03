@@ -6,6 +6,7 @@ import 'package:hyperarena/features/coach/data/api_coach_session_repository.dart
 import 'package:hyperarena/features/coach/data/models/coach_action_counts.dart';
 import 'package:hyperarena/features/coach/data/models/coach_performance.dart';
 import 'package:hyperarena/features/coach/data/models/coach_session.dart';
+import 'package:hyperarena/shared/data/models/cursor_page.dart';
 
 /// Backs the dashboard's aggregate summary. Each method maps to one
 /// SectionResult slot in CoachDashboardSummary. When a BE summary endpoint
@@ -31,6 +32,12 @@ class ApiCoachDashboardRepository {
   Future<PageResult<CoachSession>>? _sessionsPage;
   Future<PageResult<CoachSession>> _getSessionsOnce() =>
       _sessionsPage ??= _sessions.getSessions();
+
+  // Memoize the roster page so getActionCounts + getAttentionList share one
+  // HTTP call per dashboard load. Mirrors the _getSessionsOnce pattern.
+  Future<CursorPage<CoachStudentRosterItem>>? _studentsPage;
+  Future<CursorPage<CoachStudentRosterItem>> _getStudentsOnce() =>
+      _studentsPage ??= _students.getCoachStudents();
 
   /// Derives performance metrics client-side from the first page of
   /// `ApiCoachSessionRepository.getSessions()`.
@@ -95,10 +102,10 @@ class ApiCoachDashboardRepository {
   }
 
   Future<CoachActionCounts> getActionCounts({required String coachId}) async {
-    // Pull the first page of the coach's recent sessions. For counts we
-    // accept first-page approximation — backlog beyond page 1 is rare in
-    // practice and the BE summary endpoint (out-of-scope follow-up) will
-    // replace this client-side aggregation with an authoritative count.
+    // Pull the first page of the coach's recent sessions. For session-level
+    // counts we accept first-page approximation — backlog beyond page 1 is
+    // rare in practice and a BE summary endpoint will replace this
+    // client-side aggregation once available.
     final page = await _getSessionsOnce();
 
     // ATTENDANCE UNMARKED: completionState == 'needs_attendance' means the
@@ -113,13 +120,13 @@ class ApiCoachDashboardRepository {
         .where((s) => s.completionState == 'needs_grading')
         .length;
 
-    // STUDENTS UNGRADED: sum of booked student counts across ungraded
-    // sessions. The list endpoint does not include individual student IDs
-    // (those are detail-only); bookedStudentsCount is the best available
-    // proxy from a single-page fetch.
-    final studentsUngraded = page.items
-        .where((s) => s.completionState == 'needs_grading')
-        .fold(0, (sum, s) => sum + s.bookedStudentsCount);
+    // STUDENTS UNGRADED: count of unique students with no recorded progress,
+    // derived from the same roster source as getAttentionList. This ensures
+    // the count matches the destination list ("26 murid belum dinilai" means
+    // exactly 26 unique students, not 26 student-session instances).
+    final roster = await _getStudentsOnce();
+    final studentsUngraded =
+        roster.items.where((s) => s.latestProgress == null).length;
 
     return CoachActionCounts(
       absencesUnmarked: absences,
@@ -129,7 +136,7 @@ class ApiCoachDashboardRepository {
   }
 
   Future<List<CoachStudentRosterItem>> getAttentionList({required String coachId}) async {
-    final page = await _students.getCoachStudents();
+    final page = await _getStudentsOnce();
     return page.items.where((s) => s.latestProgress == null).take(5).toList();
   }
 

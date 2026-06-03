@@ -73,7 +73,7 @@ void main() {
       GoRoute(path: '/coach/students', builder: (_, __) => const Scaffold()),
       GoRoute(path: '/coach/schedule', builder: (_, __) => const Scaffold()),
       GoRoute(path: '/notifications', builder: (_, __) => const Scaffold()),
-      GoRoute(path: '/profile', builder: (_, __) => const Scaffold()),
+      GoRoute(path: '/coach/profile', builder: (_, __) => const Scaffold()),
     ]);
 
     await tester.pumpWidget(ProviderScope(

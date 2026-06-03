@@ -20,8 +20,8 @@ GoRouter _routerCapturing(List<String> pushed) => GoRouter(
           path: '/',
           builder: (_, __) => const Scaffold(body: CoachRolePill()),
         ),
-        GoRoute(path: '/profile', builder: (_, __) {
-          pushed.add('/profile');
+        GoRoute(path: '/coach/profile', builder: (_, __) {
+          pushed.add('/coach/profile');
           return const Scaffold(body: SizedBox());
         }),
       ],
@@ -64,7 +64,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('MODE COACH'));
     await tester.pumpAndSettle();
-    expect(pushed, contains('/profile'));
+    expect(pushed, contains('/coach/profile'));
   });
 
   testWidgets('single-role: chevron not present', (tester) async {

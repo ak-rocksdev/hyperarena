@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 class CoachRolePill extends ConsumerWidget {
   const CoachRolePill({super.key});
@@ -55,7 +57,7 @@ class CoachRolePill extends ConsumerWidget {
     if (!hasMultipleRoles) return pill;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => context.go('/profile'),
+      onTap: () => context.go(AppRoutes.profile(UserRole.coach)),
       child: pill,
     );
   }

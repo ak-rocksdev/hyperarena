@@ -18,6 +18,26 @@ void main() {
     expect(find.text('Semua murid sudah dinilai'), findsOneWidget);
   });
 
+  testWidgets('avatar shows "?" when fullName is empty', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CoachDashboardAttentionList(
+            result: SectionResult.success([
+              const CoachStudentRosterItem(
+                studentProfileId: 's-empty',
+                fullName: '',
+                totalSessionsWithCoach: 0,
+                attendanceRate: 0.0,
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('?'), findsOneWidget);
+  });
+
   testWidgets('renders up to 5 items', (tester) async {
     final students = List.generate(
       7,

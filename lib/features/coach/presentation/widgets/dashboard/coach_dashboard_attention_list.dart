@@ -73,7 +73,9 @@ class _StudentRow extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              child: Text(student.fullName.substring(0, 1)),
+              child: Text(
+                student.fullName.isNotEmpty ? student.fullName[0] : '?',
+              ),
             ),
             const SizedBox(width: AppDimensions.sm),
             Expanded(

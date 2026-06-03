@@ -19,6 +19,20 @@ class CoachDashboardScreen extends ConsumerWidget {
     ref.invalidate(coachDashboardSummaryProvider);
     ref.invalidate(coachScheduleProvider);
     ref.invalidate(assessmentListProvider);
+    await Future.wait([
+      ref
+          .read(coachDashboardSummaryProvider.future)
+          .then<void>((_) {})
+          .catchError((_) {}),
+      ref
+          .read(coachScheduleProvider.future)
+          .then<void>((_) {})
+          .catchError((_) {}),
+      ref
+          .read(assessmentListProvider.future)
+          .then<void>((_) {})
+          .catchError((_) {}),
+    ]);
   }
 
   @override

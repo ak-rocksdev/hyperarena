@@ -17,8 +17,65 @@ class ApiCoachDashboardRepository {
   final ApiCoachSessionRepository _sessions;
   final ApiClubRepository _students;
 
+  /// Derives performance metrics client-side from the first page of
+  /// `ApiCoachSessionRepository.getSessions()`.
+  ///
+  /// **Earnings:** `CoachSession` does not expose a per-session payout field,
+  /// so `earningsThisWeekCents` and `earningsThisMonthCents` always return 0.
+  /// Accurate earnings require either a dedicated BE summary endpoint or a
+  /// `coach_payout_cents` field added to the session list response.
+  ///
+  /// **Active students:** `activeStudentCount` is an approximation — it sums
+  /// `bookedStudentsCount` across completed sessions in the last 30 days.
+  /// True unique-student count requires per-session detail fetches (expensive)
+  /// or a dedicated BE summary field.
+  ///
+  /// **Scope:** Only the first page of sessions is considered. A BE summary
+  /// endpoint should replace this client-side aggregation once available.
   Future<CoachPerformance> getPerformance({required String coachId}) async {
-    throw UnimplementedError('Phase 8: getPerformance');
+    final page = await _sessions.getSessions();
+    final now = DateTime.now();
+    // Week starts on Monday (weekday == 1).
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final monthStart = DateTime(now.year, now.month, 1);
+    final last30 = now.subtract(const Duration(days: 30));
+
+    int sessionsWeek = 0;
+    int sessionsMonth = 0;
+    // Earnings stay 0 — no payout field on CoachSession (see doc comment above).
+    const int earningsWeekCents = 0;
+    const int earningsMonthCents = 0;
+    int activeStudents30dayApprox = 0;
+
+    for (final s in page.items) {
+      // 'complete' is the only completionState that means the session is both
+      // past AND fully graded. Values: not_yet | needs_attendance |
+      // needs_grading | complete (from CoachSession model doc comment).
+      final isCompleted = s.completionState == 'complete';
+      if (!isCompleted) continue;
+
+      final startTime = s.startAt;
+
+      if (startTime.isAfter(weekStart)) {
+        sessionsWeek += 1;
+      }
+      if (startTime.isAfter(monthStart)) {
+        sessionsMonth += 1;
+      }
+      if (startTime.isAfter(last30)) {
+        // Sum bookedStudentsCount as a proxy for unique active students — see
+        // doc comment above for limitations.
+        activeStudents30dayApprox += s.bookedStudentsCount;
+      }
+    }
+
+    return CoachPerformance(
+      earningsThisWeekCents: earningsWeekCents,
+      earningsThisMonthCents: earningsMonthCents,
+      sessionsThisWeek: sessionsWeek,
+      sessionsThisMonth: sessionsMonth,
+      activeStudentCount: activeStudents30dayApprox,
+    );
   }
 
   Future<CoachActionCounts> getActionCounts({required String coachId}) async {

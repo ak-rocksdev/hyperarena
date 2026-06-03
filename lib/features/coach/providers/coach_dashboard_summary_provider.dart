@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/utils/section_result.dart';
 import 'package:hyperarena/features/club/data/models/coach_student.dart';
+import 'package:hyperarena/features/club/providers/club_providers.dart';
 import 'package:hyperarena/features/coach/data/api_coach_dashboard_repository.dart';
 import 'package:hyperarena/features/coach/data/models/coach_action_counts.dart';
 import 'package:hyperarena/features/coach/data/models/coach_dashboard_summary.dart';
@@ -15,6 +16,7 @@ final apiCoachDashboardRepositoryProvider =
     Provider<ApiCoachDashboardRepository>((ref) => ApiCoachDashboardRepository(
           ref.watch(apiClientProvider),
           ref.watch(coachSessionRepoProvider),
+          ref.watch(clubRepositoryProvider),
         ));
 
 Future<SectionResult<T>> _safe<T>(Future<T> Function() f) async {

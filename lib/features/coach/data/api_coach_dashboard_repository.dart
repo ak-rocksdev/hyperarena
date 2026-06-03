@@ -1,5 +1,6 @@
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/features/club/data/api_club_repository.dart';
 import 'package:hyperarena/features/club/data/models/coach_student.dart';
 import 'package:hyperarena/features/coach/data/api_coach_session_repository.dart';
 import 'package:hyperarena/features/coach/data/models/coach_action_counts.dart';
@@ -10,10 +11,11 @@ import 'package:hyperarena/features/coach/data/models/coach_performance.dart';
 /// does not yet exist, the implementation derives the value from existing
 /// list endpoints.
 class ApiCoachDashboardRepository {
-  ApiCoachDashboardRepository(this._apiClient, this._sessions);
+  ApiCoachDashboardRepository(this._apiClient, this._sessions, this._students);
   // ignore: unused_field
   final ApiClient _apiClient;
   final ApiCoachSessionRepository _sessions;
+  final ApiClubRepository _students;
 
   Future<CoachPerformance> getPerformance({required String coachId}) async {
     throw UnimplementedError('Phase 8: getPerformance');
@@ -54,7 +56,8 @@ class ApiCoachDashboardRepository {
   }
 
   Future<List<CoachStudentRosterItem>> getAttentionList({required String coachId}) async {
-    throw UnimplementedError('Phase 6: getAttentionList');
+    final page = await _students.getCoachStudents();
+    return page.items.where((s) => s.latestProgress == null).take(5).toList();
   }
 
   Future<Map<Sport, int>> getSportBreakdown({required String coachId}) async {

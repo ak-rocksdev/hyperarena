@@ -9,7 +9,7 @@ GoRouter _routerCapturing(List<String> pushed) => GoRouter(
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, __) => const Scaffold(
+          builder: (_, state) => const Scaffold(
             body: CoachDashboardActionItems(
               result: SectionResult.success(CoachActionCounts(
                 absencesUnmarked: 1,

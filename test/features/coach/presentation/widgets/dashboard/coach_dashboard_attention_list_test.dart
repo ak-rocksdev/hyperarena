@@ -72,7 +72,7 @@ void main() {
     final router = GoRouter(routes: [
       GoRoute(
         path: '/',
-        builder: (_, __) => Scaffold(
+        builder: (_, state) => Scaffold(
           body: CoachDashboardAttentionList(
             result: SectionResult.success([
               const CoachStudentRosterItem(

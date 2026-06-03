@@ -11,28 +11,17 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/core/utils/gamification_helpers.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
-import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 import 'package:hyperarena/features/coach/data/models/assessment.dart';
 import 'package:hyperarena/features/coach/data/models/coaching_booking.dart';
 import 'package:hyperarena/features/coach/providers/assessment_provider.dart';
 import 'package:hyperarena/features/coach/providers/coach_schedule_provider.dart';
-import 'package:hyperarena/features/notification/presentation/widgets/notification_bell.dart';
-
+import 'package:hyperarena/features/coach/presentation/widgets/dashboard/coach_dashboard_greeting.dart';
 class CoachDashboardScreen extends ConsumerWidget {
   const CoachDashboardScreen({super.key});
 
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 11) return 'Selamat Pagi';
-    if (hour < 15) return 'Selamat Siang';
-    if (hour < 18) return 'Selamat Sore';
-    return 'Selamat Malam';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authNotifierProvider);
     final scheduleAsync = ref.watch(coachScheduleProvider);
     final assessmentsAsync = ref.watch(assessmentListProvider);
 
@@ -46,31 +35,7 @@ class CoachDashboardScreen extends ConsumerWidget {
               const SizedBox(height: AppDimensions.base),
 
               // ── 1. Greeting + Notification Bell ─────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_greeting()}, ${Formatters.firstName(user?.name, fallback: 'Coach')}!',
-                          style: AppTypography.headingLarge,
-                        ),
-                        const SizedBox(height: AppDimensions.xs),
-                        Text(
-                          'Kelola jadwal dan murid Anda',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const NotificationBell(),
-                ],
-              ),
+              const CoachDashboardGreeting(),
               const SizedBox(height: AppDimensions.xl),
 
               // ── 2. Quick Stats Row ───────────────────────────────

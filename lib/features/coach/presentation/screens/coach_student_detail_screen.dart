@@ -9,6 +9,7 @@ import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/club/data/models/student_detail.dart';
 import 'package:hyperarena/features/club/providers/club_providers.dart';
+import 'package:hyperarena/features/coach/presentation/widgets/enrollment_dialog.dart';
 import 'package:hyperarena/shared/widgets/session_result_sheet.dart';
 import 'package:hyperarena/shared/widgets/zoomable_avatar.dart';
 
@@ -94,7 +95,11 @@ class _Body extends StatelessWidget {
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('ENROLLMENT'),
                   const SizedBox(height: AppDimensions.sm),
-                  _EnrollmentCard(enrollment: detail.student.enrollment),
+                  _EnrollmentCard(
+                    enrollment: detail.student.enrollment,
+                    studentProfileId: int.parse(detail.student.id),
+                    studentName: detail.student.fullName,
+                  ),
                   const SizedBox(height: AppDimensions.xl),
                   _SectionLabel('PERFORMA TERKINI'),
                   const SizedBox(height: AppDimensions.sm),
@@ -414,13 +419,39 @@ class _KpiDivider extends StatelessWidget {
 
 // ── Enrollment card ─────────────────────────────────────────────────
 
-class _EnrollmentCard extends StatelessWidget {
+class _EnrollmentCard extends ConsumerWidget {
   final StudentDetailEnrollment? enrollment;
+  final int studentProfileId;
+  final String studentName;
 
-  const _EnrollmentCard({required this.enrollment});
+  const _EnrollmentCard({
+    required this.enrollment,
+    required this.studentProfileId,
+    required this.studentName,
+  });
+
+  Future<void> _openEnrollmentDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final saved = await EnrollmentDialog.show(
+      context: context,
+      studentProfileId: studentProfileId,
+      studentName: studentName,
+    );
+    if (saved == true && context.mounted) {
+      ref.invalidate(coachStudentDetailProvider(studentProfileId));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Berhasil terdaftar di program'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (enrollment == null) {
       return Container(
         padding: const EdgeInsets.all(AppDimensions.md),
@@ -430,16 +461,29 @@ class _EnrollmentCard extends StatelessWidget {
           border:
               Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.info_outline, size: 18, color: AppColors.warningDark),
-            const SizedBox(width: AppDimensions.sm),
-            Expanded(
-              child: Text(
-                'Belum terdaftar di program coaching.',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.warningDark),
-              ),
+            Row(
+              children: [
+                Icon(Icons.info_outline,
+                    size: 18, color: AppColors.warningDark),
+                const SizedBox(width: AppDimensions.sm),
+                Expanded(
+                  child: Text(
+                    'Belum terdaftar di program coaching.',
+                    style: AppTypography.bodySmall
+                        .copyWith(color: AppColors.warningDark),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppDimensions.md),
+            FilledButton.tonalIcon(
+              icon: const Icon(Icons.add_circle_outline),
+              label: const Text('Daftarkan ke Program'),
+              onPressed: () => _openEnrollmentDialog(context, ref),
             ),
           ],
         ),

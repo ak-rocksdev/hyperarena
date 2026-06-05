@@ -28,6 +28,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authNotifierProvider);
     final isPlayer = user?.role == UserRole.player;
+    final isCoach = user?.role == UserRole.coach;
     final userName = user?.name ?? 'Player';
 
     // Player-only derivations are `late` so coaches/organizers/owners don't
@@ -453,6 +454,12 @@ class ProfileScreen extends ConsumerWidget {
                           onTap: () => context.push(AppRoutes.achievements),
                         ),
                       ],
+                      if (isCoach)
+                        _MenuItem(
+                          icon: Icons.account_balance_wallet_outlined,
+                          label: 'Wallet',
+                          onTap: () => context.push(AppRoutes.coachWallet),
+                        ),
                       _MenuItem(
                         icon: Icons.settings,
                         label: 'Pengaturan',

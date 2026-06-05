@@ -20,6 +20,10 @@ enum NotificationType {
   coachAssignedToSession,
   sessionScheduleChange,
   assessmentReminder,
+  // Wallet (coach context — Phase 11)
+  payoutEarned,
+  payoutRequestApproved,
+  payoutDisbursed,
 }
 
 @freezed

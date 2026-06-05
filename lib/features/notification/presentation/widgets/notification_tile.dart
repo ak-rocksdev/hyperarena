@@ -148,6 +148,12 @@ class NotificationTile extends StatelessWidget {
         return Icons.edit_calendar;
       case NotificationType.assessmentReminder:
         return Icons.assignment_late;
+      case NotificationType.payoutEarned:
+        return Icons.savings_outlined;
+      case NotificationType.payoutRequestApproved:
+        return Icons.check_circle_outline;
+      case NotificationType.payoutDisbursed:
+        return Icons.account_balance;
     }
   }
 
@@ -178,6 +184,12 @@ class NotificationTile extends StatelessWidget {
         return AppColors.info;
       case NotificationType.assessmentReminder:
         return AppColors.warning;
+      case NotificationType.payoutEarned:
+        return AppColors.success;
+      case NotificationType.payoutRequestApproved:
+        return AppColors.info;
+      case NotificationType.payoutDisbursed:
+        return AppColors.primary;
     }
   }
 

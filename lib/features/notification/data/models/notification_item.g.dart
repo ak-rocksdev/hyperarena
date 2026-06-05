@@ -49,4 +49,7 @@ const _$NotificationTypeEnumMap = {
   NotificationType.coachAssignedToSession: 'coachAssignedToSession',
   NotificationType.sessionScheduleChange: 'sessionScheduleChange',
   NotificationType.assessmentReminder: 'assessmentReminder',
+  NotificationType.payoutEarned: 'payoutEarned',
+  NotificationType.payoutRequestApproved: 'payoutRequestApproved',
+  NotificationType.payoutDisbursed: 'payoutDisbursed',
 };

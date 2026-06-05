@@ -53,8 +53,12 @@ final pushNotificationServiceProvider =
     secureStorage: secureStorage,
     routeResolver: routeResolver,
     onNavigate: (route) => ref.read(appRouterProvider).go(route),
-    onUnreadCountIncrement: () =>
-        ref.read(unreadCountProvider.notifier).increment(),
+    onUnreadCountIncrement: () {
+      // Bell badge updates optimistically; also invalidate the list so the
+      // next open shows the freshly-arrived item instead of stale cache.
+      ref.read(unreadCountProvider.notifier).increment();
+      ref.invalidate(notificationListProvider);
+    },
   );
   ref.onDispose(() => service.dispose());
   return service;

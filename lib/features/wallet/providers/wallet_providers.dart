@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hyperarena/features/notification/data/models/notification_item.dart';
+import 'package:hyperarena/features/notification/providers/notification_providers.dart';
 import 'package:hyperarena/features/wallet/data/api_wallet_repository.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout_summary.dart';
@@ -93,3 +95,65 @@ final payoutRequestActionProvider =
     NotifierProvider<PayoutRequestActionNotifier, PayoutRequestActionState>(
   PayoutRequestActionNotifier.new,
 );
+
+// ──────────────────────────────────────────────────────────────────────────
+// Unseen wallet activity indicator
+//
+// Wallet-flavoured awareness pattern: the bottom-nav Profile icon and the
+// Wallet ListTile in Profile both show a pulsing dot when there's wallet
+// news the coach hasn't acknowledged yet. "News" = an unread payout-typed
+// notification newer than the last time the coach opened the wallet
+// screen. Opening Wallet clears the indicator.
+//
+// Three pieces:
+//   - walletLastSeenAtProvider  → DateTime? backed by SharedPreferences
+//   - markWalletSeenProvider    → callable stamping `now` (called from
+//                                 CoachWalletScreen initState)
+//   - hasUnseenWalletActivityProvider → bool, derived from the two above
+//                                       + notificationListProvider
+
+const _walletLastSeenKey = 'wallet_last_seen_at';
+
+class WalletLastSeenNotifier extends Notifier<DateTime?> {
+  @override
+  DateTime? build() {
+    final raw = ref.read(sharedPreferencesProvider).getString(_walletLastSeenKey);
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<void> markSeen() async {
+    final now = DateTime.now();
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(_walletLastSeenKey, now.toIso8601String());
+    state = now;
+  }
+}
+
+final walletLastSeenAtProvider =
+    NotifierProvider<WalletLastSeenNotifier, DateTime?>(
+  WalletLastSeenNotifier.new,
+);
+
+// Notification types that should trigger the wallet pulse indicator.
+const _walletNotificationTypes = {
+  NotificationType.payoutEarned,
+  NotificationType.payoutRequestApproved,
+  NotificationType.payoutDisbursed,
+};
+
+/// True when at least one wallet-typed notification arrived after the coach
+/// last opened the Wallet screen (or anytime, if the coach never opened it).
+final hasUnseenWalletActivityProvider = Provider<bool>((ref) {
+  final lastSeen = ref.watch(walletLastSeenAtProvider);
+  final listAsync = ref.watch(notificationListProvider);
+  return listAsync.maybeWhen(
+    data: (list) => list.any(
+      (n) =>
+          _walletNotificationTypes.contains(n.type) &&
+          (lastSeen == null || n.createdAt.isAfter(lastSeen)),
+    ),
+    orElse: () => false,
+  );
+});

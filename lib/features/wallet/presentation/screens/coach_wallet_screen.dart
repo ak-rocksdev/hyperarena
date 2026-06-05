@@ -14,11 +14,28 @@ import 'package:hyperarena/features/wallet/presentation/widgets/wallet_withdraw_
 import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
-class CoachWalletScreen extends ConsumerWidget {
+class CoachWalletScreen extends ConsumerStatefulWidget {
   const CoachWalletScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CoachWalletScreen> createState() => _CoachWalletScreenState();
+}
+
+class _CoachWalletScreenState extends ConsumerState<CoachWalletScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Stamp "wallet last seen" on open so the bottom-nav Profile dot + the
+    // Wallet ListTile dot clear. Done in a microtask so it runs after the
+    // first frame and after any pending provider rebuilds.
+    Future.microtask(() {
+      if (!mounted) return;
+      ref.read(walletLastSeenAtProvider.notifier).markSeen();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final period = ref.watch(walletPeriodProvider);
     final payoutsAsync = ref.watch(walletPayoutsProvider(period));
 

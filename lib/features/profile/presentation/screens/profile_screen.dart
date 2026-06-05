@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/mocks/mock_data.dart';
@@ -16,6 +17,8 @@ import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selecto
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/profile/data/models/activity_item.dart';
 import 'package:hyperarena/features/profile/providers/activity_provider.dart';
+import 'package:hyperarena/features/wallet/presentation/widgets/wallet_pulsing_dot.dart';
+import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/widgets/role_switch_section.dart';
 import 'package:hyperarena/features/gamification/data/models/badge.dart'
@@ -61,6 +64,10 @@ class ProfileScreen extends ConsumerWidget {
             expandedHeight: 310,
             pinned: true,
             backgroundColor: AppColors.primary700,
+            // Hero is teal — default dark title/icons are unreadable. Force
+            // white so title, back arrow, and any action icons all contrast.
+            foregroundColor: Colors.white,
+            systemOverlayStyle: SystemUiOverlayStyle.light,
             title: const Text('Profil'),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
@@ -459,6 +466,9 @@ class ProfileScreen extends ConsumerWidget {
                           icon: Icons.account_balance_wallet_outlined,
                           label: 'Wallet',
                           onTap: () => context.push(AppRoutes.coachWallet),
+                          trailingHint: ref.watch(hasUnseenWalletActivityProvider)
+                              ? const WalletPulsingDot()
+                              : null,
                         ),
                       _MenuItem(
                         icon: Icons.settings,
@@ -1055,12 +1065,16 @@ class _MenuItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final bool isDestructive;
+  /// Optional trailing widget to overlay before the chevron — used by Wallet
+  /// to show the unseen-activity pulsing dot.
+  final Widget? trailingHint;
 
   const _MenuItem({
     required this.icon,
     required this.label,
     required this.onTap,
     this.isDestructive = false,
+    this.trailingHint,
   });
 
   @override
@@ -1103,6 +1117,10 @@ class _MenuItem extends StatelessWidget {
                           : AppTypography.bodyLarge,
                     ),
                   ),
+                  if (trailingHint != null) ...[
+                    trailingHint!,
+                    const SizedBox(width: AppDimensions.sm),
+                  ],
                   Icon(
                     Icons.chevron_right,
                     color: AppColors.neutral400,

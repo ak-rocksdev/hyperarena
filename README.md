@@ -55,7 +55,8 @@ The Flutter mobile app is paired with a Laravel multi-tenant backend (each pilot
 - **Student Roster** — Searchable + filterable list; "Belum Dinilai" chip filter pulls ungraded students
 - **Assessment Flow** — Per-session grading panel with skill scoring, enrollment requirements, recommendations
 - **Enrollment Management** — Enroll students into programs/levels directly from the student detail screen
-- **Role-Aware Notifications** — Inbox filtered by active role: coach mode sees coach + global notifs only (assignment, schedule changes, assessment reminders); switching to organizer mode swaps the view
+- **Wallet & Earnings** — Per-period earnings hero (teal gradient with `Rp` total + sessions/students sub-stats) and 3-chip status breakdown (Belum Dicairkan / Diproses / Sudah Dicairkan). One-tap batch withdrawal request via "Cairkan Rp X" with SLA disclosure sheet. Withdrawal History + Detail screens where admin rejection notes are surfaced prominently. Session rows in the feed are tappable to the existing coach session detail. A pulsing dot on the Profile tab + Wallet menu item signals fresh payout activity (new earnings, request approved, payout disbursed) until acknowledged.
+- **Role-Aware Notifications** — Inbox filtered by active role: coach mode sees coach + global notifs only (assignment, schedule changes, assessment reminders, payout earned/approved/disbursed); switching to organizer mode swaps the view
 
 ### For Organizers (Tenant Admins)
 - **Club Management** — Create and manage your sports club, member profiles, sessions
@@ -187,6 +188,7 @@ lib/
     review/                 # Venue & coach reviews
     session/                # Open session details + share booking
     venue/                  # Venue browsing & details
+    wallet/                 # Coach Wallet — earnings summary, withdrawal request flow, history + rejection-note detail, pulsing-dot awareness indicator
   routing/                  # GoRouter config, AppRoutes, RoleShell
   shared/                   # Cross-feature widgets + providers
 docs/
@@ -211,7 +213,7 @@ releases/                   # Build artifacts (gitignored, naming convention in 
 | Phase 5.1 | Coach dashboard real-data integration + filter chips + enrollment CTA | Done |
 | Phase 5.2 | Role-aware notifications + 3 coach notification types | Done |
 | Phase 6 | Payment integration (manual transfer + Xendit VA) | Done |
-| Phase 7 | Wallet/Earnings + per-session payout notifications | Planned |
+| Phase 7 | Coach Wallet — earnings hero, 3-chip status breakdown, batch withdrawal flow, history + rejection-note detail, pulse indicator, 3 payout notifications | Done |
 | Phase 8 | i18n (currently Indonesian-only on mobile; BE supports id/en/ms) | Planned |
 
 ---

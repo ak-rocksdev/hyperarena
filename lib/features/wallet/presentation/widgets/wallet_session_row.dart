@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout.dart';
 import 'package:hyperarena/features/wallet/presentation/widgets/wallet_status_badge.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
-/// One session-earning row in the Wallet feed. Compact, scannable, no tap
-/// target for MVP (the row is informational — actions happen at the period
-/// level via the CTA above).
+/// One session-earning row in the Wallet feed. Tappable when the payout is
+/// linked to a session — pushes the existing coach session detail screen so
+/// the coach can see attendance, students, time, etc. Per spec Non-Goal #4
+/// there is no per-session "Cairkan" action — withdrawal stays batched at the
+/// period level via the hero CTA.
 class WalletSessionRow extends StatelessWidget {
   const WalletSessionRow({super.key, required this.payout});
 
@@ -25,9 +30,9 @@ class WalletSessionRow extends StatelessWidget {
     final sessionTitle = _sessionTitle();
     final dateLabel = _dateLabel();
     final amount = Formatters.formatCurrency(payout.amount, payout.currency);
+    final sessionId = payout.sessionId;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppDimensions.sm),
+    final card = Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.base,
         vertical: AppDimensions.md,
@@ -40,11 +45,10 @@ class WalletSessionRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Sport / session-type icon disc.
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppSurfaces.surfaceHighlight,
               shape: BoxShape.circle,
             ),
@@ -68,10 +72,7 @@ class WalletSessionRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  dateLabel,
-                  style: AppTypography.caption,
-                ),
+                Text(dateLabel, style: AppTypography.caption),
               ],
             ),
           ),
@@ -92,6 +93,24 @@ class WalletSessionRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+      child: sessionId == null
+          ? card
+          : Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                onTap: () {
+                  AppHaptics.tap();
+                  context.push(AppRoutes.coachSessionDetail('$sessionId'));
+                },
+                child: card,
+              ),
+            ),
     );
   }
 

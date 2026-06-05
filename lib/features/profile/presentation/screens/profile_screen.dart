@@ -64,9 +64,16 @@ class ProfileScreen extends ConsumerWidget {
             expandedHeight: 310,
             pinned: true,
             backgroundColor: AppColors.primary700,
-            // Hero is teal — default dark title/icons are unreadable. Force
-            // white so title, back arrow, and any action icons all contrast.
+            // Hero is teal — default dark title/icons are unreadable.
+            // titleTextStyle wins over foregroundColor for the title text,
+            // so override BOTH (foregroundColor handles the back arrow +
+            // action icons, titleTextStyle overrides the global dark
+            // AppBarTheme.titleTextStyle that beats foregroundColor).
             foregroundColor: Colors.white,
+            iconTheme: const IconThemeData(color: Colors.white),
+            titleTextStyle: AppTypography.headingMedium.copyWith(
+              color: Colors.white,
+            ),
             systemOverlayStyle: SystemUiOverlayStyle.light,
             title: const Text('Profil'),
             flexibleSpace: FlexibleSpaceBar(

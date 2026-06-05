@@ -6,6 +6,7 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/wallet/data/models/coach_payout_summary.dart';
 import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
 
 /// The wallet's emotional anchor: a teal gradient hero with the period's
@@ -86,13 +87,13 @@ class WalletHero extends ConsumerWidget {
 
 class _HeroContent extends StatelessWidget {
   const _HeroContent({required this.summary, required this.currency});
-  final dynamic summary;
+  final CoachPayoutSummary summary;
   final String currency;
 
   @override
   Widget build(BuildContext context) {
     final split = Formatters.splitCurrency(
-      summary.totalEarnedCents as int,
+      summary.totalEarnedCents,
       currency,
     );
 
@@ -161,7 +162,7 @@ class _HeroContent extends StatelessWidget {
               icon: Icons.event_rounded,
               label: '${summary.sessionCount} sesi',
             ),
-            if ((summary.studentCount as int) > 0)
+            if (summary.studentCount > 0)
               _SubPill(
                 icon: Icons.group_rounded,
                 label: '${summary.studentCount} murid',

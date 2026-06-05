@@ -25,7 +25,10 @@ class CoachWithdrawalHistoryScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: () async => ref.invalidate(withdrawalHistoryProvider),
+        onRefresh: () async {
+          ref.invalidate(withdrawalHistoryProvider);
+          await ref.read(withdrawalHistoryProvider.future);
+        },
         child: historyAsync.when(
           data: (list) => list.isEmpty
               ? const _Empty()

@@ -5,6 +5,7 @@ import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
+import 'package:hyperarena/features/wallet/utils/wallet_period.dart';
 import 'package:intl/intl.dart';
 
 /// Compact prev/next period selector with a tappable center label that opens
@@ -18,7 +19,7 @@ class WalletPeriodSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final period = ref.watch(walletPeriodProvider);
-    final dt = _parsePeriod(period);
+    final dt = WalletPeriod.parseOrNow(period);
     final isCurrentMonth = _isCurrentMonth(dt);
     final isEarliest = _isEarliestMonth(dt);
 
@@ -81,7 +82,7 @@ class WalletPeriodSelector extends ConsumerWidget {
 
   void _shift(WidgetRef ref, DateTime current, int monthsDelta) {
     final next = DateTime(current.year, current.month + monthsDelta);
-    ref.read(walletPeriodProvider.notifier).state = _formatPeriod(next);
+    ref.read(walletPeriodProvider.notifier).state = WalletPeriod.format(next);
   }
 
   Future<void> _openPicker(
@@ -98,17 +99,9 @@ class WalletPeriodSelector extends ConsumerWidget {
       locale: const Locale('id'),
     );
     if (picked != null) {
-      ref.read(walletPeriodProvider.notifier).state = _formatPeriod(picked);
+      ref.read(walletPeriodProvider.notifier).state = WalletPeriod.format(picked);
     }
   }
-
-  static DateTime _parsePeriod(String period) {
-    final parts = period.split('-');
-    return DateTime(int.parse(parts[0]), int.parse(parts[1]));
-  }
-
-  static String _formatPeriod(DateTime dt) =>
-      '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
 
   static bool _isCurrentMonth(DateTime dt) {
     final now = DateTime.now();

@@ -1,4 +1,5 @@
 import 'package:hyperarena/core/network/api_client.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/notification/data/models/notification_item.dart';
 import 'package:hyperarena/features/notification/data/notification_repository.dart';
 import 'package:hyperarena/routing/app_routes.dart';
@@ -132,15 +133,12 @@ class ApiNotificationRepository implements NotificationRepository {
     final session = data['session_name'] as String? ?? 'sesi';
     final cents = data['amount_cents'];
     if (cents is num && cents > 0) {
+      // BE Payout.amount is stored in cents (×100) regardless of currency
+      // (see migration `unsignedInteger('amount') // cents/sen`). FE
+      // Formatters expects IDR in whole rupiah (zero-decimal convention),
+      // so divide first then format — locale-correct dots throughout.
       final rupiah = (cents / 100).round();
-      // Quick thousands-separator inline (Indonesia uses dots).
-      final formatted = rupiah
-          .toString()
-          .replaceAllMapped(
-            RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-            (m) => '${m[1]}.',
-          );
-      return 'Rp $formatted dari $session';
+      return '${Formatters.formatCurrency(rupiah, 'IDR')} dari $session';
     }
     return 'Dari sesi $session';
   }
@@ -161,10 +159,14 @@ class ApiNotificationRepository implements NotificationRepository {
       'session_schedule_change' ||
       'assessment_reminder' =>
         _coachSessionRoute(data),
-      'payout_earned' || 'payout_disbursed' => '/coach/wallet',
+      'payout_earned' || 'payout_disbursed' => AppRoutes.coachWallet,
       'payout_request_approved' => () {
           final rid = data['request_id'];
-          return rid != null ? '/coach/wallet/requests/$rid' : '/coach/wallet';
+          if (rid is num) return AppRoutes.coachWithdrawalDetail(rid.toInt());
+          final parsed = int.tryParse('${rid ?? ''}');
+          return parsed != null
+              ? AppRoutes.coachWithdrawalDetail(parsed)
+              : AppRoutes.coachWallet;
         }(),
       _ => null,
     };

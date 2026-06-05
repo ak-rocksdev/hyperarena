@@ -22,23 +22,30 @@ String _currentPeriod() {
 
 final walletPeriodProvider = StateProvider<String>((ref) => _currentPeriod());
 
+// autoDispose so navigating month-by-month doesn't accumulate one provider
+// instance per period for the rest of the session. Each entry is disposed
+// when no widget is watching it.
 final walletSummaryProvider =
-    FutureProvider.family<CoachPayoutSummary, String>((ref, period) async {
-  return ref.watch(walletRepositoryProvider).getSummary(period);
-});
+    FutureProvider.autoDispose.family<CoachPayoutSummary, String>(
+  (ref, period) async {
+    return ref.watch(walletRepositoryProvider).getSummary(period);
+  },
+);
 
 final walletPayoutsProvider =
-    FutureProvider.family<List<CoachPayout>, String>((ref, period) async {
-  return ref.watch(walletRepositoryProvider).getPayouts(period);
-});
+    FutureProvider.autoDispose.family<List<CoachPayout>, String>(
+  (ref, period) async {
+    return ref.watch(walletRepositoryProvider).getPayouts(period);
+  },
+);
 
 final withdrawalHistoryProvider =
-    FutureProvider<List<PayoutRequest>>((ref) async {
+    FutureProvider.autoDispose<List<PayoutRequest>>((ref) async {
   return ref.watch(walletRepositoryProvider).getWithdrawalHistory();
 });
 
 final withdrawalDetailProvider =
-    FutureProvider.family<PayoutRequest, int>((ref, id) async {
+    FutureProvider.autoDispose.family<PayoutRequest, int>((ref, id) async {
   return ref.watch(walletRepositoryProvider).getWithdrawalDetail(id);
 });
 

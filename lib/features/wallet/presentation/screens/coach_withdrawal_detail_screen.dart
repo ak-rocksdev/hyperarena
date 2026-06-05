@@ -9,6 +9,7 @@ import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout.dart';
 import 'package:hyperarena/features/wallet/data/models/payout_request.dart';
 import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
+import 'package:hyperarena/features/wallet/utils/wallet_period.dart';
 
 class CoachWithdrawalDetailScreen extends ConsumerWidget {
   const CoachWithdrawalDetailScreen({super.key, required this.requestId});
@@ -137,7 +138,7 @@ class _HeaderCard extends StatelessWidget {
           const SizedBox(height: AppDimensions.lg),
           Divider(color: AppColors.borderLight, height: 1),
           const SizedBox(height: AppDimensions.lg),
-          _kv('Periode', _periodLabel(request.period)),
+          _kv('Periode', WalletPeriod.longLabel(request.period)),
           const SizedBox(height: AppDimensions.sm),
           _kv(
             'Diajukan',
@@ -166,16 +167,6 @@ class _HeaderCard extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  static String _periodLabel(String period) {
-    final parts = period.split('-');
-    final dt = DateTime(int.parse(parts[0]), int.parse(parts[1]));
-    const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-    ];
-    return '${months[dt.month - 1]} ${dt.year}';
   }
 
   static _StatusPalette _statusPalette(String status) => switch (status) {

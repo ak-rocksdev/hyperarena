@@ -39,9 +39,16 @@ class CoachWalletScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
+        // Await the new futures so the spinner stays visible until data
+        // actually arrives — pure `invalidate` returns synchronously and
+        // dismisses the indicator before the refetch is on the wire.
         onRefresh: () async {
           ref.invalidate(walletSummaryProvider(period));
           ref.invalidate(walletPayoutsProvider(period));
+          await Future.wait([
+            ref.read(walletSummaryProvider(period).future),
+            ref.read(walletPayoutsProvider(period).future),
+          ]);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),

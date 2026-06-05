@@ -11,6 +11,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout_summary.dart';
 import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
+import 'package:hyperarena/features/wallet/utils/wallet_period.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 /// The CTA has 3 visual states:
@@ -234,7 +235,7 @@ class _CtaSkeleton extends StatelessWidget {
   }
 }
 
-class _WithdrawConfirmationSheet extends ConsumerWidget {
+class _WithdrawConfirmationSheet extends ConsumerStatefulWidget {
   const _WithdrawConfirmationSheet({
     required this.period,
     required this.formattedAmount,
@@ -266,10 +267,29 @@ class _WithdrawConfirmationSheet extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final periodLabel = _formatPeriod(period);
+  ConsumerState<_WithdrawConfirmationSheet> createState() =>
+      _WithdrawConfirmationSheetState();
+}
+
+class _WithdrawConfirmationSheetState
+    extends ConsumerState<_WithdrawConfirmationSheet> {
+  @override
+  void dispose() {
+    // Reset the notifier on close — otherwise a previous failed attempt's
+    // error state surfaces on next open (cancel-then-reopen path), and a
+    // previous success's `lastSuccess` lingers across instances of the sheet.
+    Future.microtask(
+      () => ref.read(payoutRequestActionProvider.notifier).clear(),
+    );
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final periodLabel = WalletPeriod.longLabel(widget.period);
+    // SLA day is constant for the session — read once, don't rebuild on auth changes.
     final slaDays =
-        ref.watch(authNotifierProvider)?.tenantPayoutSlaDays ?? 14;
+        ref.read(authNotifierProvider)?.tenantPayoutSlaDays ?? 14;
     final action = ref.watch(payoutRequestActionProvider);
 
     return Container(
@@ -357,7 +377,7 @@ class _WithdrawConfirmationSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        formattedAmount,
+                        widget.formattedAmount,
                         style: AppTypography.numberMedium.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w800,
@@ -459,9 +479,7 @@ class _WithdrawConfirmationSheet extends ConsumerWidget {
               Expanded(
                 flex: 2,
                 child: FilledButton(
-                  onPressed: action.isLoading
-                      ? null
-                      : () => _submit(context, ref),
+                  onPressed: action.isLoading ? null : _submit,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -495,12 +513,12 @@ class _WithdrawConfirmationSheet extends ConsumerWidget {
     );
   }
 
-  Future<void> _submit(BuildContext context, WidgetRef ref) async {
+  Future<void> _submit() async {
     AppHaptics.tap();
     final ok = await ref
         .read(payoutRequestActionProvider.notifier)
-        .requestWithdrawal(period);
-    if (!context.mounted) return;
+        .requestWithdrawal(widget.period);
+    if (!mounted) return;
     if (ok) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -515,30 +533,7 @@ class _WithdrawConfirmationSheet extends ConsumerWidget {
           ),
         ),
       );
-      // Reset notifier so a future open doesn't show the previous success.
-      ref.read(payoutRequestActionProvider.notifier).clear();
+      // Clear happens in dispose() — no race here.
     }
   }
-
-  static String _formatPeriod(String period) {
-    final parts = period.split('-');
-    final dt = DateTime(int.parse(parts[0]), int.parse(parts[1]));
-    return '${_monthName(dt.month)} ${dt.year}';
-  }
-
-  static String _monthName(int m) => switch (m) {
-        1 => 'Januari',
-        2 => 'Februari',
-        3 => 'Maret',
-        4 => 'April',
-        5 => 'Mei',
-        6 => 'Juni',
-        7 => 'Juli',
-        8 => 'Agustus',
-        9 => 'September',
-        10 => 'Oktober',
-        11 => 'November',
-        12 => 'Desember',
-        _ => '',
-      };
 }

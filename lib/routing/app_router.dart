@@ -24,6 +24,9 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_booking_pay
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_availability_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_dashboard_screen.dart';
+import 'package:hyperarena/features/wallet/presentation/screens/coach_wallet_screen.dart';
+import 'package:hyperarena/features/wallet/presentation/screens/coach_withdrawal_detail_screen.dart';
+import 'package:hyperarena/features/wallet/presentation/screens/coach_withdrawal_history_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_schedule_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_session_detail_screen.dart';
@@ -498,6 +501,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/coach/availability',
         builder: (_, _) => const CoachAvailabilityScreen(),
+      ),
+
+      // ── Coach Wallet (coach role) ──────────────────────────
+      // /coach/wallet — main hero, status chips, withdraw CTA, session feed
+      // /coach/wallet/requests — withdrawal history list
+      // /coach/wallet/requests/:id — single request + rejection_note
+      GoRoute(
+        path: '/coach/wallet',
+        builder: (_, _) => const CoachWalletScreen(),
+        routes: [
+          GoRoute(
+            path: 'requests',
+            builder: (_, _) => const CoachWithdrawalHistoryScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => CoachWithdrawalDetailScreen(
+                  requestId: int.parse(state.pathParameters['id']!),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
 
       // ── Coach detail (parameterized — must come after specific /coach/* routes)

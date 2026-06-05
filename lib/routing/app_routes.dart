@@ -109,6 +109,11 @@ abstract final class AppRoutes {
   static String coachStudent(String id) => '/coach/students/$id';
   static const coachAvailability = '/coach/availability';
 
+  // ── Coach Wallet / Earnings ────────────────────────────────────────
+  static const coachWallet = '/coach/wallet';
+  static const coachWithdrawalHistory = '/coach/wallet/requests';
+  static String coachWithdrawalDetail(int id) => '/coach/wallet/requests/$id';
+
   // ── Review routes ────────────────────────────────────────────────
   static String submitReview(String sessionId) => '/review/create/$sessionId';
   static const myReviews = '/player/reviews';

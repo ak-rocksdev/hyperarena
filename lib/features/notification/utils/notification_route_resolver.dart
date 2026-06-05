@@ -20,8 +20,18 @@ class NotificationRouteResolver {
       'session_schedule_change' ||
       'assessment_reminder' =>
         _coachSessionRoute(data),
+      'payout_earned' || 'payout_disbursed' => AppRoutes.coachWallet,
+      'payout_request_approved' => _walletRequestRoute(data),
       _ => null,
     };
+  }
+
+  String _walletRequestRoute(Map<String, dynamic> data) {
+    final id = data['request_id'];
+    if (id is num) return AppRoutes.coachWithdrawalDetail(id.toInt());
+    final parsed = int.tryParse('${id ?? ''}');
+    if (parsed != null) return AppRoutes.coachWithdrawalDetail(parsed);
+    return AppRoutes.coachWallet;
   }
 
   String? _sessionRoute(Map<String, dynamic> data) {

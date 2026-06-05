@@ -40,6 +40,11 @@ mixin _$User {
   /// `SessionHero` when a session has no photo and falls back to the
   /// tenant logo (square logo centered on this color).
   String? get tenantBrandColor => throw _privateConstructorUsedError;
+
+  /// SLA for admin to process payout requests, exposed by BE
+  /// `AuthUserPayload`. The Wallet confirmation sheet interpolates this
+  /// into the disclosure copy. Default 14 to match BE.
+  int get tenantPayoutSlaDays => throw _privateConstructorUsedError;
   String? get activeRole => throw _privateConstructorUsedError;
   String? get locale => throw _privateConstructorUsedError;
   List<String> get availableRoles => throw _privateConstructorUsedError;
@@ -74,6 +79,7 @@ abstract class $UserCopyWith<$Res> {
     String? tenantCurrency,
     String? tenantTimezone,
     String? tenantBrandColor,
+    int tenantPayoutSlaDays,
     String? activeRole,
     String? locale,
     List<String> availableRoles,
@@ -110,6 +116,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? tenantCurrency = freezed,
     Object? tenantTimezone = freezed,
     Object? tenantBrandColor = freezed,
+    Object? tenantPayoutSlaDays = null,
     Object? activeRole = freezed,
     Object? locale = freezed,
     Object? availableRoles = null,
@@ -176,6 +183,10 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
                 ? _value.tenantBrandColor
                 : tenantBrandColor // ignore: cast_nullable_to_non_nullable
                       as String?,
+            tenantPayoutSlaDays: null == tenantPayoutSlaDays
+                ? _value.tenantPayoutSlaDays
+                : tenantPayoutSlaDays // ignore: cast_nullable_to_non_nullable
+                      as int,
             activeRole: freezed == activeRole
                 ? _value.activeRole
                 : activeRole // ignore: cast_nullable_to_non_nullable
@@ -218,6 +229,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     String? tenantCurrency,
     String? tenantTimezone,
     String? tenantBrandColor,
+    int tenantPayoutSlaDays,
     String? activeRole,
     String? locale,
     List<String> availableRoles,
@@ -251,6 +263,7 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? tenantCurrency = freezed,
     Object? tenantTimezone = freezed,
     Object? tenantBrandColor = freezed,
+    Object? tenantPayoutSlaDays = null,
     Object? activeRole = freezed,
     Object? locale = freezed,
     Object? availableRoles = null,
@@ -317,6 +330,10 @@ class __$$UserImplCopyWithImpl<$Res>
             ? _value.tenantBrandColor
             : tenantBrandColor // ignore: cast_nullable_to_non_nullable
                   as String?,
+        tenantPayoutSlaDays: null == tenantPayoutSlaDays
+            ? _value.tenantPayoutSlaDays
+            : tenantPayoutSlaDays // ignore: cast_nullable_to_non_nullable
+                  as int,
         activeRole: freezed == activeRole
             ? _value.activeRole
             : activeRole // ignore: cast_nullable_to_non_nullable
@@ -353,6 +370,7 @@ class _$UserImpl implements _User {
     this.tenantCurrency,
     this.tenantTimezone,
     this.tenantBrandColor,
+    this.tenantPayoutSlaDays = 14,
     this.activeRole,
     this.locale,
     final List<String> availableRoles = const [],
@@ -396,6 +414,13 @@ class _$UserImpl implements _User {
   /// tenant logo (square logo centered on this color).
   @override
   final String? tenantBrandColor;
+
+  /// SLA for admin to process payout requests, exposed by BE
+  /// `AuthUserPayload`. The Wallet confirmation sheet interpolates this
+  /// into the disclosure copy. Default 14 to match BE.
+  @override
+  @JsonKey()
+  final int tenantPayoutSlaDays;
   @override
   final String? activeRole;
   @override
@@ -411,7 +436,7 @@ class _$UserImpl implements _User {
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, email: $email, phone: $phone, bio: $bio, city: $city, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, tenantCurrency: $tenantCurrency, tenantTimezone: $tenantTimezone, tenantBrandColor: $tenantBrandColor, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
+    return 'User(id: $id, name: $name, email: $email, phone: $phone, bio: $bio, city: $city, avatarUrl: $avatarUrl, role: $role, isVerified: $isVerified, tenantId: $tenantId, tenantSlug: $tenantSlug, tenantName: $tenantName, tenantCurrency: $tenantCurrency, tenantTimezone: $tenantTimezone, tenantBrandColor: $tenantBrandColor, tenantPayoutSlaDays: $tenantPayoutSlaDays, activeRole: $activeRole, locale: $locale, availableRoles: $availableRoles)';
   }
 
   @override
@@ -442,6 +467,8 @@ class _$UserImpl implements _User {
                 other.tenantTimezone == tenantTimezone) &&
             (identical(other.tenantBrandColor, tenantBrandColor) ||
                 other.tenantBrandColor == tenantBrandColor) &&
+            (identical(other.tenantPayoutSlaDays, tenantPayoutSlaDays) ||
+                other.tenantPayoutSlaDays == tenantPayoutSlaDays) &&
             (identical(other.activeRole, activeRole) ||
                 other.activeRole == activeRole) &&
             (identical(other.locale, locale) || other.locale == locale) &&
@@ -453,7 +480,7 @@ class _$UserImpl implements _User {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     name,
@@ -470,10 +497,11 @@ class _$UserImpl implements _User {
     tenantCurrency,
     tenantTimezone,
     tenantBrandColor,
+    tenantPayoutSlaDays,
     activeRole,
     locale,
     const DeepCollectionEquality().hash(_availableRoles),
-  );
+  ]);
 
   /// Create a copy of User
   /// with the given fields replaced by the non-null parameter values.
@@ -506,6 +534,7 @@ abstract class _User implements User {
     final String? tenantCurrency,
     final String? tenantTimezone,
     final String? tenantBrandColor,
+    final int tenantPayoutSlaDays,
     final String? activeRole,
     final String? locale,
     final List<String> availableRoles,
@@ -547,6 +576,12 @@ abstract class _User implements User {
   /// tenant logo (square logo centered on this color).
   @override
   String? get tenantBrandColor;
+
+  /// SLA for admin to process payout requests, exposed by BE
+  /// `AuthUserPayload`. The Wallet confirmation sheet interpolates this
+  /// into the disclosure copy. Default 14 to match BE.
+  @override
+  int get tenantPayoutSlaDays;
   @override
   String? get activeRole;
   @override

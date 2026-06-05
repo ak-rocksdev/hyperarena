@@ -1,4 +1,5 @@
 import 'package:hyperarena/core/network/api_client.dart';
+import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/notification/data/models/notification_item.dart';
 import 'package:hyperarena/features/notification/data/notification_repository.dart';
 import 'package:hyperarena/routing/app_routes.dart';
@@ -66,6 +67,9 @@ class ApiNotificationRepository implements NotificationRepository {
       'coach_assigned_to_session' => NotificationType.coachAssignedToSession,
       'session_schedule_change' => NotificationType.sessionScheduleChange,
       'assessment_reminder' => NotificationType.assessmentReminder,
+      'payout_earned' => NotificationType.payoutEarned,
+      'payout_request_approved' => NotificationType.payoutRequestApproved,
+      'payout_disbursed' => NotificationType.payoutDisbursed,
       _ => NotificationType.general,
     };
   }
@@ -83,6 +87,9 @@ class ApiNotificationRepository implements NotificationRepository {
       'coach_assigned_to_session' => 'Anda terdaftar sebagai coach',
       'session_schedule_change' => 'Perubahan jadwal sesi',
       'assessment_reminder' => 'Penilaian belum diisi',
+      'payout_earned' => 'Penghasilan baru',
+      'payout_request_approved' => 'Permintaan pencairan disetujui',
+      'payout_disbursed' => 'Pencairan berhasil',
       _ => 'Notifikasi',
     };
   }
@@ -114,8 +121,26 @@ class ApiNotificationRepository implements NotificationRepository {
         '${data['session_name'] ?? 'Sesi'} kini pada ${data['new_starts_at'] ?? ''}',
       'assessment_reminder' =>
         '${data['students_ungraded_count'] ?? 0} murid menunggu penilaian di sesi ${data['session_name'] ?? ''}',
+      'payout_earned' => _formatPayoutEarned(data),
+      'payout_request_approved' =>
+        'Periode ${data['period'] ?? ''} — siap ditransfer',
+      'payout_disbursed' => 'Telah ditransfer ke rekening Anda',
       _ => (data['message'] as String?) ?? '',
     };
+  }
+
+  static String _formatPayoutEarned(Map<String, dynamic> data) {
+    final session = data['session_name'] as String? ?? 'sesi';
+    final cents = data['amount_cents'];
+    if (cents is num && cents > 0) {
+      // BE Payout.amount is stored in cents (×100) regardless of currency
+      // (see migration `unsignedInteger('amount') // cents/sen`). FE
+      // Formatters expects IDR in whole rupiah (zero-decimal convention),
+      // so divide first then format — locale-correct dots throughout.
+      final rupiah = (cents / 100).round();
+      return '${Formatters.formatCurrency(rupiah, 'IDR')} dari $session';
+    }
+    return 'Dari sesi $session';
   }
 
   String? _routeFor(String dataType, Map<String, dynamic> data) {
@@ -134,6 +159,15 @@ class ApiNotificationRepository implements NotificationRepository {
       'session_schedule_change' ||
       'assessment_reminder' =>
         _coachSessionRoute(data),
+      'payout_earned' || 'payout_disbursed' => AppRoutes.coachWallet,
+      'payout_request_approved' => () {
+          final rid = data['request_id'];
+          if (rid is num) return AppRoutes.coachWithdrawalDetail(rid.toInt());
+          final parsed = int.tryParse('${rid ?? ''}');
+          return parsed != null
+              ? AppRoutes.coachWithdrawalDetail(parsed)
+              : AppRoutes.coachWallet;
+        }(),
       _ => null,
     };
   }

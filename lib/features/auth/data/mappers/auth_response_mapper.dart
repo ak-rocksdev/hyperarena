@@ -53,6 +53,7 @@ User _parseUser(Map<String, dynamic> json) {
     tenantCurrency: tenant?['currency'] as String?,
     tenantTimezone: tenant?['timezone'] as String?,
     tenantBrandColor: tenant?['brand_color'] as String?,
+    tenantPayoutSlaDays: (tenant?['payout_sla_days'] as int?) ?? 14,
     locale: json['locale'] as String?,
     availableRoles: availableRoles,
   );

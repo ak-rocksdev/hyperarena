@@ -24,6 +24,11 @@ import 'package:hyperarena/features/coach/presentation/screens/coach_booking_pay
 import 'package:hyperarena/features/coach/presentation/screens/coach_booking_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_availability_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_dashboard_screen.dart';
+import 'package:hyperarena/features/wallet/presentation/screens/coach_wallet_screen.dart';
+import 'package:hyperarena/features/wallet/presentation/screens/coach_withdrawal_detail_screen.dart';
+import 'package:hyperarena/features/wallet/presentation/screens/coach_withdrawal_history_screen.dart';
+import 'package:hyperarena/features/wallet/presentation/widgets/wallet_pulsing_dot.dart';
+import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_detail_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_schedule_screen.dart';
 import 'package:hyperarena/features/coach/presentation/screens/coach_session_detail_screen.dart';
@@ -75,7 +80,7 @@ import 'package:hyperarena/features/venue/presentation/screens/venue_detail_scre
 import 'package:hyperarena/routing/app_routes.dart';
 
 /// Role-aware bottom navigation shell.
-class RoleShell extends StatelessWidget {
+class RoleShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
   final UserRole role;
 
@@ -86,18 +91,28 @@ class RoleShell extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Coach-only: pulsing dot on the Profile icon when there's unseen wallet
+    // activity (new payout earned, request approved, payout disbursed).
+    // Cleared the moment the coach opens the Wallet screen.
+    final showWalletPulse = role == UserRole.coach &&
+        ref.watch(hasUnseenWalletActivityProvider);
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: navigationShell.goBranch,
-        destinations: _destinations(role),
+        destinations: _destinations(role, showWalletPulse: showWalletPulse),
       ),
     );
   }
 
-  List<NavigationDestination> _destinations(UserRole role) => switch (role) {
+  List<NavigationDestination> _destinations(
+    UserRole role, {
+    bool showWalletPulse = false,
+  }) =>
+      switch (role) {
     UserRole.player => const [
       NavigationDestination(
         icon: Icon(Icons.home_outlined),
@@ -120,25 +135,31 @@ class RoleShell extends StatelessWidget {
         label: 'Profile',
       ),
     ],
-    UserRole.coach => const [
-      NavigationDestination(
+    UserRole.coach => [
+      const NavigationDestination(
         icon: Icon(Icons.dashboard_outlined),
         selectedIcon: Icon(Icons.dashboard),
         label: 'Dashboard',
       ),
-      NavigationDestination(
+      const NavigationDestination(
         icon: Icon(Icons.schedule_outlined),
         selectedIcon: Icon(Icons.schedule),
         label: 'Schedule',
       ),
-      NavigationDestination(
+      const NavigationDestination(
         icon: Icon(Icons.people_outline),
         selectedIcon: Icon(Icons.people),
         label: 'Students',
       ),
       NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person),
+        icon: _maybeWithPulse(
+          const Icon(Icons.person_outline),
+          showPulse: showWalletPulse,
+        ),
+        selectedIcon: _maybeWithPulse(
+          const Icon(Icons.person),
+          showPulse: showWalletPulse,
+        ),
         label: 'Profile',
       ),
     ],
@@ -187,6 +208,24 @@ class RoleShell extends StatelessWidget {
       ),
     ],
   };
+
+  /// Wraps [icon] in a Stack with a corner-mounted pulsing dot when
+  /// [showPulse] is true; returns the icon unchanged otherwise. Lives on
+  /// `RoleShell` so other roles get this trivially when needed later.
+  static Widget _maybeWithPulse(Icon icon, {required bool showPulse}) {
+    if (!showPulse) return icon;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        icon,
+        const Positioned(
+          top: -4,
+          right: -6,
+          child: WalletPulsingDot(size: 7),
+        ),
+      ],
+    );
+  }
 }
 
 /// Extracts [GoRouterState.extra] as [T], showing a fallback scaffold if null.
@@ -498,6 +537,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/coach/availability',
         builder: (_, _) => const CoachAvailabilityScreen(),
+      ),
+
+      // ── Coach Wallet (coach role) ──────────────────────────
+      // /coach/wallet — main hero, status chips, withdraw CTA, session feed
+      // /coach/wallet/requests — withdrawal history list
+      // /coach/wallet/requests/:id — single request + rejection_note
+      GoRoute(
+        path: '/coach/wallet',
+        builder: (_, _) => const CoachWalletScreen(),
+        routes: [
+          GoRoute(
+            path: 'requests',
+            builder: (_, _) => const CoachWithdrawalHistoryScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => CoachWithdrawalDetailScreen(
+                  requestId: int.parse(state.pathParameters['id']!),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
 
       // ── Coach detail (parameterized — must come after specific /coach/* routes)

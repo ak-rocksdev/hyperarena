@@ -25,6 +25,10 @@ class User with _$User {
     /// `SessionHero` when a session has no photo and falls back to the
     /// tenant logo (square logo centered on this color).
     String? tenantBrandColor,
+    /// SLA for admin to process payout requests, exposed by BE
+    /// `AuthUserPayload`. The Wallet confirmation sheet interpolates this
+    /// into the disclosure copy. Default 14 to match BE.
+    @Default(14) int tenantPayoutSlaDays,
     String? activeRole,
     String? locale,
     @Default([]) List<String> availableRoles,

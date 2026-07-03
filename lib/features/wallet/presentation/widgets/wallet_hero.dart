@@ -6,23 +6,19 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
-import 'package:hyperarena/features/wallet/data/models/coach_payout_summary.dart';
+import 'package:hyperarena/features/wallet/data/models/coach_payout_balance.dart';
 import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
+import 'package:hyperarena/features/wallet/utils/wallet_period.dart';
 
-/// The wallet's emotional anchor: a teal gradient hero with the period's
-/// total earnings as a display-sized number. Layout uses `splitCurrency` so
-/// "Rp" sits small above the figure — keeps the hero readable at glance.
-///
-/// Decorative circles at top-right add gentle depth without competing with
-/// the number. Loading + error states inline so the hero card doesn't blank
-/// out and reflow the screen.
+/// The wallet's emotional anchor: a teal gradient hero. Shows the coach's
+/// CUMULATIVE (all-months) withdrawable balance, not the selected month — so a
+/// coach always sees money waiting regardless of which month they browse.
 class WalletHero extends ConsumerWidget {
   const WalletHero({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final period = ref.watch(walletPeriodProvider);
-    final summaryAsync = ref.watch(walletSummaryProvider(period));
+    final balanceAsync = ref.watch(walletBalanceProvider);
     final currency = ref.watch(tenantCurrencyProvider);
 
     return Padding(
@@ -37,7 +33,7 @@ class WalletHero extends ConsumerWidget {
         ),
         child: Stack(
           children: [
-            // Decorative circles — abstract "savings/coin" hint without literal iconography.
+            // Decorative circles — abstract "savings/coin" hint.
             Positioned(
               top: -32,
               right: -32,
@@ -48,23 +44,16 @@ class WalletHero extends ConsumerWidget {
               right: 56,
               child: _decorativeCircle(40, alpha: 0.06),
             ),
-            // Content
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppDimensions.xl,
-                AppDimensions.xl,
-                AppDimensions.xl,
-                AppDimensions.xl,
-              ),
-              child: summaryAsync.when(
-                data: (summary) => _HeroContent(
-                  summary: summary,
+              padding: const EdgeInsets.all(AppDimensions.xl),
+              child: balanceAsync.when(
+                data: (balance) => _HeroContent(
+                  balance: balance,
                   currency: currency,
                 ),
                 loading: () => const _HeroSkeleton(),
                 error: (_, _) => _HeroError(
-                  onRetry: () =>
-                      ref.invalidate(walletSummaryProvider(period)),
+                  onRetry: () => ref.invalidate(walletBalanceProvider),
                 ),
               ),
             ),
@@ -86,16 +75,16 @@ class WalletHero extends ConsumerWidget {
 }
 
 class _HeroContent extends StatelessWidget {
-  const _HeroContent({required this.summary, required this.currency});
-  final CoachPayoutSummary summary;
+  const _HeroContent({required this.balance, required this.currency});
+  final CoachPayoutBalance balance;
   final String currency;
 
   @override
   Widget build(BuildContext context) {
-    final split = Formatters.splitCurrency(
-      summary.totalEarnedCents,
-      currency,
-    );
+    final split = Formatters.splitCurrency(balance.outstandingCents, currency);
+    final oldestPeriod = balance.outstandingPeriods.isNotEmpty
+        ? balance.outstandingPeriods.first
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +99,7 @@ class _HeroContent extends StatelessWidget {
             ),
             const SizedBox(width: AppDimensions.xs),
             Text(
-              'TOTAL PENGHASILAN',
+              'SALDO BELUM DICAIRKAN',
               style: AppTypography.overline.copyWith(
                 color: Colors.white.withValues(alpha: 0.85),
                 letterSpacing: 1.4,
@@ -153,59 +142,63 @@ class _HeroContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppDimensions.md),
-        // Sub-stats: sessions and students inline pills.
-        Wrap(
-          spacing: AppDimensions.sm,
-          runSpacing: AppDimensions.xs,
-          children: [
-            _SubPill(
-              icon: Icons.event_rounded,
-              label: '${summary.sessionCount} sesi',
-            ),
-            if (summary.studentCount > 0)
-              _SubPill(
-                icon: Icons.group_rounded,
-                label: '${summary.studentCount} murid',
-              ),
-          ],
-        ),
+        _subtitle(oldestPeriod),
       ],
     );
   }
-}
 
-class _SubPill extends StatelessWidget {
-  const _SubPill({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.md,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Colors.white.withValues(alpha: 0.9)),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: AppTypography.labelSmall.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+  Widget _subtitle(String? oldestPeriod) {
+    // State 1: money waiting to be withdrawn.
+    if (balance.canWithdraw) {
+      final since = oldestPeriod != null
+          ? ' · sejak ${WalletPeriod.shortLabel(oldestPeriod)}'
+          : '';
+      return _pill(
+        icon: Icons.event_rounded,
+        label: '${balance.outstandingSessionCount} sesi$since',
+      );
+    }
+    // State 2: had earnings, everything is already withdrawn / in flight.
+    if (balance.hasAnyActivity) {
+      return _pill(
+        icon: Icons.check_circle_rounded,
+        label: 'Semua penghasilan sudah dicairkan',
+      );
+    }
+    // State 3: never earned.
+    return _pill(
+      icon: Icons.hourglass_empty_rounded,
+      label: 'Belum ada penghasilan',
     );
   }
+
+  Widget _pill({required IconData icon, required String label}) => Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md,
+          vertical: 6,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: Colors.white.withValues(alpha: 0.9)),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: AppTypography.labelSmall.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _HeroSkeleton extends StatelessWidget {
@@ -224,11 +217,11 @@ class _HeroSkeleton extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        bar(120, 10),
+        bar(140, 10),
         const SizedBox(height: AppDimensions.lg),
         bar(220, 36),
         const SizedBox(height: AppDimensions.md),
-        Row(children: [bar(64, 24), const SizedBox(width: 8), bar(72, 24)]),
+        bar(120, 24),
       ],
     );
   }
@@ -242,18 +235,14 @@ class _HeroError extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
-          Icons.cloud_off_rounded,
-          color: Colors.white,
-          size: 28,
-        ),
+        const Icon(Icons.cloud_off_rounded, color: Colors.white, size: 28),
         const SizedBox(width: AppDimensions.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Gagal memuat penghasilan',
+                'Gagal memuat saldo',
                 style: AppTypography.titleSmall.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,

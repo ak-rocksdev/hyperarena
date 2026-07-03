@@ -31,4 +31,9 @@ abstract final class WalletPeriod {
   /// Locale `id` data ships via `GlobalMaterialLocalizations.delegate`.
   static String longLabel(String period) =>
       DateFormat.yMMMM('id').format(parseOrNow(period));
+
+  /// "Apr 2026" — short Indonesian period label. Used by the hero subtitle
+  /// ("sejak Apr 2026").
+  static String shortLabel(String period) =>
+      DateFormat.yMMM('id').format(parseOrNow(period));
 }

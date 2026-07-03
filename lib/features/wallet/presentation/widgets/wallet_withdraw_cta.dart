@@ -9,32 +9,34 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
-import 'package:hyperarena/features/wallet/data/models/coach_payout_summary.dart';
+import 'package:hyperarena/features/wallet/data/models/coach_payout_balance.dart';
 import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
 import 'package:hyperarena/features/wallet/utils/wallet_period.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
-/// The CTA has 3 visual states:
-///   1. **Hidden** — coach has nothing to cairkan AND no active request.
-///   2. **Primary button** — `pendingCents > 0` and no active request.
-///      Tap → confirmation bottom sheet → POST → snackbar + invalidation.
-///   3. **Active-request pill** — there's an in-flight request. Replaces the
-///      button with an info-tinted disclosure that deep-links to History.
+/// Cumulative withdraw CTA. Three visual states:
+///   1. **Primary button** — `balance.canWithdraw` → "Cairkan Rp X". Tap →
+///      confirmation sheet → batch POST (one payout-request per outstanding
+///      period).
+///   2. **In-flight disclosure** — nothing outstanding but `diprosesCents > 0`
+///      → "Permintaan sedang diproses → Lihat riwayat" (deep-links to the
+///      history list; the cumulative model can have several active requests, so
+///      there is no single request to open).
+///   3. **Hidden** — nothing outstanding and nothing in flight.
 class WalletWithdrawCta extends ConsumerWidget {
   const WalletWithdrawCta({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final period = ref.watch(walletPeriodProvider);
-    final summaryAsync = ref.watch(walletSummaryProvider(period));
+    final balanceAsync = ref.watch(walletBalanceProvider);
     final currency = ref.watch(tenantCurrencyProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.screenHorizontal,
       ),
-      child: summaryAsync.when(
-        data: (summary) => _build(context, ref, summary, currency, period),
+      child: balanceAsync.when(
+        data: (balance) => _build(context, ref, balance, currency),
         loading: () => const _CtaSkeleton(),
         error: (_, _) => const SizedBox.shrink(),
       ),
@@ -44,19 +46,20 @@ class WalletWithdrawCta extends ConsumerWidget {
   Widget _build(
     BuildContext context,
     WidgetRef ref,
-    CoachPayoutSummary summary,
+    CoachPayoutBalance balance,
     String currency,
-    String period,
   ) {
-    if (summary.hasActiveRequest) {
-      return _ActiveRequestPill(activeRequestId: summary.activeRequestId!);
-    }
-    if (!summary.canRequestWithdrawal) {
+    if (!balance.canWithdraw) {
+      // Nothing to withdraw. If money is in flight, show the disclosure.
+      if (balance.diprosesCents > 0) {
+        return const _InFlightDisclosure();
+      }
       return const SizedBox.shrink();
     }
 
-    final amount = Formatters.formatCurrency(summary.pendingCents, currency);
-    final action = ref.watch(payoutRequestActionProvider);
+    final amount = Formatters.formatCurrency(balance.outstandingCents, currency);
+    final periods = balance.outstandingPeriods;
+    final batch = ref.watch(payoutBatchRequestProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,12 +86,13 @@ class WalletWithdrawCta extends ConsumerWidget {
               boxShadow: AppShadows.button,
             ),
             child: ElevatedButton(
-              onPressed: action.isLoading
+              onPressed: batch.isRunning
                   ? null
-                  : () => _openConfirmation(context, ref, period, amount),
+                  : () => _openConfirmation(context, ref, periods, amount),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
+                disabledBackgroundColor:
+                    AppColors.primary.withValues(alpha: 0.6),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   vertical: AppDimensions.base,
@@ -98,7 +102,7 @@ class WalletWithdrawCta extends ConsumerWidget {
                 ),
                 elevation: 0,
               ),
-              child: action.isLoading
+              child: batch.isRunning
                   ? const SizedBox(
                       width: 22,
                       height: 22,
@@ -130,6 +134,19 @@ class WalletWithdrawCta extends ConsumerWidget {
             ),
           ),
         ),
+        if (periods.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppDimensions.xs,
+              top: AppDimensions.xs,
+            ),
+            child: Text(
+              'Mencakup ${periods.length} bulan',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -137,21 +154,24 @@ class WalletWithdrawCta extends ConsumerWidget {
   Future<void> _openConfirmation(
     BuildContext context,
     WidgetRef ref,
-    String period,
+    List<String> periods,
     String formattedAmount,
   ) async {
     AppHaptics.tap();
+    final currentPeriod = ref.read(walletPeriodProvider);
     await _WithdrawConfirmationSheet.show(
       context: context,
-      period: period,
+      periods: periods,
+      currentPeriod: currentPeriod,
       formattedAmount: formattedAmount,
     );
   }
 }
 
-class _ActiveRequestPill extends StatelessWidget {
-  const _ActiveRequestPill({required this.activeRequestId});
-  final int activeRequestId;
+/// Deep-links to the withdrawal history list. Multiple in-flight requests can
+/// exist in the cumulative model, so there is no single request to open.
+class _InFlightDisclosure extends StatelessWidget {
+  const _InFlightDisclosure();
 
   @override
   Widget build(BuildContext context) {
@@ -159,9 +179,7 @@ class _ActiveRequestPill extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        onTap: () => context.push(
-          AppRoutes.coachWithdrawalDetail(activeRequestId),
-        ),
+        onTap: () => context.push(AppRoutes.coachWithdrawalHistory),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimensions.base,
@@ -200,7 +218,7 @@ class _ActiveRequestPill extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Lihat status detail',
+                      'Lihat riwayat pencairan',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.infoDark,
                         fontWeight: FontWeight.w500,
@@ -237,16 +255,23 @@ class _CtaSkeleton extends StatelessWidget {
 
 class _WithdrawConfirmationSheet extends ConsumerStatefulWidget {
   const _WithdrawConfirmationSheet({
-    required this.period,
+    required this.periods,
+    required this.currentPeriod,
     required this.formattedAmount,
   });
 
-  final String period;
+  /// Every outstanding period — one payout-request is POSTed per entry.
+  final List<String> periods;
+
+  /// The month shown in Riwayat Sesi — its per-period providers are refreshed
+  /// after the batch so its rows reflect the new "Diproses" status.
+  final String currentPeriod;
   final String formattedAmount;
 
   static Future<void> show({
     required BuildContext context,
-    required String period,
+    required List<String> periods,
+    required String currentPeriod,
     required String formattedAmount,
   }) {
     return showModalBottomSheet<void>(
@@ -258,7 +283,8 @@ class _WithdrawConfirmationSheet extends ConsumerStatefulWidget {
         child: SafeArea(
           top: false,
           child: _WithdrawConfirmationSheet(
-            period: period,
+            periods: periods,
+            currentPeriod: currentPeriod,
             formattedAmount: formattedAmount,
           ),
         ),
@@ -275,22 +301,23 @@ class _WithdrawConfirmationSheetState
     extends ConsumerState<_WithdrawConfirmationSheet> {
   @override
   void dispose() {
-    // Reset the notifier on close — otherwise a previous failed attempt's
-    // error state surfaces on next open (cancel-then-reopen path), and a
-    // previous success's `lastSuccess` lingers across instances of the sheet.
+    // Reset the batch notifier on close so a previous run's results don't
+    // linger across instances of the sheet.
     Future.microtask(
-      () => ref.read(payoutRequestActionProvider.notifier).clear(),
+      () => ref.read(payoutBatchRequestProvider.notifier).clear(),
     );
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final periodLabel = WalletPeriod.longLabel(widget.period);
+    final coversLabel = widget.periods.length == 1
+        ? 'Periode ${WalletPeriod.longLabel(widget.periods.first)}'
+        : 'Mencakup ${widget.periods.length} bulan: '
+            '${widget.periods.map(WalletPeriod.shortLabel).join(', ')}';
     // SLA day is constant for the session — read once, don't rebuild on auth changes.
-    final slaDays =
-        ref.read(authNotifierProvider)?.tenantPayoutSlaDays ?? 14;
-    final action = ref.watch(payoutRequestActionProvider);
+    final slaDays = ref.read(authNotifierProvider)?.tenantPayoutSlaDays ?? 14;
+    final batch = ref.watch(payoutBatchRequestProvider);
 
     return Container(
       decoration: const BoxDecoration(
@@ -345,7 +372,7 @@ class _WithdrawConfirmationSheetState
                       style: AppTypography.headingSmall,
                     ),
                     Text(
-                      'Periode $periodLabel',
+                      coversLabel,
                       style: AppTypography.caption,
                     ),
                   ],
@@ -423,44 +450,12 @@ class _WithdrawConfirmationSheetState
               ],
             ),
           ),
-          if (action.error != null) ...[
-            const SizedBox(height: AppDimensions.md),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.md,
-                vertical: AppDimensions.sm,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.errorLight,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 16,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(width: AppDimensions.sm),
-                  Expanded(
-                    child: Text(
-                      'Gagal mengirim. Coba lagi.',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.errorDark,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
           const SizedBox(height: AppDimensions.xl),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: action.isLoading
+                  onPressed: batch.isRunning
                       ? null
                       : () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
@@ -479,7 +474,7 @@ class _WithdrawConfirmationSheetState
               Expanded(
                 flex: 2,
                 child: FilledButton(
-                  onPressed: action.isLoading ? null : _submit,
+                  onPressed: batch.isRunning ? null : _submit,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -488,7 +483,7 @@ class _WithdrawConfirmationSheetState
                           BorderRadius.circular(AppDimensions.radiusMd),
                     ),
                   ),
-                  child: action.isLoading
+                  child: batch.isRunning
                       ? const SizedBox(
                           width: 20,
                           height: 20,
@@ -515,25 +510,26 @@ class _WithdrawConfirmationSheetState
 
   Future<void> _submit() async {
     AppHaptics.tap();
-    final ok = await ref
-        .read(payoutRequestActionProvider.notifier)
-        .requestWithdrawal(widget.period);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final result = await ref
+        .read(payoutBatchRequestProvider.notifier)
+        .run(widget.periods, currentPeriod: widget.currentPeriod);
     if (!mounted) return;
-    if (ok) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Permintaan pencairan dikirim. Cek statusnya di Riwayat Pencairan.',
-          ),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          ),
+    navigator.pop();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result.allOk
+              ? 'Permintaan pencairan dikirim (${result.okCount} bulan). Cek statusnya di Riwayat Pencairan.'
+              : '${result.okCount} dari ${result.total} bulan berhasil diajukan. Sisanya menunggu permintaan aktif selesai.',
         ),
-      );
-      // Clear happens in dispose() — no race here.
-    }
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        ),
+      ),
+    );
   }
 }

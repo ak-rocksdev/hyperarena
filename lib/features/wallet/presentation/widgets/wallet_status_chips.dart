@@ -6,37 +6,36 @@ import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
-import 'package:hyperarena/features/wallet/data/models/coach_payout_summary.dart';
+import 'package:hyperarena/features/wallet/data/models/coach_payout_balance.dart';
 import 'package:hyperarena/features/wallet/providers/wallet_providers.dart';
 
-/// Three-chip row that breaks total earnings into "Belum / Diproses / Sudah".
-/// Per spec §5.4 the invariant is:
-///   `totalEarnedCents == pendingCents + diprosesCents + paidCents`
-/// where `diprosesCents = requestedCents + approvedCents` (BE keeps the 4
-/// buckets for Vue admin — merge happens here on the FE).
+/// Three-chip row breaking the CUMULATIVE (all-months) balance into
+/// "Belum / Diproses / Sudah":
+///   Belum dicairkan = outstandingCents
+///   Diproses        = diprosesCents (requested + approved)
+///   Sudah dicairkan = paidCents
 class WalletStatusChips extends ConsumerWidget {
   const WalletStatusChips({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final period = ref.watch(walletPeriodProvider);
-    final summaryAsync = ref.watch(walletSummaryProvider(period));
+    final balanceAsync = ref.watch(walletBalanceProvider);
     final currency = ref.watch(tenantCurrencyProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.screenHorizontal,
       ),
-      child: summaryAsync.when(
-        data: (summary) => _row(summary, currency),
+      child: balanceAsync.when(
+        data: (balance) => _row(balance, currency),
         loading: () => _skeletonRow(),
         error: (_, _) => const SizedBox.shrink(),
       ),
     );
   }
 
-  Widget _row(CoachPayoutSummary summary, String currency) {
-    if (summary.totalEarnedCents == 0) {
+  Widget _row(CoachPayoutBalance balance, String currency) {
+    if (!balance.hasAnyActivity) {
       return const SizedBox.shrink();
     }
     return Row(
@@ -44,7 +43,7 @@ class WalletStatusChips extends ConsumerWidget {
         Expanded(
           child: _Chip(
             label: 'Belum dicairkan',
-            amount: summary.pendingCents,
+            amount: balance.outstandingCents,
             currency: currency,
             dotColor: AppColors.warning,
             isLeading: true,
@@ -54,7 +53,7 @@ class WalletStatusChips extends ConsumerWidget {
         Expanded(
           child: _Chip(
             label: 'Diproses',
-            amount: summary.diprosesCents,
+            amount: balance.diprosesCents,
             currency: currency,
             dotColor: AppColors.neutral400,
           ),
@@ -63,7 +62,7 @@ class WalletStatusChips extends ConsumerWidget {
         Expanded(
           child: _Chip(
             label: 'Sudah dicairkan',
-            amount: summary.paidCents,
+            amount: balance.paidCents,
             currency: currency,
             dotColor: AppColors.success,
           ),

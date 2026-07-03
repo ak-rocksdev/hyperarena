@@ -28,6 +28,11 @@ mixin _$BookingSummary {
   int get totalAmount => throw _privateConstructorUsedError;
   PaymentMethodType? get paymentMethod => throw _privateConstructorUsedError;
 
+  /// Set after the booking is created (submit) — the created booking's
+  /// payment deadline, so the payment screen's countdown reflects the real
+  /// expiry instead of a fresh local timer.
+  DateTime? get expiresAt => throw _privateConstructorUsedError;
+
   /// Serializes this BookingSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -52,6 +57,7 @@ abstract class $BookingSummaryCopyWith<$Res> {
     List<CourtSlot> slots,
     int totalAmount,
     PaymentMethodType? paymentMethod,
+    DateTime? expiresAt,
   });
 
   $CourtCopyWith<$Res>? get court;
@@ -79,6 +85,7 @@ class _$BookingSummaryCopyWithImpl<$Res, $Val extends BookingSummary>
     Object? slots = null,
     Object? totalAmount = null,
     Object? paymentMethod = freezed,
+    Object? expiresAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -106,6 +113,10 @@ class _$BookingSummaryCopyWithImpl<$Res, $Val extends BookingSummary>
                 ? _value.paymentMethod
                 : paymentMethod // ignore: cast_nullable_to_non_nullable
                       as PaymentMethodType?,
+            expiresAt: freezed == expiresAt
+                ? _value.expiresAt
+                : expiresAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -156,6 +167,7 @@ abstract class _$$BookingSummaryImplCopyWith<$Res>
     List<CourtSlot> slots,
     int totalAmount,
     PaymentMethodType? paymentMethod,
+    DateTime? expiresAt,
   });
 
   @override
@@ -184,6 +196,7 @@ class __$$BookingSummaryImplCopyWithImpl<$Res>
     Object? slots = null,
     Object? totalAmount = null,
     Object? paymentMethod = freezed,
+    Object? expiresAt = freezed,
   }) {
     return _then(
       _$BookingSummaryImpl(
@@ -211,6 +224,10 @@ class __$$BookingSummaryImplCopyWithImpl<$Res>
             ? _value.paymentMethod
             : paymentMethod // ignore: cast_nullable_to_non_nullable
                   as PaymentMethodType?,
+        expiresAt: freezed == expiresAt
+            ? _value.expiresAt
+            : expiresAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -226,6 +243,7 @@ class _$BookingSummaryImpl implements _BookingSummary {
     final List<CourtSlot> slots = const [],
     this.totalAmount = 0,
     this.paymentMethod,
+    this.expiresAt,
   }) : _slots = slots;
 
   factory _$BookingSummaryImpl.fromJson(Map<String, dynamic> json) =>
@@ -252,9 +270,15 @@ class _$BookingSummaryImpl implements _BookingSummary {
   @override
   final PaymentMethodType? paymentMethod;
 
+  /// Set after the booking is created (submit) — the created booking's
+  /// payment deadline, so the payment screen's countdown reflects the real
+  /// expiry instead of a fresh local timer.
+  @override
+  final DateTime? expiresAt;
+
   @override
   String toString() {
-    return 'BookingSummary(court: $court, venue: $venue, date: $date, slots: $slots, totalAmount: $totalAmount, paymentMethod: $paymentMethod)';
+    return 'BookingSummary(court: $court, venue: $venue, date: $date, slots: $slots, totalAmount: $totalAmount, paymentMethod: $paymentMethod, expiresAt: $expiresAt)';
   }
 
   @override
@@ -269,7 +293,9 @@ class _$BookingSummaryImpl implements _BookingSummary {
             (identical(other.totalAmount, totalAmount) ||
                 other.totalAmount == totalAmount) &&
             (identical(other.paymentMethod, paymentMethod) ||
-                other.paymentMethod == paymentMethod));
+                other.paymentMethod == paymentMethod) &&
+            (identical(other.expiresAt, expiresAt) ||
+                other.expiresAt == expiresAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -282,6 +308,7 @@ class _$BookingSummaryImpl implements _BookingSummary {
     const DeepCollectionEquality().hash(_slots),
     totalAmount,
     paymentMethod,
+    expiresAt,
   );
 
   /// Create a copy of BookingSummary
@@ -309,6 +336,7 @@ abstract class _BookingSummary implements BookingSummary {
     final List<CourtSlot> slots,
     final int totalAmount,
     final PaymentMethodType? paymentMethod,
+    final DateTime? expiresAt,
   }) = _$BookingSummaryImpl;
 
   factory _BookingSummary.fromJson(Map<String, dynamic> json) =
@@ -326,6 +354,12 @@ abstract class _BookingSummary implements BookingSummary {
   int get totalAmount;
   @override
   PaymentMethodType? get paymentMethod;
+
+  /// Set after the booking is created (submit) — the created booking's
+  /// payment deadline, so the payment screen's countdown reflects the real
+  /// expiry instead of a fresh local timer.
+  @override
+  DateTime? get expiresAt;
 
   /// Create a copy of BookingSummary
   /// with the given fields replaced by the non-null parameter values.

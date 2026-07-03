@@ -13,6 +13,7 @@ import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/booking/presentation/widgets/payment_deadline_banner.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_badge.dart';
 import 'package:hyperarena/features/booking/presentation/widgets/status_stepper.dart';
 import 'package:hyperarena/features/booking/providers/booking_providers.dart';
@@ -91,6 +92,15 @@ class BookingDetailScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+
+                      // Payment deadline — shown while the booking is still
+                      // awaiting payment so the expiry is visible BEFORE it
+                      // lapses, not only after.
+                      if (booking.status == BookingStatus.pendingPayment &&
+                          booking.expiresAt != null) ...[
+                        const SizedBox(height: AppDimensions.md),
+                        PaymentDeadlineBanner(expiresAt: booking.expiresAt!),
+                      ],
                       const SizedBox(height: AppDimensions.xl),
 
                       // Info card

@@ -55,6 +55,9 @@ class BookingFlowNotifier extends Notifier<BookingSummary> {
       venueName: s.venue!.name,
       courtName: s.court!.name,
     );
+    // Carry the created booking's real payment deadline into the flow so the
+    // payment screen counts down to the actual expiry.
+    state = state.copyWith(expiresAt: booking.expiresAt);
     // Invalidate booking list so it refreshes
     ref.invalidate(bookingListProvider);
     return booking;

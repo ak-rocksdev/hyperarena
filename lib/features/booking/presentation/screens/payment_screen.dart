@@ -27,19 +27,29 @@ class PaymentScreen extends ConsumerStatefulWidget {
 
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   Timer? _timer;
-  Duration _remaining = const Duration(minutes: 60);
+  Duration _remaining = Duration.zero;
+  late final DateTime _deadline;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    // Count down to the created booking's real payment deadline. Falls back to
+    // a 60-minute window only if the booking wasn't created with an expiry.
+    final expiresAt = ref.read(bookingFlowProvider).expiresAt;
+    _deadline = expiresAt ?? DateTime.now().add(const Duration(minutes: 60));
+    _remaining = _computeRemaining();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_remaining.inSeconds > 0) {
-        setState(() => _remaining -= const Duration(seconds: 1));
-      } else {
-        _timer?.cancel();
-      }
+      if (!mounted) return;
+      final r = _computeRemaining();
+      setState(() => _remaining = r);
+      if (r == Duration.zero) _timer?.cancel();
     });
+  }
+
+  Duration _computeRemaining() {
+    final r = _deadline.difference(DateTime.now());
+    return r.isNegative ? Duration.zero : r;
   }
 
   @override
@@ -59,9 +69,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   String get _countdownText {
-    final minutes = _remaining.inMinutes;
-    final seconds = _remaining.inSeconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    final h = _remaining.inHours;
+    final m = (_remaining.inMinutes % 60).toString().padLeft(2, '0');
+    final s = (_remaining.inSeconds % 60).toString().padLeft(2, '0');
+    return h > 0 ? '${h.toString().padLeft(2, '0')}:$m:$s' : '$m:$s';
   }
 
   @override

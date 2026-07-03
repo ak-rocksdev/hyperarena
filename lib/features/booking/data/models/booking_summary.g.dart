@@ -27,6 +27,9 @@ _$BookingSummaryImpl _$$BookingSummaryImplFromJson(Map<String, dynamic> json) =>
         _$PaymentMethodTypeEnumMap,
         json['payment_method'],
       ),
+      expiresAt: json['expires_at'] == null
+          ? null
+          : DateTime.parse(json['expires_at'] as String),
     );
 
 Map<String, dynamic> _$$BookingSummaryImplToJson(
@@ -38,6 +41,7 @@ Map<String, dynamic> _$$BookingSummaryImplToJson(
   'slots': instance.slots,
   'total_amount': instance.totalAmount,
   'payment_method': _$PaymentMethodTypeEnumMap[instance.paymentMethod],
+  'expires_at': instance.expiresAt?.toIso8601String(),
 };
 
 const _$PaymentMethodTypeEnumMap = {

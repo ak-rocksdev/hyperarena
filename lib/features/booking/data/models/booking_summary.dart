@@ -16,6 +16,10 @@ class BookingSummary with _$BookingSummary {
     @Default([]) List<CourtSlot> slots,
     @Default(0) int totalAmount,
     PaymentMethodType? paymentMethod,
+    /// Set after the booking is created (submit) — the created booking's
+    /// payment deadline, so the payment screen's countdown reflects the real
+    /// expiry instead of a fresh local timer.
+    DateTime? expiresAt,
   }) = _BookingSummary;
 
   factory BookingSummary.empty() => const BookingSummary();

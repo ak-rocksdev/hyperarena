@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hyperarena/core/network/api_exceptions.dart';
 import 'package:hyperarena/features/notification/data/models/notification_item.dart';
 import 'package:hyperarena/features/notification/providers/notification_providers.dart';
 import 'package:hyperarena/features/wallet/data/api_wallet_repository.dart';
@@ -113,9 +114,18 @@ final payoutRequestActionProvider =
 // per-period outcome and continue, then report the aggregate.
 
 class BatchPeriodResult {
-  const BatchPeriodResult({required this.period, required this.ok, this.reason});
+  const BatchPeriodResult({
+    required this.period,
+    required this.ok,
+    this.conflict = false,
+    this.reason,
+  });
   final String period;
   final bool ok;
+
+  /// True when the failure was a 409 — the period already has an active
+  /// request. This is a benign skip, NOT a hard error.
+  final bool conflict;
   final String? reason; // null when ok
 }
 
@@ -128,6 +138,12 @@ class PayoutBatchState {
   int get total => results.length;
   bool get allOk => results.isNotEmpty && results.every((r) => r.ok);
   bool get anyFailed => results.any((r) => !r.ok);
+
+  /// Failures that are benign skips (period already has an active request).
+  int get conflictCount => results.where((r) => !r.ok && r.conflict).length;
+
+  /// Failures that are real errors (permission, network, server, validation).
+  int get hardFailCount => results.where((r) => !r.ok && !r.conflict).length;
 }
 
 class PayoutBatchNotifier extends Notifier<PayoutBatchState> {
@@ -153,8 +169,15 @@ class PayoutBatchNotifier extends Notifier<PayoutBatchState> {
         await repo.requestWithdrawal(period);
         results.add(BatchPeriodResult(period: period, ok: true));
       } catch (e) {
+        // A 409 means the period already has an active request — a benign skip.
+        // Anything else (403/422/500/network) is a real failure worth surfacing.
         results.add(
-          BatchPeriodResult(period: period, ok: false, reason: e.toString()),
+          BatchPeriodResult(
+            period: period,
+            ok: false,
+            conflict: e is ConflictException,
+            reason: e.toString(),
+          ),
         );
       }
     }

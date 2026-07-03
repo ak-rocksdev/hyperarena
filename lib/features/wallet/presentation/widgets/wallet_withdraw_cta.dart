@@ -517,17 +517,38 @@ class _WithdrawConfirmationSheetState
     navigator.pop();
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          result.allOk
-              ? 'Permintaan pencairan dikirim (${result.okCount} bulan). Cek statusnya di Riwayat Pencairan.'
-              : '${result.okCount} dari ${result.total} bulan berhasil diajukan. Sisanya menunggu permintaan aktif selesai.',
-        ),
-        backgroundColor: AppColors.primary,
+        content: Text(_resultMessage(result)),
+        backgroundColor:
+            result.okCount > 0 ? AppColors.primary : AppColors.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
       ),
     );
+  }
+
+  /// Reports the batch outcome honestly: distinguishes a benign "already has an
+  /// active request" skip (409) from a real failure (permission/network/server).
+  String _resultMessage(PayoutBatchState result) {
+    if (result.allOk) {
+      return 'Permintaan pencairan dikirim (${result.okCount} bulan). '
+          'Cek statusnya di Riwayat Pencairan.';
+    }
+    if (result.okCount == 0) {
+      // Nothing went through.
+      if (result.hardFailCount == 0) {
+        return 'Sudah ada permintaan pencairan yang aktif. '
+            'Tunggu prosesnya selesai.';
+      }
+      return 'Gagal mengajukan pencairan. Coba lagi.';
+    }
+    // Partial success.
+    if (result.hardFailCount > 0) {
+      return '${result.okCount} dari ${result.total} bulan diajukan. '
+          'Sebagian gagal — coba lagi.';
+    }
+    return '${result.okCount} dari ${result.total} bulan diajukan. '
+        'Sisanya sudah punya permintaan aktif.';
   }
 }

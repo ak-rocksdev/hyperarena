@@ -88,27 +88,36 @@ class RoleSwitchSection extends ConsumerWidget {
     // Already switching — haptic above is enough; don't fire a second call.
     if (ref.read(isSwitchingRoleProvider) != null) return;
 
-    ref.read(isSwitchingRoleProvider.notifier).state = newRole;
+    // Capture the controller UP-FRONT. `switchRole` mutates global auth
+    // state, which fires the router's auth redirect and tears down THIS
+    // widget's element mid-await. Any `ref.*` after that throws
+    // "Cannot use ref after the widget was disposed", which would leave
+    // `isSwitchingRole` stuck non-null → frozen spinner + every later
+    // switch blocked by the guard above. The controller is app-scoped
+    // (non-autoDispose), so it stays valid after the widget is gone.
+    final switching = ref.read(isSwitchingRoleProvider.notifier);
+    final router = ref.read(authNotifierProvider.notifier);
+    switching.state = newRole;
 
     final stopwatch = Stopwatch()..start();
     try {
-      await ref.read(authNotifierProvider.notifier).switchRole(newRole);
+      await router.switchRole(newRole);
       // Floor the loading display so the spinner doesn't flicker.
       final elapsed = stopwatch.elapsed;
       if (elapsed < _kMinLoadingDisplay) {
         await Future.delayed(_kMinLoadingDisplay - elapsed);
       }
-      // Clear loading state BEFORE the route swap. Once `context.go`
-      // tears down this branch's widget tree, the WidgetRef is dead and
-      // a post-navigation `ref.read(...).state = null` silently no-ops
-      // — the new role's Profile screen would then subscribe to a
-      // stale `switchingTo` and render a stuck spinner forever.
-      ref.read(isSwitchingRoleProvider.notifier).state = null;
+      // Reset via the captured controller — the widget may already be
+      // disposed by the router redirect, so `ref` is unsafe here.
+      switching.state = null;
+      // If the widget survived (router didn't redirect), navigate
+      // explicitly; otherwise the redirect already landed us on the new
+      // role's home.
       if (context.mounted) {
         context.go(AppRoutes.home(newRole));
       }
     } catch (e) {
-      ref.read(isSwitchingRoleProvider.notifier).state = null;
+      switching.state = null;
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

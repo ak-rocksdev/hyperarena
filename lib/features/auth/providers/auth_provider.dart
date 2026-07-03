@@ -221,90 +221,102 @@ class AuthNotifier extends Notifier<User?> {
   /// (api_client, secure storage, locale, router) are intentionally NOT
   /// invalidated — they're stateless or contain user-independent state.
   ///
-  /// Family providers: `ref.invalidate(family)` invalidates ALL keyed
+  /// Family providers: `invalidate(family)` invalidates ALL keyed
   /// instances. NotifierProvider: invalidation recreates the Notifier and
   /// re-runs `build()`. StateProvider: resets to its initial value.
+  ///
+  /// Invalidation goes through `ref.container` (NOT `ref.invalidate`) on
+  /// purpose. Some of these providers transitively depend on
+  /// `authNotifierProvider` (e.g. `coachScheduleProvider` →
+  /// `coachIdProvider` → `authNotifierProvider`). Calling `ref.invalidate`
+  /// on such a dependent from inside this notifier trips Riverpod's
+  /// debug-only circular-dependency assert and throws
+  /// `CircularDependencyError` (crashing role-switch/logout while a coach
+  /// screen is mounted). `container.invalidate` performs the exact same
+  /// reset without the depender-context assert — identical to how a
+  /// `WidgetRef.invalidate` from the UI would behave.
   void _invalidateAllFeatureProviders() {
+    final container = ref.container;
     // ── Marketplace ─────────────────────────────────────────────
-    ref.invalidate(marketplaceVenueListProvider);
-    ref.invalidate(marketplaceSessionListProvider);
-    ref.invalidate(marketplaceCoachListProvider);
-    ref.invalidate(marketplaceSessionDetailProvider);
-    ref.invalidate(marketplaceVenueDetailProvider);
-    ref.invalidate(sportFiltersProvider);
-    ref.invalidate(selectedSportIdProvider);
+    container.invalidate(marketplaceVenueListProvider);
+    container.invalidate(marketplaceSessionListProvider);
+    container.invalidate(marketplaceCoachListProvider);
+    container.invalidate(marketplaceSessionDetailProvider);
+    container.invalidate(marketplaceVenueDetailProvider);
+    container.invalidate(sportFiltersProvider);
+    container.invalidate(selectedSportIdProvider);
 
     // ── Venue ───────────────────────────────────────────────────
-    ref.invalidate(venueListProvider);
+    container.invalidate(venueListProvider);
 
     // ── Notifications ───────────────────────────────────────────
-    ref.invalidate(notificationListProvider);
-    ref.invalidate(unreadCountProvider);
+    container.invalidate(notificationListProvider);
+    container.invalidate(unreadCountProvider);
 
     // ── Gamification ────────────────────────────────────────────
-    ref.invalidate(badgeListProvider);
-    ref.invalidate(playerStatsProvider);
+    container.invalidate(badgeListProvider);
+    container.invalidate(playerStatsProvider);
 
     // ── Coach (role) ────────────────────────────────────────────
-    ref.invalidate(coachListProvider);
-    ref.invalidate(coachFilterProvider);
-    ref.invalidate(coachDetailProvider);
-    ref.invalidate(coachPackagesProvider);
-    ref.invalidate(coachScheduleProvider);
-    ref.invalidate(coachDashboardSummaryProvider);
-    ref.invalidate(coachSessionListProvider);
-    ref.invalidate(coachSessionDetailProvider);
-    ref.invalidate(coachSessionProgressProvider);
-    ref.invalidate(coachSessionRecommendationsProvider);
-    ref.invalidate(coachStudentEnrollmentProvider);
-    ref.invalidate(coachStudentLevelSkillsProvider);
-    ref.invalidate(coachProgramsProvider);
-    ref.invalidate(coachProgramLevelsProvider);
-    ref.invalidate(scoringConfigProvider);
-    ref.invalidate(attendanceLocalStateProvider);
-    ref.invalidate(assessmentListProvider);
-    ref.invalidate(studentListProvider);
-    ref.invalidate(studentAssessmentsProvider);
-    ref.invalidate(coachBookingProvider);
+    container.invalidate(coachListProvider);
+    container.invalidate(coachFilterProvider);
+    container.invalidate(coachDetailProvider);
+    container.invalidate(coachPackagesProvider);
+    container.invalidate(coachScheduleProvider);
+    container.invalidate(coachDashboardSummaryProvider);
+    container.invalidate(coachSessionListProvider);
+    container.invalidate(coachSessionDetailProvider);
+    container.invalidate(coachSessionProgressProvider);
+    container.invalidate(coachSessionRecommendationsProvider);
+    container.invalidate(coachStudentEnrollmentProvider);
+    container.invalidate(coachStudentLevelSkillsProvider);
+    container.invalidate(coachProgramsProvider);
+    container.invalidate(coachProgramLevelsProvider);
+    container.invalidate(scoringConfigProvider);
+    container.invalidate(attendanceLocalStateProvider);
+    container.invalidate(assessmentListProvider);
+    container.invalidate(studentListProvider);
+    container.invalidate(studentAssessmentsProvider);
+    container.invalidate(coachBookingProvider);
 
     // ── Sessions / Bookings ─────────────────────────────────────
-    ref.invalidate(sessionListProvider);
-    ref.invalidate(bookingListProvider);
-    ref.invalidate(myBookingsProvider);
-    ref.invalidate(marketplaceSessionJoinProvider);
+    container.invalidate(sessionListProvider);
+    container.invalidate(bookingListProvider);
+    container.invalidate(myBookingsProvider);
+    container.invalidate(marketplaceSessionJoinProvider);
 
     // ── Reviews (Issue 13) ──────────────────────────────────────
-    ref.invalidate(myReviewProvider);
-    ref.invalidate(myReviewsProvider);
-    ref.invalidate(coachReviewsProvider);
-    ref.invalidate(coachRatingProvider);
-    ref.invalidate(hasReviewedBookingProvider);
-    ref.invalidate(playerWrittenReviewsProvider);
+    container.invalidate(myReviewProvider);
+    container.invalidate(myReviewsProvider);
+    container.invalidate(coachReviewsProvider);
+    container.invalidate(coachRatingProvider);
+    container.invalidate(hasReviewedBookingProvider);
+    container.invalidate(playerWrittenReviewsProvider);
 
     // ── Activity feed ───────────────────────────────────────────
-    ref.invalidate(activityListProvider);
+    container.invalidate(activityListProvider);
 
     // ── Organizer ───────────────────────────────────────────────
-    ref.invalidate(organizerDashboardProvider);
-    ref.invalidate(organizerSessionsProvider);
-    ref.invalidate(organizerUpcomingSessionsProvider);
-    ref.invalidate(organizerPastSessionsProvider);
-    ref.invalidate(organizerAgendaProvider);
-    ref.invalidate(organizerActionInboxProvider);
-    ref.invalidate(organizerEarningsProvider);
-    ref.invalidate(organizerTemplatesProvider);
-    ref.invalidate(dashboardDateRangeProvider);
-    ref.invalidate(dashboardFilterProvider);
-    ref.invalidate(organizerDateRangeProvider);
-    ref.invalidate(organizerActionTypeFilterProvider);
+    container.invalidate(organizerDashboardProvider);
+    container.invalidate(organizerSessionsProvider);
+    container.invalidate(organizerUpcomingSessionsProvider);
+    container.invalidate(organizerPastSessionsProvider);
+    container.invalidate(organizerAgendaProvider);
+    container.invalidate(organizerActionInboxProvider);
+    container.invalidate(organizerEarningsProvider);
+    container.invalidate(organizerTemplatesProvider);
+    container.invalidate(dashboardDateRangeProvider);
+    container.invalidate(dashboardFilterProvider);
+    container.invalidate(organizerDateRangeProvider);
+    container.invalidate(organizerActionTypeFilterProvider);
 
     // ── Owner ───────────────────────────────────────────────────
-    ref.invalidate(ownerDashboardProvider);
-    ref.invalidate(ownerVenuesProvider);
-    ref.invalidate(ownerVenueDetailProvider);
-    ref.invalidate(ownerBookingQueueProvider);
-    ref.invalidate(ownerAvailabilityIssuesProvider);
-    ref.invalidate(ownerQueueVenueFilterProvider);
+    container.invalidate(ownerDashboardProvider);
+    container.invalidate(ownerVenuesProvider);
+    container.invalidate(ownerVenueDetailProvider);
+    container.invalidate(ownerBookingQueueProvider);
+    container.invalidate(ownerAvailabilityIssuesProvider);
+    container.invalidate(ownerQueueVenueFilterProvider);
   }
 
   Future<void> logout() async {

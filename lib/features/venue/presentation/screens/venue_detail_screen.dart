@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
@@ -18,6 +19,7 @@ import 'package:hyperarena/features/review/providers/venue_review_providers.dart
 import 'package:hyperarena/features/venue/presentation/widgets/court_card.dart';
 import 'package:hyperarena/features/venue/presentation/widgets/facility_chips.dart';
 import 'package:hyperarena/features/venue/providers/venue_providers.dart';
+import 'package:hyperarena/shared/widgets/scrim_icon_button.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 class VenueDetailScreen extends ConsumerWidget {
@@ -55,6 +57,13 @@ class VenueDetailScreen extends ConsumerWidget {
               SliverAppBar(
                 expandedHeight: 250,
                 pinned: true,
+                systemOverlayStyle: SystemUiOverlayStyle.light,
+                automaticallyImplyLeading: false,
+                leading: ScrimIconButton(
+                  icon: Icons.arrow_back,
+                  semanticLabel: 'Kembali',
+                  onPressed: () => Navigator.maybePop(context),
+                ),
                   flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
@@ -69,6 +78,7 @@ class VenueDetailScreen extends ConsumerWidget {
                           child: const Icon(Icons.image, size: 48),
                         ),
                       ),
+                      const HeroTopScrim(),
                       const Positioned(
                         left: 0,
                         right: 0,

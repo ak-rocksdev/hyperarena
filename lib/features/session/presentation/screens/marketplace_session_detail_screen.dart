@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
@@ -16,6 +17,7 @@ import 'package:hyperarena/features/session/presentation/widgets/credit_confirma
 import 'package:hyperarena/features/session/providers/marketplace_session_join_provider.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
+import 'package:hyperarena/shared/widgets/scrim_icon_button.dart';
 import 'package:hyperarena/shared/widgets/session_hero.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
@@ -160,15 +162,30 @@ class _DetailBody extends ConsumerWidget {
             pinned: true,
             backgroundColor: AppColors.primary700,
             foregroundColor: Colors.white,
+            // Hero is dark (photo + top scrim + teal when collapsed) → white
+            // status-bar icons stay legible throughout.
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+            automaticallyImplyLeading: false,
+            leading: ScrimIconButton(
+              icon: Icons.arrow_back,
+              semanticLabel: 'Kembali',
+              onPressed: () => Navigator.maybePop(context),
+            ),
             flexibleSpace: FlexibleSpaceBar(
-              background: SessionHero(
-                photoUrls: session.photoUrls,
-                photoPath: session.photoPath,
-                size: SessionHeroSize.lg,
-                brandColor: session.tenant?.brandColor,
-                borderRadius: 0,
-                enableZoom: true,
-                heroTag: 'marketplace-session-hero-$sessionId',
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  SessionHero(
+                    photoUrls: session.photoUrls,
+                    photoPath: session.photoPath,
+                    size: SessionHeroSize.lg,
+                    brandColor: session.tenant?.brandColor,
+                    borderRadius: 0,
+                    enableZoom: true,
+                    heroTag: 'marketplace-session-hero-$sessionId',
+                  ),
+                  const HeroTopScrim(),
+                ],
               ),
             ),
           ),

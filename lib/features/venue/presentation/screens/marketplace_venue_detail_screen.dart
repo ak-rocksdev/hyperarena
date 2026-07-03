@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -9,6 +10,7 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/widgets/shimmer_loading.dart';
 import 'package:hyperarena/features/venue/data/models/marketplace_venue.dart';
 import 'package:hyperarena/shared/providers/marketplace_providers.dart';
+import 'package:hyperarena/shared/widgets/scrim_icon_button.dart';
 import 'package:hyperarena/shared/widgets/sport_label_chip.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
 
@@ -67,6 +69,13 @@ class _VenueDetailBody extends StatelessWidget {
         SliverAppBar(
           expandedHeight: 250,
           pinned: true,
+          systemOverlayStyle: SystemUiOverlayStyle.light,
+          automaticallyImplyLeading: false,
+          leading: ScrimIconButton(
+            icon: Icons.arrow_back,
+            semanticLabel: 'Kembali',
+            onPressed: () => Navigator.maybePop(context),
+          ),
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(
               fit: StackFit.expand,
@@ -101,6 +110,7 @@ class _VenueDetailBody extends StatelessWidget {
                     color: AppColors.neutral100,
                     child: const Icon(Icons.sports, size: 64),
                   ),
+                const HeroTopScrim(),
                 const Positioned(
                   left: 0,
                   right: 0,

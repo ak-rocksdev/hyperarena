@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
@@ -15,6 +16,7 @@ import 'package:hyperarena/features/coach/data/models/session_recommendation.dar
 import 'package:hyperarena/features/coach/presentation/widgets/enrollment_dialog.dart';
 import 'package:hyperarena/features/coach/presentation/widgets/student_grading_panel.dart';
 import 'package:hyperarena/features/coach/providers/coach_session_providers.dart';
+import 'package:hyperarena/shared/widgets/scrim_icon_button.dart';
 import 'package:hyperarena/shared/widgets/session_hero.dart';
 import 'package:hyperarena/shared/widgets/venue_location_section.dart';
 
@@ -170,6 +172,13 @@ class _CoachSessionDetailScreenState
               pinned: true,
               backgroundColor: AppColors.primary700,
               foregroundColor: Colors.white,
+              systemOverlayStyle: SystemUiOverlayStyle.light,
+              automaticallyImplyLeading: false,
+              leading: ScrimIconButton(
+                icon: Icons.arrow_back,
+                semanticLabel: 'Kembali',
+                onPressed: () => Navigator.maybePop(context),
+              ),
               flexibleSpace: FlexibleSpaceBar(
                 background: Stack(
                   fit: StackFit.expand,
@@ -182,6 +191,8 @@ class _CoachSessionDetailScreenState
                       enableZoom: true,
                       heroTag: 'coach-session-hero-${session.id}',
                     ),
+                    // Keeps the back button legible over the top of the photo.
+                    const HeroTopScrim(),
                     // Gradient scrim so the title stays readable on light photos.
                     const IgnorePointer(
                       child: DecoratedBox(

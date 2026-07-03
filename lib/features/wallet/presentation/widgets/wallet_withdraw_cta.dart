@@ -315,8 +315,6 @@ class _WithdrawConfirmationSheetState
         ? 'Periode ${WalletPeriod.longLabel(widget.periods.first)}'
         : 'Mencakup ${widget.periods.length} bulan: '
             '${widget.periods.map(WalletPeriod.shortLabel).join(', ')}';
-    // SLA day is constant for the session — read once, don't rebuild on auth changes.
-    final slaDays = ref.read(authNotifierProvider)?.tenantPayoutSlaDays ?? 14;
     final batch = ref.watch(payoutBatchRequestProvider);
 
     return Container(
@@ -440,7 +438,7 @@ class _WithdrawConfirmationSheetState
                 const SizedBox(width: AppDimensions.sm),
                 Expanded(
                   child: Text(
-                    'Diproses oleh admin dalam $slaDays hari kerja. Status bisa dilihat di Riwayat Pencairan.',
+                    'Diproses oleh admin dalam 2 x 24 jam hari kerja. Status bisa dilihat di Riwayat Pencairan.',
                     style: AppTypography.caption.copyWith(
                       color: AppColors.infoDark,
                       height: 1.45,

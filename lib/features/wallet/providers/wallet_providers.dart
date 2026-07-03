@@ -105,6 +105,79 @@ final payoutRequestActionProvider =
 );
 
 // ──────────────────────────────────────────────────────────────────────────
+// Batch withdrawal — "Cairkan semua sekaligus"
+//
+// The cumulative model withdraws every outstanding period in one tap. The BE
+// request model is per-period, so we POST once per period. We NEVER abort on a
+// single failure (e.g. a period that raced into an active request): record the
+// per-period outcome and continue, then report the aggregate.
+
+class BatchPeriodResult {
+  const BatchPeriodResult({required this.period, required this.ok, this.reason});
+  final String period;
+  final bool ok;
+  final String? reason; // null when ok
+}
+
+class PayoutBatchState {
+  const PayoutBatchState({this.isRunning = false, this.results = const []});
+  final bool isRunning;
+  final List<BatchPeriodResult> results;
+
+  int get okCount => results.where((r) => r.ok).length;
+  int get total => results.length;
+  bool get allOk => results.isNotEmpty && results.every((r) => r.ok);
+  bool get anyFailed => results.any((r) => !r.ok);
+}
+
+class PayoutBatchNotifier extends Notifier<PayoutBatchState> {
+  @override
+  PayoutBatchState build() => const PayoutBatchState();
+
+  /// POSTs one payout-request per period, sequentially. Returns the final state.
+  /// `currentPeriod` is the month currently shown in Riwayat Sesi — its
+  /// per-period providers are invalidated too so its rows reflect the new
+  /// "Diproses" status.
+  Future<PayoutBatchState> run(
+    List<String> periods, {
+    required String currentPeriod,
+  }) async {
+    if (periods.isEmpty) return state;
+
+    state = const PayoutBatchState(isRunning: true);
+    final repo = ref.read(walletRepositoryProvider);
+    final results = <BatchPeriodResult>[];
+
+    for (final period in periods) {
+      try {
+        await repo.requestWithdrawal(period);
+        results.add(BatchPeriodResult(period: period, ok: true));
+      } catch (e) {
+        results.add(
+          BatchPeriodResult(period: period, ok: false, reason: e.toString()),
+        );
+      }
+    }
+
+    // Server is source of truth — re-fetch everything that could have changed.
+    ref.invalidate(walletBalanceProvider);
+    ref.invalidate(withdrawalHistoryProvider);
+    ref.invalidate(walletSummaryProvider(currentPeriod));
+    ref.invalidate(walletPayoutsProvider(currentPeriod));
+
+    state = PayoutBatchState(isRunning: false, results: results);
+    return state;
+  }
+
+  void clear() => state = const PayoutBatchState();
+}
+
+final payoutBatchRequestProvider =
+    NotifierProvider<PayoutBatchNotifier, PayoutBatchState>(
+  PayoutBatchNotifier.new,
+);
+
+// ──────────────────────────────────────────────────────────────────────────
 // Unseen wallet activity indicator
 //
 // Wallet-flavoured awareness pattern: the bottom-nav Profile icon and the

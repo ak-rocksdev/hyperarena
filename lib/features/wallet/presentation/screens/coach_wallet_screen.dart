@@ -60,17 +60,17 @@ class _CoachWalletScreenState extends ConsumerState<CoachWalletScreen> {
         // actually arrives — pure `invalidate` returns synchronously and
         // dismisses the indicator before the refetch is on the wire.
         onRefresh: () async {
+          ref.invalidate(walletBalanceProvider);
           ref.invalidate(walletSummaryProvider(period));
           ref.invalidate(walletPayoutsProvider(period));
           await Future.wait([
-            ref.read(walletSummaryProvider(period).future),
+            ref.read(walletBalanceProvider.future),
             ref.read(walletPayoutsProvider(period).future),
           ]);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            const SliverToBoxAdapter(child: WalletPeriodSelector()),
             const SliverToBoxAdapter(child: SizedBox(height: AppDimensions.sm)),
             const SliverToBoxAdapter(child: WalletHero()),
             const SliverToBoxAdapter(
@@ -85,6 +85,7 @@ class _CoachWalletScreenState extends ConsumerState<CoachWalletScreen> {
               child: SizedBox(height: AppDimensions.xxl),
             ),
             SliverToBoxAdapter(child: _sectionHeader()),
+            const SliverToBoxAdapter(child: WalletPeriodSelector()),
             const SliverToBoxAdapter(child: SizedBox(height: AppDimensions.sm)),
             payoutsAsync.when(
               data: (list) => list.isEmpty
@@ -128,6 +129,12 @@ class _CoachWalletScreenState extends ConsumerState<CoachWalletScreen> {
             ),
           ),
           const Spacer(),
+          Text(
+            'Per bulan',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );

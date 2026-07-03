@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/network/dio_error_handler.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout.dart';
+import 'package:hyperarena/features/wallet/data/models/coach_payout_balance.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout_summary.dart';
 import 'package:hyperarena/features/wallet/data/models/payout_request.dart';
 
@@ -20,6 +21,17 @@ class ApiWalletRepository {
         queryParameters: {'period': period},
       );
       return CoachPayoutSummary.fromJson(res.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  /// `GET /v1/coach/payouts/balance` — cumulative all-months buckets +
+  /// withdrawable periods. Drives the always-visible hero / chips / CTA.
+  Future<CoachPayoutBalance> getBalance() async {
+    try {
+      final res = await _apiClient.get('/v1/coach/payouts/balance');
+      return CoachPayoutBalance.fromJson(res.data as Map<String, dynamic>);
     } on DioException catch (e) {
       rethrowDio(e);
     }

@@ -3,6 +3,7 @@ import 'package:hyperarena/features/notification/data/models/notification_item.d
 import 'package:hyperarena/features/notification/providers/notification_providers.dart';
 import 'package:hyperarena/features/wallet/data/api_wallet_repository.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout.dart';
+import 'package:hyperarena/features/wallet/data/models/coach_payout_balance.dart';
 import 'package:hyperarena/features/wallet/data/models/coach_payout_summary.dart';
 import 'package:hyperarena/features/wallet/data/models/payout_request.dart';
 import 'package:hyperarena/shared/providers/network_providers.dart';
@@ -40,6 +41,13 @@ final walletPayoutsProvider =
     return ref.watch(walletRepositoryProvider).getPayouts(period);
   },
 );
+
+/// Cumulative all-months balance — global (NOT a family), month-independent.
+/// Drives the hero, status chips, and withdraw CTA.
+final walletBalanceProvider =
+    FutureProvider.autoDispose<CoachPayoutBalance>((ref) async {
+  return ref.watch(walletRepositoryProvider).getBalance();
+});
 
 final withdrawalHistoryProvider =
     FutureProvider.autoDispose<List<PayoutRequest>>((ref) async {

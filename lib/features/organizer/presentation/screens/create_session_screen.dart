@@ -26,6 +26,7 @@ import 'package:hyperarena/features/organizer/presentation/widgets/create_sessio
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_ticket_card.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_type_cards.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/time_wheel_picker.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/create_venue_sheet.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/venue_picker_sheet.dart';
 import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
@@ -46,7 +47,6 @@ class CreateSessionScreen extends ConsumerStatefulWidget {
 class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   int _step = 0;
   bool _submitting = false;
-  bool _creatingVenue = false;
   String? _error;
   String? _appliedDuplicateLabel;
 
@@ -80,8 +80,9 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   }
 
   Future<void> _checkPaymentGuard() async {
-    final ready =
-        await ref.read(organizerRepositoryProvider).isPayoutConfigured();
+    final ready = await ref
+        .read(organizerRepositoryProvider)
+        .isPayoutConfigured();
     if (!mounted || ready) return;
     final goSettings = await showPaymentGuard(context);
     if (!mounted) return;
@@ -99,16 +100,20 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     _notesCtrl.text = payload.notes ?? '';
     _priceCtrl.text = payload.price != null
         ? Formatters.groupDigits(
-            Formatters.fromMinorUnits(payload.price!, currency)
-                .toInt()
-                .toString(),
-            currency)
+            Formatters.fromMinorUnits(
+              payload.price!,
+              currency,
+            ).toInt().toString(),
+            currency,
+          )
         : '';
     final recent = ref.read(createSessionRecentProvider).valueOrNull ?? [];
     final match = recent.where((r) => r.id == sessionId).firstOrNull;
-    setState(() => _appliedDuplicateLabel = match != null
-        ? Formatters.formatDateTimeCompact(match.startAt)
-        : 'sesi lain');
+    setState(
+      () => _appliedDuplicateLabel = match != null
+          ? Formatters.formatDateTimeCompact(match.startAt)
+          : 'sesi lain',
+    );
   }
 
   void _clearDuplicate() {
@@ -131,9 +136,9 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
       if (wantPhoto) await _pickAndUploadCover(session.id);
       _notifier.reset();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sesi berhasil dibuat')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Sesi berhasil dibuat')));
       context.pop();
     } on ValidationException catch (e) {
       if (!mounted) return;
@@ -149,13 +154,14 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
             .expand((messages) => messages)
             .map((m) => m.toString())
             .firstOrNull;
-        setState(
-            () => _error = firstError ?? 'Gagal membuat sesi. Coba lagi.');
+        setState(() => _error = firstError ?? 'Gagal membuat sesi. Coba lagi.');
       }
     } on ForbiddenException {
       if (!mounted) return;
-      setState(() => _error =
-          'Langganan tidak aktif. Perbarui langganan untuk membuat sesi.');
+      setState(
+        () => _error =
+            'Langganan tidak aktif. Perbarui langganan untuk membuat sesi.',
+      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _error = 'Gagal membuat sesi. Coba lagi.');
@@ -165,8 +171,10 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   }
 
   Future<void> _pickAndUploadCover(String sessionId) async {
-    final picked = await ImagePicker()
-        .pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked == null || !mounted) return;
     try {
       await ref
@@ -278,8 +286,10 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                     ? null
                     : '${draft.coachIds.length} coach dipilih',
                 onTap: () async {
-                  final result =
-                      await showCoachPicker(context, selected: draft.coachIds);
+                  final result = await showCoachPicker(
+                    context,
+                    selected: draft.coachIds,
+                  );
                   if (result != null) _notifier.setCoaches(result);
                 },
               ),
@@ -377,7 +387,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
               final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
               final n = int.tryParse(digits);
               _notifier.setPrice(
-                  n == null ? null : Formatters.toMinorUnits(n, currency));
+                n == null ? null : Formatters.toMinorUnits(n, currency),
+              );
             },
             decoration: InputDecoration(
               labelText: 'Harga per sesi',
@@ -398,6 +409,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
         SessionTicketCard(
           type: draft.type,
           title: _titleCtrl.text,
+          onEditTitle: _editSessionTitle,
           whenLine: _whenLine(draft),
           capacityText: _capacityText(draft),
           priceText: draft.price == null
@@ -409,19 +421,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   }
 
   Widget _venueField(CreateSessionDraft draft) {
-    if (_creatingVenue) {
-      return PickerTile(
-        icon: Icons.place_outlined,
-        label: 'Venue',
-        placeholder: 'Membuat venue…',
-        onTap: () {},
-        trailing: const SizedBox(
-          height: 16,
-          width: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      );
-    }
     if (draft.venueName == null) {
       return PickerTile(
         icon: Icons.place_outlined,
@@ -455,8 +454,12 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppDimensions.base,
-              AppDimensions.md, AppDimensions.base, AppDimensions.md),
+          padding: const EdgeInsets.fromLTRB(
+            AppDimensions.base,
+            AppDimensions.md,
+            AppDimensions.base,
+            AppDimensions.md,
+          ),
           child: _step == 0
               ? SizedBox(
                   height: AppDimensions.buttonHeightLg,
@@ -478,7 +481,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                             : () => setState(() => _step = 0),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: AppDimensions.base),
+                            horizontal: AppDimensions.base,
+                          ),
                         ),
                         child: const Icon(Icons.arrow_back, size: 20),
                       ),
@@ -496,9 +500,14 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                                   height: 18,
                                   width: 18,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white),
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
                                 )
-                              : const Icon(Icons.check_circle_outline, size: 20),
+                              : const Icon(
+                                  Icons.check_circle_outline,
+                                  size: 20,
+                                ),
                           label: Text(_submitting ? 'Membuat…' : 'Buat Sesi'),
                         ),
                       ),
@@ -515,15 +524,18 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
       width: double.infinity,
       color: AppColors.errorLight,
       padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.base, vertical: AppDimensions.sm),
+        horizontal: AppDimensions.base,
+        vertical: AppDimensions.sm,
+      ),
       child: Row(
         children: [
           const Icon(Icons.error_outline, size: 16, color: AppColors.errorDark),
           const SizedBox(width: AppDimensions.sm),
           Expanded(
-            child: Text(_error!,
-                style:
-                    AppTypography.caption.copyWith(color: AppColors.errorDark)),
+            child: Text(
+              _error!,
+              style: AppTypography.caption.copyWith(color: AppColors.errorDark),
+            ),
           ),
         ],
       ),
@@ -550,34 +562,43 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     if (picked != null) _notifier.setStartTime(picked);
   }
 
-  Future<void> _pickVenue() async {
-    final picked = await showVenuePicker(context,
-        selectedId: ref.read(createSessionDraftProvider).venueId);
-    if (picked == null) return;
-    if (picked.id.startsWith('new:')) {
-      await _createVenue(picked.name);
-    } else {
-      _notifier.setVenue(id: picked.id, name: picked.name);
-    }
+  /// Edit the session title inline from the step-2 preview, so the organizer
+  /// doesn't bounce back to step 1 for a one-word change. Writes through the
+  /// same controller + notifier, so step 1 stays in sync.
+  Future<void> _editSessionTitle() async {
+    final saved = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppSurfaces.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _TitleEditorSheet(initialValue: _titleCtrl.text),
+    );
+    if (saved == null || !mounted) return;
+    setState(() => _titleCtrl.text = saved.trim());
+    _notifier.setTitle(saved.trim());
   }
 
-  /// Persist a venue typed into the picker's "buat venue" affordance — the
-  /// draft needs a real numeric id (`toCreatePayload` parses `venue_id`).
-  Future<void> _createVenue(String name) async {
-    setState(() => _creatingVenue = true);
-    try {
-      final created =
-          await ref.read(organizerRepositoryProvider).createVenue(name);
-      ref.invalidate(createSessionVenuesProvider);
+  Future<void> _pickVenue() async {
+    final picked = await showVenuePicker(
+      context,
+      selectedId: ref.read(createSessionDraftProvider).venueId,
+    );
+    if (picked == null) return;
+    if (picked.id.startsWith('new:')) {
       if (!mounted) return;
-      _notifier.setVenue(id: created.id, name: created.name);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal membuat venue "$name". Coba lagi.')),
+      // "Buat venue" → full Places search + map confirm. The sheet creates the
+      // venue and returns the persisted option (real numeric id).
+      final created = await showCreateVenueSheet(
+        context,
+        initialQuery: picked.name,
       );
-    } finally {
-      if (mounted) setState(() => _creatingVenue = false);
+      if (created == null) return;
+      ref.invalidate(createSessionVenuesProvider);
+      _notifier.setVenue(id: created.id, name: created.name);
+    } else {
+      _notifier.setVenue(id: picked.id, name: picked.name);
     }
   }
 
@@ -614,6 +635,88 @@ class _CountPill extends StatelessWidget {
         style: AppTypography.labelSmall.copyWith(
           color: AppColors.primary,
           fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom-sheet editor for the session title, opened from the step-2 preview.
+/// Owns its own controller so it's disposed with the widget (disposing it
+/// manually after the sheet closed tripped a framework `_dependents` assert).
+class _TitleEditorSheet extends StatefulWidget {
+  const _TitleEditorSheet({required this.initialValue});
+
+  final String initialValue;
+
+  @override
+  State<_TitleEditorSheet> createState() => _TitleEditorSheetState();
+}
+
+class _TitleEditorSheetState extends State<_TitleEditorSheet> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initialValue,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppDimensions.lg,
+          AppDimensions.sm,
+          AppDimensions.lg,
+          AppDimensions.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.neutral200,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppDimensions.md),
+            Text(
+              'Judul sesi',
+              style: AppTypography.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppDimensions.sm),
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              textCapitalization: TextCapitalization.sentences,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (v) => Navigator.of(context).pop(v),
+              decoration: const InputDecoration(
+                hintText: 'Mis. Latihan rutin Sabtu pagi',
+              ),
+            ),
+            const SizedBox(height: AppDimensions.lg),
+            SizedBox(
+              width: double.infinity,
+              height: AppDimensions.buttonHeightLg,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(_controller.text),
+                child: const Text('Simpan'),
+              ),
+            ),
+          ],
         ),
       ),
     );

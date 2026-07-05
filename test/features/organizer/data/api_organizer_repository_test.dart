@@ -220,10 +220,94 @@ void main() {
         data: {'name': 'Lapangan Baru'},
       );
 
-      final venue = await repo.createVenue('Lapangan Baru');
+      final venue = await repo.createVenue(name: 'Lapangan Baru');
 
       expect(venue.id, '9');
       expect(venue.name, 'Lapangan Baru');
+    });
+
+    test('POSTs the resolved place fields when present', () async {
+      dioAdapter.onPost(
+        '/v1/marketplace/organizer/venues',
+        (server) => server.reply(201, {
+          'venue': {'id': 12, 'name': 'GOR Kemang'},
+        }),
+        data: {
+          'name': 'GOR Kemang',
+          'google_place_id': 'place_123',
+          'address': 'Jl. Kemang Raya, Jakarta',
+          'lat': -6.26,
+          'lng': 106.81,
+        },
+      );
+
+      final venue = await repo.createVenue(
+        name: 'GOR Kemang',
+        googlePlaceId: 'place_123',
+        address: 'Jl. Kemang Raya, Jakarta',
+        lat: -6.26,
+        lng: 106.81,
+      );
+
+      expect(venue.id, '12');
+    });
+  });
+
+  group('places proxy', () {
+    test('autocomplete maps predictions', () async {
+      dioAdapter.onGet(
+        '/v1/marketplace/organizer/places/autocomplete',
+        (server) => server.reply(200, {
+          'data': [
+            {
+              'place_id': 'p1',
+              'main_text': 'GOR Kemang',
+              'secondary_text': 'Jakarta Selatan',
+            },
+          ],
+        }),
+        queryParameters: {'q': 'kemang', 'session_token': 'tok'},
+      );
+
+      final results = await repo.placesAutocomplete('kemang', 'tok');
+
+      expect(results, hasLength(1));
+      expect(results.first.placeId, 'p1');
+      expect(results.first.mainText, 'GOR Kemang');
+      expect(results.first.secondaryText, 'Jakarta Selatan');
+    });
+
+    test('details maps coordinates', () async {
+      dioAdapter.onGet(
+        '/v1/marketplace/organizer/places/details',
+        (server) => server.reply(200, {
+          'data': {
+            'google_place_id': 'p1',
+            'name': 'GOR Kemang',
+            'address': 'Jl. Kemang Raya',
+            'lat': -6.26,
+            'lng': 106.81,
+          },
+        }),
+        queryParameters: {'place_id': 'p1', 'session_token': 'tok'},
+      );
+
+      final details = await repo.placeDetails('p1', 'tok');
+
+      expect(details, isNotNull);
+      expect(details!.lat, -6.26);
+      expect(details.lng, 106.81);
+      expect(details.name, 'GOR Kemang');
+    });
+
+    test('details returns null on 404', () async {
+      dioAdapter.onGet(
+        '/v1/marketplace/organizer/places/details',
+        (server) => server.reply(404, {'message': 'Place not found.'}),
+        queryParameters: {'place_id': 'gone', 'session_token': 'tok'},
+      );
+
+      expect(await repo.placeDetails('gone', 'tok'), isNull);
     });
   });
 

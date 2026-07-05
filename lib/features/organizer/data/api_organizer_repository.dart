@@ -36,8 +36,9 @@ class ApiOrganizerRepository implements OrganizerRepository {
         now.difference(_dashboardCacheTime!).inSeconds < 5) {
       return _dashboardCache!;
     }
-    final response =
-        await _apiClient.get('/v1/marketplace/organizer/dashboard');
+    final response = await _apiClient.get(
+      '/v1/marketplace/organizer/dashboard',
+    );
     _dashboardCache = response.data as Map<String, dynamic>;
     _dashboardCacheTime = now;
     return _dashboardCache!;
@@ -52,8 +53,7 @@ class ApiOrganizerRepository implements OrganizerRepository {
         now.difference(_sessionsCacheTime!).inSeconds < 5) {
       return _sessionsCache!;
     }
-    final response =
-        await _apiClient.get('/v1/marketplace/organizer/sessions');
+    final response = await _apiClient.get('/v1/marketplace/organizer/sessions');
     final data = response.data;
     final List<dynamic> jsonList;
     if (data is List) {
@@ -91,7 +91,9 @@ class ApiOrganizerRepository implements OrganizerRepository {
       final match = sessions.where((s) => s.id == sessionId);
       if (match.isEmpty) {
         throw DioException(
-          requestOptions: RequestOptions(path: '/organizer/sessions/$sessionId'),
+          requestOptions: RequestOptions(
+            path: '/organizer/sessions/$sessionId',
+          ),
           message: 'Session not found',
           type: DioExceptionType.badResponse,
         );
@@ -105,8 +107,9 @@ class ApiOrganizerRepository implements OrganizerRepository {
   @override
   Future<List<SessionParticipant>> getParticipants(String sessionId) async {
     try {
-      final response = await _apiClient
-          .get('/v1/marketplace/organizer/sessions/$sessionId/participants');
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/sessions/$sessionId/participants',
+      );
       final data = response.data as Map<String, dynamic>;
       final jsonList = (data['participants'] ?? []) as List<dynamic>;
       return jsonList.map((e) {
@@ -118,16 +121,14 @@ class ApiOrganizerRepository implements OrganizerRepository {
           playerName: json['student_name'] as String? ?? '',
           bookingId: (json['booking_id'] ?? 0).toString(),
           status: _mapPaymentStatus(json['payment_status'] as String?),
-          paymentMethod:
-              _mapPaymentMethod(json['payment_method'] as String?),
+          paymentMethod: _mapPaymentMethod(json['payment_method'] as String?),
           paidAmount: (json['amount_paid'] as num?)?.toInt() ?? 0,
           paidAt: json['booked_at'] != null
               ? DateTime.tryParse(json['booked_at'] as String)
               : null,
           evidenceUrl: json['payment_proof_url'] as String?,
           joinedAt: json['booked_at'] != null
-              ? DateTime.tryParse(json['booked_at'] as String) ??
-                  DateTime.now()
+              ? DateTime.tryParse(json['booked_at'] as String) ?? DateTime.now()
               : DateTime.now(),
         );
       }).toList();
@@ -139,8 +140,9 @@ class ApiOrganizerRepository implements OrganizerRepository {
   @override
   Future<SessionParticipant> confirmParticipant(String participantId) async {
     try {
-      await _apiClient
-          .patch('/v1/marketplace/organizer/purchases/$participantId/confirm');
+      await _apiClient.patch(
+        '/v1/marketplace/organizer/purchases/$participantId/confirm',
+      );
       return SessionParticipant(
         id: participantId,
         sessionId: '',
@@ -183,10 +185,10 @@ class ApiOrganizerRepository implements OrganizerRepository {
 
   static SessionParticipantStatus _mapPaymentStatus(String? status) {
     return switch (status) {
-      'pending_payment' || 'pending_confirmation' =>
-        SessionParticipantStatus.pendingPayment,
-      'confirmed_transfer' || 'confirmed_credit' =>
-        SessionParticipantStatus.confirmed,
+      'pending_payment' ||
+      'pending_confirmation' => SessionParticipantStatus.pendingPayment,
+      'confirmed_transfer' ||
+      'confirmed_credit' => SessionParticipantStatus.confirmed,
       'rejected' => SessionParticipantStatus.rejected,
       _ => SessionParticipantStatus.pendingPayment,
     };
@@ -228,12 +230,23 @@ class ApiOrganizerRepository implements OrganizerRepository {
 
   // ── Create-session flow (organizer-scoped endpoints) ────────────────
 
-  List<dynamic> _unwrapList(dynamic data, String key) {
+  List<dynamic> _unwrapList(dynamic data, [String key = 'data']) {
     if (data is List) return data;
     if (data is Map<String, dynamic>) {
       return (data['data'] ?? data[key] ?? []) as List<dynamic>;
     }
     return [];
+  }
+
+  /// Strip a JSON envelope down to its object payload. Mirrors [_unwrapList]:
+  /// tries [key] (when given), then a `data` wrapper, then the raw map.
+  Map<String, dynamic> _unwrapMap(dynamic data, [String? key]) {
+    if (data is Map<String, dynamic>) {
+      final unwrapped =
+          (key != null ? data[key] : null) ?? data['data'] ?? data;
+      if (unwrapped is Map<String, dynamic>) return unwrapped;
+    }
+    return const <String, dynamic>{};
   }
 
   @override
@@ -274,15 +287,15 @@ class ApiOrganizerRepository implements OrganizerRepository {
         '/v1/marketplace/organizer/coaches',
         queryParameters: {'status': 'active'},
       );
-      return _unwrapList(response.data, 'coaches')
-          .whereType<Map<String, dynamic>>()
-          .map((json) {
+      return _unwrapList(
+        response.data,
+        'coaches',
+      ).whereType<Map<String, dynamic>>().map((json) {
         final user = json['user'];
         return CoachOption(
           id: (json['id'] as num).toInt(),
-          name: (user is Map<String, dynamic>
-                  ? user['name'] as String?
-                  : null) ??
+          name:
+              (user is Map<String, dynamic> ? user['name'] as String? : null) ??
               json['name'] as String? ??
               'Coach',
           ratePerSession: _rateOf(json['current_rate']),
@@ -307,15 +320,16 @@ class ApiOrganizerRepository implements OrganizerRepository {
   @override
   Future<List<VenueOption>> getVenues() async {
     try {
-      final response =
-          await _apiClient.get('/v1/marketplace/organizer/venues');
+      final response = await _apiClient.get('/v1/marketplace/organizer/venues');
       return _unwrapList(response.data, 'venues')
           .whereType<Map<String, dynamic>>()
-          .map((json) => VenueOption(
-                id: json['id'].toString(),
-                name: json['name'] as String? ?? '',
-                city: json['city'] as String?,
-              ))
+          .map(
+            (json) => VenueOption(
+              id: json['id'].toString(),
+              name: json['name'] as String? ?? '',
+              city: json['city'] as String?,
+            ),
+          )
           .toList();
     } on DioException catch (e) {
       rethrowDio(e);
@@ -323,16 +337,78 @@ class ApiOrganizerRepository implements OrganizerRepository {
   }
 
   @override
-  Future<VenueOption> createVenue(String name) async {
+  Future<List<PlacePrediction>> placesAutocomplete(
+    String query,
+    String sessionToken,
+  ) async {
+    try {
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/places/autocomplete',
+        queryParameters: {'q': query, 'session_token': sessionToken},
+      );
+      return _unwrapList(response.data)
+          .whereType<Map<String, dynamic>>()
+          .map(
+            (j) => PlacePrediction(
+              placeId: j['place_id'] as String? ?? '',
+              mainText:
+                  (j['main_text'] as String?) ??
+                  (j['description'] as String? ?? ''),
+              secondaryText: j['secondary_text'] as String?,
+            ),
+          )
+          .where((p) => p.placeId.isNotEmpty)
+          .toList();
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  @override
+  Future<PlaceDetails?> placeDetails(
+    String placeId,
+    String sessionToken,
+  ) async {
+    try {
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/places/details',
+        queryParameters: {'place_id': placeId, 'session_token': sessionToken},
+      );
+      final json = _unwrapMap(response.data);
+      if (json.isEmpty) return null;
+      return PlaceDetails(
+        googlePlaceId: json['google_place_id'] as String? ?? placeId,
+        name: json['name'] as String? ?? '',
+        address: json['address'] as String?,
+        lat: (json['lat'] as num?)?.toDouble(),
+        lng: (json['lng'] as num?)?.toDouble(),
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      rethrowDio(e);
+    }
+  }
+
+  @override
+  Future<VenueOption> createVenue({
+    required String name,
+    String? googlePlaceId,
+    String? address,
+    double? lat,
+    double? lng,
+  }) async {
     try {
       final response = await _apiClient.post(
         '/v1/marketplace/organizer/venues',
-        data: {'name': name},
+        data: {
+          'name': name,
+          'google_place_id': ?googlePlaceId,
+          'address': ?address,
+          'lat': ?lat,
+          'lng': ?lng,
+        },
       );
-      final data = response.data;
-      final json = data is Map<String, dynamic>
-          ? (data['venue'] ?? data['data'] ?? data) as Map<String, dynamic>
-          : const <String, dynamic>{};
+      final json = _unwrapMap(response.data, 'venue');
       return VenueOption(
         id: json['id'].toString(),
         name: json['name'] as String? ?? name,
@@ -346,16 +422,19 @@ class ApiOrganizerRepository implements OrganizerRepository {
   @override
   Future<List<RecentSessionOption>> getRecentSessions() async {
     try {
-      final response =
-          await _apiClient.get('/v1/marketplace/organizer/sessions/recent');
-      return _unwrapList(response.data, 'sessions')
-          .whereType<Map<String, dynamic>>()
-          .map((json) {
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/sessions/recent',
+      );
+      return _unwrapList(
+        response.data,
+        'sessions',
+      ).whereType<Map<String, dynamic>>().map((json) {
         final startAt = DateTime.parse(json['start_at'] as String);
         return RecentSessionOption(
           id: json['id'].toString(),
           startAt: startAt,
-          type: SessionType.values.asNameMap()[json['type'] as String?] ??
+          type:
+              SessionType.values.asNameMap()[json['type'] as String?] ??
               SessionType.group,
           coachName: json['primary_coach_name'] as String?,
           venueName: json['venue_name'] as String?,
@@ -384,7 +463,8 @@ class ApiOrganizerRepository implements OrganizerRepository {
         coachIds: ((json['coach_ids'] as List?) ?? const [])
             .map((e) => (e as num).toInt())
             .toList(),
-        type: SessionType.values.asNameMap()[json['type'] as String?] ??
+        type:
+            SessionType.values.asNameMap()[json['type'] as String?] ??
             SessionType.group,
         startTime: json['start_time'] as String?,
         durationMinutes: (json['duration_minutes'] as num?)?.toInt() ?? 60,
@@ -392,7 +472,8 @@ class ApiOrganizerRepository implements OrganizerRepository {
         venueId: json['venue_id']?.toString(),
         // BE nests the venue as `venue: {id, name, location}` — read the name
         // from there (falling back to a flat `venue_name` for safety).
-        venueName: (json['venue'] as Map<String, dynamic>?)?['name'] as String? ??
+        venueName:
+            (json['venue'] as Map<String, dynamic>?)?['name'] as String? ??
             json['venue_name'] as String?,
         price: (json['price'] as num?)?.toInt(),
         notes: json['notes'] as String?,
@@ -433,19 +514,23 @@ class ApiOrganizerRepository implements OrganizerRepository {
   Future<OpenSession> updateSession(
     String sessionId,
     CreateSessionDraft draft,
-  ) =>
-      throw UnimplementedError('updateSession: backend endpoint not yet available');
+  ) => throw UnimplementedError(
+    'updateSession: backend endpoint not yet available',
+  );
 
   @override
   Future<OpenSession> duplicateSession(
     String sessionId, {
     required DateTime newDate,
-  }) =>
-      throw UnimplementedError('duplicateSession: backend endpoint not yet available');
+  }) => throw UnimplementedError(
+    'duplicateSession: backend endpoint not yet available',
+  );
 
   @override
   Future<OpenSession> createFromTemplate(String templateId, DateTime date) =>
-      throw UnimplementedError('createFromTemplate: backend endpoint not yet available');
+      throw UnimplementedError(
+        'createFromTemplate: backend endpoint not yet available',
+      );
 
   @override
   Future<OpenSession> rescheduleSession(
@@ -453,37 +538,45 @@ class ApiOrganizerRepository implements OrganizerRepository {
     required DateTime newDate,
     required String newStartTime,
     required String newEndTime,
-  }) =>
-      throw UnimplementedError('rescheduleSession: backend endpoint not yet available');
+  }) => throw UnimplementedError(
+    'rescheduleSession: backend endpoint not yet available',
+  );
 
   @override
   Future<OpenSession> cancelSession(
     String sessionId, {
     required String reason,
-  }) =>
-      throw UnimplementedError('cancelSession: backend endpoint not yet available');
+  }) => throw UnimplementedError(
+    'cancelSession: backend endpoint not yet available',
+  );
 
   @override
   Future<OpenSession> completeSession(String sessionId) =>
-      throw UnimplementedError('completeSession: backend endpoint not yet available');
+      throw UnimplementedError(
+        'completeSession: backend endpoint not yet available',
+      );
 
   @override
   Future<SessionParticipant> markNoShow(String participantId) =>
-      throw UnimplementedError('markNoShow: backend endpoint not yet available');
+      throw UnimplementedError(
+        'markNoShow: backend endpoint not yet available',
+      );
 
   @override
   Future<SessionParticipant> requestRefund(
     String participantId, {
     required String reason,
-  }) =>
-      throw UnimplementedError('requestRefund: backend endpoint not yet available');
+  }) => throw UnimplementedError(
+    'requestRefund: backend endpoint not yet available',
+  );
 
   @override
   Future<SessionParticipant> resolveDispute(
     String participantId, {
     required String resolution,
-  }) =>
-      throw UnimplementedError('resolveDispute: backend endpoint not yet available');
+  }) => throw UnimplementedError(
+    'resolveDispute: backend endpoint not yet available',
+  );
 
   @override
   Future<void> setAttendance(String bookingId, String status) async {
@@ -506,8 +599,7 @@ class ApiOrganizerRepository implements OrganizerRepository {
       final data = await _fetchDashboardData();
       final jsonList = (data['action_items'] ?? []) as List<dynamic>;
       var items = jsonList
-          .map((e) =>
-              OrganizerActionItem.fromJson(e as Map<String, dynamic>))
+          .map((e) => OrganizerActionItem.fromJson(e as Map<String, dynamic>))
           .toList();
       if (type != null) {
         items = items.where((i) => i.type == type).toList();
@@ -527,25 +619,25 @@ class ApiOrganizerRepository implements OrganizerRepository {
     required String templateCode,
     String? customMessage,
     bool pendingOnly = false,
-  }) =>
-      throw UnimplementedError('sendParticipantMessage: backend endpoint not yet available');
+  }) => throw UnimplementedError(
+    'sendParticipantMessage: backend endpoint not yet available',
+  );
 
   @override
   Future<OrganizerEarningsSummary> getEarningsSummary() async {
     try {
-      final response =
-          await _apiClient.get('/v1/marketplace/organizer/earnings');
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/earnings',
+      );
       final data = response.data as Map<String, dynamic>;
       // Parse settlements manually since backend uses string dates
-      final settlementsJson =
-          (data['settlements'] ?? []) as List<dynamic>;
+      final settlementsJson = (data['settlements'] ?? []) as List<dynamic>;
       final settlements = settlementsJson.map((e) {
         final s = e as Map<String, dynamic>;
         return OrganizerSessionSettlement(
           sessionId: s['session_id'] as String? ?? '',
           title: s['title'] as String? ?? '',
-          date: DateTime.tryParse(s['date'] as String? ?? '') ??
-              DateTime.now(),
+          date: DateTime.tryParse(s['date'] as String? ?? '') ?? DateTime.now(),
           grossRevenue: (s['gross_revenue'] as num?)?.toInt() ?? 0,
           organizerFee: (s['organizer_fee'] as num?)?.toInt() ?? 0,
           estimatedCost: (s['estimated_cost'] as num?)?.toInt() ?? 0,
@@ -559,8 +651,7 @@ class ApiOrganizerRepository implements OrganizerRepository {
       return OrganizerEarningsSummary(
         availableBalance: (data['available_balance'] as num?)?.toInt() ?? 0,
         pendingBalance: (data['pending_balance'] as num?)?.toInt() ?? 0,
-        paidOutThisMonth:
-            (data['paid_out_this_month'] as num?)?.toInt() ?? 0,
+        paidOutThisMonth: (data['paid_out_this_month'] as num?)?.toInt() ?? 0,
         settlements: settlements,
         pendingPlayerBalance:
             (data['pending_player_balance'] as num?)?.toInt() ?? 0,
@@ -579,10 +670,12 @@ class ApiOrganizerRepository implements OrganizerRepository {
   @override
   Future<SessionFinancial> getSessionFinancial(String sessionId) async {
     try {
-      final response = await _apiClient
-          .get('/v1/marketplace/organizer/sessions/$sessionId/financial');
-      final data = (response.data as Map<String, dynamic>)['data']
-          as Map<String, dynamic>;
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/sessions/$sessionId/financial',
+      );
+      final data =
+          (response.data as Map<String, dynamic>)['data']
+              as Map<String, dynamic>;
       return SessionFinancial.fromJson(data);
     } on DioException catch (e) {
       rethrowDio(e);
@@ -599,17 +692,22 @@ class ApiOrganizerRepository implements OrganizerRepository {
 
   @override
   Future<OrganizerSessionSettlement> getSessionSettlement(String sessionId) =>
-      throw UnimplementedError('getSessionSettlement: backend endpoint not yet available');
+      throw UnimplementedError(
+        'getSessionSettlement: backend endpoint not yet available',
+      );
 
   @override
-  Future<ClubProfile> getClubProfile() =>
-      throw UnimplementedError('getClubProfile: backend endpoint not yet available');
+  Future<ClubProfile> getClubProfile() => throw UnimplementedError(
+    'getClubProfile: backend endpoint not yet available',
+  );
 
   @override
-  Future<List<ClubMember>> getClubMembers() =>
-      throw UnimplementedError('getClubMembers: backend endpoint not yet available');
+  Future<List<ClubMember>> getClubMembers() => throw UnimplementedError(
+    'getClubMembers: backend endpoint not yet available',
+  );
 
   @override
-  Future<Map<String, String>> getSessionTemplates() =>
-      throw UnimplementedError('getSessionTemplates: backend endpoint not yet available');
+  Future<Map<String, String>> getSessionTemplates() => throw UnimplementedError(
+    'getSessionTemplates: backend endpoint not yet available',
+  );
 }

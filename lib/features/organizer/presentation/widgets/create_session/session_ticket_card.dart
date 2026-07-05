@@ -19,12 +19,16 @@ class SessionTicketCard extends StatelessWidget {
     required this.whenLine,
     required this.capacityText,
     required this.priceText,
+    this.onEditTitle,
   });
 
   final SessionType type;
 
   /// null/empty → shows a placeholder title.
   final String? title;
+
+  /// Tapped to edit the title inline from the preview; null → read-only title.
+  final VoidCallback? onEditTitle;
 
   /// null → schedule not set yet.
   final String? whenLine;
@@ -33,6 +37,72 @@ class SessionTicketCard extends StatelessWidget {
 
   static const double _footerH = 58;
 
+  Widget _buildTitle(bool hasTitle) {
+    // Read-only fallback where no edit affordance is wired.
+    if (onEditTitle == null) {
+      return Text(
+        hasTitle ? title!.trim() : 'Sesi tanpa judul',
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: AppTypography.headingSmall.copyWith(
+          color: hasTitle ? AppColors.textPrimary : AppColors.textTertiary,
+          fontWeight: FontWeight.w700,
+        ),
+      );
+    }
+    // Empty → an invitation to name the session (title is optional, so this
+    // nudges without nagging).
+    if (!hasTitle) {
+      return GestureDetector(
+        onTap: onEditTitle,
+        behavior: HitTestBehavior.opaque,
+        child: Row(
+          children: [
+            const Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
+            const SizedBox(width: 6),
+            Text(
+              'Tambah judul sesi',
+              style: AppTypography.headingSmall.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    // Filled → title + a pencil to edit without leaving this step.
+    return GestureDetector(
+      onTap: onEditTitle,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(
+              title!.trim(),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.headingSmall.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Icon(
+              Icons.edit_outlined,
+              size: 18,
+              color: AppColors.neutral500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasTitle = title != null && title!.trim().isNotEmpty;
@@ -40,7 +110,10 @@ class SessionTicketCard extends StatelessWidget {
     return ClipPath(
       clipper: const _TicketClipper(footerH: _footerH, notchRadius: 9),
       child: Container(
-        decoration: BoxDecoration(color: AppSurfaces.surface, boxShadow: AppShadows.md),
+        decoration: BoxDecoration(
+          color: AppSurfaces.surface,
+          boxShadow: AppShadows.md,
+        ),
         child: Stack(
           children: [
             Column(
@@ -49,8 +122,12 @@ class SessionTicketCard extends StatelessWidget {
               children: [
                 // ── Stub head: eyebrow, type badge, title, schedule ──
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(AppDimensions.base,
-                      AppDimensions.base, AppDimensions.base, AppDimensions.md),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimensions.base,
+                    AppDimensions.base,
+                    AppDimensions.base,
+                    AppDimensions.md,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -69,17 +146,7 @@ class SessionTicketCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: AppDimensions.md),
-                      Text(
-                        hasTitle ? title!.trim() : 'Sesi tanpa judul',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.headingSmall.copyWith(
-                          color: hasTitle
-                              ? AppColors.textPrimary
-                              : AppColors.textTertiary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      _buildTitle(hasTitle),
                       const SizedBox(height: AppDimensions.sm),
                       Row(
                         children: [
@@ -104,7 +171,7 @@ class SessionTicketCard extends StatelessWidget {
                                     ? FontWeight.w600
                                     : FontWeight.w400,
                                 fontFeatures: const [
-                                  FontFeature.tabularFigures()
+                                  FontFeature.tabularFigures(),
                                 ],
                               ),
                             ),
@@ -118,8 +185,12 @@ class SessionTicketCard extends StatelessWidget {
                 SizedBox(
                   height: _footerH,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppDimensions.base, 0,
-                        AppDimensions.base, 0),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppDimensions.base,
+                      0,
+                      AppDimensions.base,
+                      0,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -207,8 +278,9 @@ class _FootStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
@@ -275,16 +347,21 @@ class _TicketClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final body = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        Offset.zero & size,
-        const Radius.circular(AppDimensions.radiusLg),
-      ));
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Offset.zero & size,
+          const Radius.circular(AppDimensions.radiusLg),
+        ),
+      );
     final notchY = size.height - footerH;
     final notches = Path()
-      ..addOval(Rect.fromCircle(
-          center: Offset(0, notchY), radius: notchRadius))
-      ..addOval(Rect.fromCircle(
-          center: Offset(size.width, notchY), radius: notchRadius));
+      ..addOval(Rect.fromCircle(center: Offset(0, notchY), radius: notchRadius))
+      ..addOval(
+        Rect.fromCircle(
+          center: Offset(size.width, notchY),
+          radius: notchRadius,
+        ),
+      );
     return Path.combine(PathOperation.difference, body, notches);
   }
 

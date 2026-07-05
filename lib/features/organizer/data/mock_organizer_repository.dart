@@ -220,7 +220,42 @@ class MockOrganizerRepository implements OrganizerRepository {
   }
 
   @override
-  Future<VenueOption> createVenue(String name) async {
+  Future<List<PlacePrediction>> placesAutocomplete(
+      String query, String sessionToken) async {
+    await Future.delayed(_delay);
+    // Offline/demo repo has no Google Places — surface a single echo row so
+    // the create-venue flow is still exercisable without a network.
+    if (query.trim().isEmpty) return [];
+    return [
+      PlacePrediction(
+        placeId: 'mock:$query',
+        mainText: query,
+        secondaryText: 'Contoh lokasi (mock)',
+      ),
+    ];
+  }
+
+  @override
+  Future<PlaceDetails?> placeDetails(String placeId, String sessionToken) async {
+    await Future.delayed(_delay);
+    final name = placeId.startsWith('mock:') ? placeId.substring(5) : 'Venue';
+    return PlaceDetails(
+      googlePlaceId: placeId,
+      name: name,
+      address: 'Jakarta, Indonesia',
+      lat: -6.2088,
+      lng: 106.8456,
+    );
+  }
+
+  @override
+  Future<VenueOption> createVenue({
+    required String name,
+    String? googlePlaceId,
+    String? address,
+    double? lat,
+    double? lng,
+  }) async {
     await Future.delayed(_delay);
     // Numeric id so `toCreatePayload`'s int.tryParse keeps working.
     final venue = VenueOption(id: '${900 + _createdVenues.length}', name: name);

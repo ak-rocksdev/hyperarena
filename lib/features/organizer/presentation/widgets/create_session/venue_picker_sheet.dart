@@ -44,7 +44,9 @@ class _VenuePickerSheetState extends ConsumerState<_VenuePickerSheet> {
   Widget build(BuildContext context) {
     final venuesAsync = ref.watch(createSessionVenuesProvider);
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: DraggableScrollableSheet(
         expand: false,
         initialChildSize: 0.7,
@@ -61,13 +63,20 @@ class _VenuePickerSheetState extends ConsumerState<_VenuePickerSheet> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppDimensions.lg,
-                  AppDimensions.md, AppDimensions.lg, AppDimensions.sm),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.lg,
+                AppDimensions.md,
+                AppDimensions.lg,
+                AppDimensions.sm,
+              ),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Pilih venue',
-                    style: AppTypography.titleMedium
-                        .copyWith(fontWeight: FontWeight.w700)),
+                child: Text(
+                  'Pilih venue',
+                  style: AppTypography.titleMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
             Padding(
@@ -77,7 +86,7 @@ class _VenuePickerSheetState extends ConsumerState<_VenuePickerSheet> {
                 decoration: const InputDecoration(
                   isDense: true,
                   prefixIcon: Icon(Icons.search, size: 20),
-                  hintText: 'Cari atau ketik venue baru…',
+                  hintText: 'Cari venue tersimpan atau tempat baru…',
                 ),
               ),
             ),
@@ -106,13 +115,16 @@ class _VenuePickerSheetState extends ConsumerState<_VenuePickerSheet> {
     final filtered = venues
         .where((v) => v.name.toLowerCase().contains(q.toLowerCase()))
         .toList();
-    final showCreate = q.isNotEmpty &&
+    final showCreate =
+        q.isNotEmpty &&
         !venues.any((v) => v.name.toLowerCase() == q.toLowerCase());
 
     if (venues.isEmpty && q.isEmpty) {
       return const EmptyState(
         icon: Icons.place_outlined,
-        message: 'Belum ada venue.\nKetik nama di atas untuk membuat baru.',
+        message:
+            'Belum ada venue tersimpan.\n'
+            'Ketik nama tempat untuk cari di Google Maps.',
       );
     }
     return ListView(
@@ -120,23 +132,38 @@ class _VenuePickerSheetState extends ConsumerState<_VenuePickerSheet> {
       children: [
         if (showCreate)
           ListTile(
-            leading: const Icon(Icons.add_location_alt_outlined,
-                color: AppColors.primary),
-            title: Text('Buat venue "$q"',
-                style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.primary900)),
-            onTap: () => Navigator.of(context).pop(
-              VenueOption(id: 'new:$q', name: q),
+            leading: const Icon(Icons.travel_explore, color: AppColors.primary),
+            title: Text(
+              'Cari "$q" di Google Maps',
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.primary900,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+            subtitle: Text(
+              'Pilih lokasi di peta, lalu simpan jadi venue',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.neutral500,
+              ),
+            ),
+            trailing: const Icon(
+              Icons.chevron_right,
+              color: AppColors.neutral500,
+            ),
+            onTap: () =>
+                Navigator.of(context).pop(VenueOption(id: 'new:$q', name: q)),
           ),
         for (final v in filtered)
           ListTile(
             leading: const Icon(Icons.place_outlined),
             title: Text(v.name, style: AppTypography.bodyMedium),
             subtitle: v.city != null
-                ? Text(v.city!,
-                    style: AppTypography.caption
-                        .copyWith(color: AppColors.neutral500))
+                ? Text(
+                    v.city!,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.neutral500,
+                    ),
+                  )
                 : null,
             trailing: v.id == widget.selectedId
                 ? const Icon(Icons.check, color: AppColors.primary)

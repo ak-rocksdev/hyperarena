@@ -29,10 +29,25 @@ abstract class OrganizerRepository {
   /// Active venues selectable for a session.
   Future<List<VenueOption>> getVenues();
 
-  /// Create a new venue from the picker's "buat venue baru" affordance.
-  /// Returns the persisted option (real numeric id) so it can be selected
-  /// immediately — `toCreatePayload` needs a parseable `venue_id`.
-  Future<VenueOption> createVenue(String name);
+  /// Google Places autocomplete for the create-venue search (via BE proxy).
+  /// [sessionToken] groups keystrokes + the details call into one billable
+  /// Places session.
+  Future<List<PlacePrediction>> placesAutocomplete(
+      String query, String sessionToken);
+
+  /// Resolve a prediction's place_id to coordinates + address (via BE proxy).
+  Future<PlaceDetails?> placeDetails(String placeId, String sessionToken);
+
+  /// Create a new venue. Returns the persisted option (real numeric id) so it
+  /// can be selected immediately — `toCreatePayload` needs a parseable
+  /// `venue_id`. Place fields are optional (a venue can be name-only).
+  Future<VenueOption> createVenue({
+    required String name,
+    String? googlePlaceId,
+    String? address,
+    double? lat,
+    double? lng,
+  });
 
   /// Recent sessions offered by the "duplicate" accelerator.
   Future<List<RecentSessionOption>> getRecentSessions();

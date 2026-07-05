@@ -270,8 +270,10 @@ class ApiOrganizerRepository implements OrganizerRepository {
   @override
   Future<List<CoachOption>> getCoaches() async {
     try {
-      final response =
-          await _apiClient.get('/v1/marketplace/organizer/coaches');
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/coaches',
+        queryParameters: {'status': 'active'},
+      );
       return _unwrapList(response.data, 'coaches')
           .whereType<Map<String, dynamic>>()
           .map((json) {

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/widgets/async_value_widget.dart';
 import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session_fab.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/organizer_session_card.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
-import 'package:hyperarena/routing/app_routes.dart';
 
 class OrganizerSessionListScreen extends ConsumerStatefulWidget {
   const OrganizerSessionListScreen({super.key});
@@ -42,11 +41,8 @@ class _OrganizerSessionListScreenState
 
     return Scaffold(
       appBar: AppBar(title: const Text('Sesi Saya')),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: const CreateSessionFab(
         heroTag: 'sessionListCreateSession',
-        onPressed: () => context.push(AppRoutes.organizerCreateSession),
-        icon: const Icon(Icons.add),
-        label: const Text('Buat Sesi'),
       ),
       body: Column(
         children: [

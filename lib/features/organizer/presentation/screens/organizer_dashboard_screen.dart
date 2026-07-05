@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session_fab.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/dashboard_action_list.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/day_timeline.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/organizer_hero_band.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/today_activity_strip.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
-import 'package:hyperarena/routing/app_routes.dart';
 
 /// Organizer dashboard v2 — redesigned per
 /// `docs/PRD-organizer-ui-improvement.md` (Direction B "Brand teal").
@@ -73,15 +72,8 @@ class OrganizerDashboardScreen extends ConsumerWidget {
         // Edge-to-edge: hero band extends behind the status bar; the FAB
         // floats over the scrolling content.
         extendBodyBehindAppBar: true,
-        floatingActionButton: FloatingActionButton.extended(
+        floatingActionButton: const CreateSessionFab(
           heroTag: 'dashboardCreateSession',
-          onPressed: () => context.push(AppRoutes.organizerCreateSession),
-          icon: const Icon(Icons.add),
-          label: const Text('Buat Sesi'),
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 6,
-          shape: const StadiumBorder(),
         ),
         body: RefreshIndicator(
           onRefresh: refreshAll,

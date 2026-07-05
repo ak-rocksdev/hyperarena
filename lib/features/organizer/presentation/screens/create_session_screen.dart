@@ -1,23 +1,31 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hyperarena/core/mocks/mock_data.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
-import 'package:hyperarena/core/theme/app_shadows.dart';
-import 'package:hyperarena/core/theme/app_surfaces.dart';
-import 'package:hyperarena/core/theme/app_theme_extensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
-import 'package:hyperarena/core/widgets/async_value_widget.dart';
-import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/organizer/data/models/create_session_draft.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/capacity_selector.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/coach_picker_sheet.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/duplicate_picker.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/duration_pills.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/payment_guard_sheet.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/post_create_photo_prompt.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_type_cards.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/venue_picker_sheet.dart';
 import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
-import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/routing/app_routes.dart';
+import 'package:image_picker/image_picker.dart';
 
+/// Two-step create-session flow aligned to the backend `StoreSessionRequest`
+/// contract. Step 1 = Detail (type, title, coaches); Step 2 = Jadwal & Rincian.
 class CreateSessionScreen extends ConsumerStatefulWidget {
   const CreateSessionScreen({super.key});
 
@@ -28,840 +36,494 @@ class CreateSessionScreen extends ConsumerStatefulWidget {
 
 class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   int _step = 0;
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _priceController = TextEditingController(text: '100000');
+  bool _submitting = false;
+  String? _error;
+  String? _appliedDuplicateLabel;
 
-  Sport _sport = Sport.tennis;
-  String? _venueId;
-  DateTime _date = DateTime.now().add(const Duration(days: 1));
-  String _start = '19:00';
-  String _end = '21:00';
-  SessionPricingModel _pricingModel = SessionPricingModel.margin;
-  SessionVisibility _visibility = SessionVisibility.free;
-  String? _templateId;
-  int _minPlayers = 2;
-  int _maxPlayers = 8;
-  LevelTier? _minLevel;
-  LevelTier? _maxLevel;
-
-  late final TextEditingController _startController;
-  late final TextEditingController _endController;
+  final _titleCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+  final _priceCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _startController = TextEditingController(text: _start);
-    _endController = TextEditingController(text: _end);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPaymentGuard());
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _priceController.dispose();
-    _startController.dispose();
-    _endController.dispose();
+    _titleCtrl.dispose();
+    _notesCtrl.dispose();
+    _priceCtrl.dispose();
     super.dispose();
   }
 
-  void _syncDraft() {
-    final draft = ref.read(createSessionDraftProvider.notifier);
-    draft.setTitle(_titleController.text.trim());
-    draft.setDescription(_descriptionController.text.trim());
-    draft.setSport(_sport);
-    draft.setVenue(
-      id: _venueId ?? MockData.venues.first.id,
-      name: MockData.venues
-          .firstWhere((v) => v.id == (_venueId ?? MockData.venues.first.id))
-          .name,
-    );
-    draft.setDate(_date);
-    draft.setTimeRange(_start, _end);
-    draft.setPrice(int.tryParse(_priceController.text) ?? 0);
-    draft.setParticipants(min: _minPlayers, max: _maxPlayers);
-    draft.setJoinDeadline(_date.subtract(const Duration(hours: 6)));
-    draft.setPricingModel(_pricingModel);
-    draft.setVisibility(_visibility);
-    draft.setLevelRange(_minLevel, _maxLevel);
-    draft.setTemplate(_templateId);
-  }
+  CreateSessionDraftNotifier get _notifier =>
+      ref.read(createSessionDraftProvider.notifier);
 
-  Future<void> _publish() async {
-    _syncDraft();
-    final notifier = ref.read(createSessionDraftProvider.notifier);
-    final created = _templateId != null
-        ? await notifier.createFromTemplate(_templateId!, date: _date)
-        : await notifier.submit();
-    notifier.reset();
+  Future<void> _checkPaymentGuard() async {
+    final ready =
+        await ref.read(organizerRepositoryProvider).isPayoutConfigured();
+    if (!mounted || ready) return;
+    final goSettings = await showPaymentGuard(context);
     if (!mounted) return;
-    context.pushReplacement(AppRoutes.organizerSessionDetail(created.id));
+    context.pop();
+    if (goSettings) context.push(AppRoutes.organizerProfile);
   }
 
-  String _levelLabel(LevelTier tier) => switch (tier) {
-        LevelTier.rookie => 'Rookie',
-        LevelTier.amateur => 'Amateur',
-        LevelTier.intermediate => 'Intermediate',
-        LevelTier.advanced => 'Advanced',
-        LevelTier.pro => 'Pro',
-      };
-
-  String _pricingModelLabel(SessionPricingModel model) => switch (model) {
-        SessionPricingModel.margin => 'Margin',
-        SessionPricingModel.transparent => 'Transparan',
-      };
-
-  // ── Step builders ──────────────────────────────────────────────────
-
-  Widget _buildStep1InfoDasar() {
-    final sportTheme = Theme.of(context).extension<SportThemeExtension>();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Title
-        TextField(
-          controller: _titleController,
-          decoration: InputDecoration(
-            labelText: 'Judul Sesi',
-            hintText: 'Contoh: Friendly Match Futsal Malam',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Sport selector
-        Text('Cabang Olahraga', style: AppTypography.titleSmall),
-        const SizedBox(height: AppDimensions.sm),
-        SizedBox(
-          height: AppDimensions.chipHeight + AppDimensions.sm,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: Sport.values.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(width: AppDimensions.sm),
-            itemBuilder: (context, index) {
-              final sport = Sport.values[index];
-              final isSelected = _sport == sport;
-              final sportColor = sportTheme?.color(sport) ?? AppColors.primary;
-              final sportBg =
-                  sportTheme?.backgroundColor(sport) ?? AppColors.primary50;
-
-              return FilterChip(
-                selected: isSelected,
-                label: Text(SportChipSelector.sportLabel(sport)),
-                avatar: Icon(
-                  SportChipSelector.sportIcon(sport),
-                  size: 18,
-                  color: isSelected ? sportColor : AppColors.neutral400,
-                ),
-                selectedColor: sportBg,
-                checkmarkColor: sportColor,
-                side: isSelected
-                    ? BorderSide(color: sportColor, width: 1.5)
-                    : const BorderSide(color: AppColors.neutral200),
-                onSelected: (_) => setState(() => _sport = sport),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Description
-        TextField(
-          controller: _descriptionController,
-          maxLines: 3,
-          decoration: InputDecoration(
-            labelText: 'Deskripsi',
-            hintText: 'Opsional — deskripsi singkat sesi',
-            alignLabelWithHint: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Visibility selector
-        Text('Visibilitas', style: AppTypography.titleSmall),
-        const SizedBox(height: AppDimensions.sm),
-        SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<SessionVisibility>(
-            segments: const [
-              ButtonSegment(
-                value: SessionVisibility.free,
-                label: Text('Terbuka'),
-                icon: Icon(Icons.public, size: 18),
-              ),
-              ButtonSegment(
-                value: SessionVisibility.invitationOnly,
-                label: Text('Undangan'),
-                icon: Icon(Icons.mail_outline, size: 18),
-              ),
-              ButtonSegment(
-                value: SessionVisibility.membersOnly,
-                label: Text('Member'),
-                icon: Icon(Icons.lock_outline, size: 18),
-              ),
-            ],
-            selected: {_visibility},
-            onSelectionChanged: (selected) {
-              setState(() => _visibility = selected.first);
-            },
-          ),
-        ),
-      ],
-    );
+  Future<void> _onDuplicatePicked(String sessionId) async {
+    final repo = ref.read(organizerRepositoryProvider);
+    final payload = await repo.getDuplicatePayload(sessionId);
+    if (!mounted) return;
+    _notifier.applyDuplicate(payload);
+    final currency = ref.read(tenantCurrencyProvider);
+    _titleCtrl.text = payload.title ?? '';
+    _notesCtrl.text = payload.notes ?? '';
+    _priceCtrl.text = payload.price != null
+        ? Formatters.fromMinorUnits(payload.price!, currency).toString()
+        : '';
+    final recent = ref.read(createSessionRecentProvider).valueOrNull ?? [];
+    final match = recent.where((r) => r.id == sessionId).firstOrNull;
+    setState(() => _appliedDuplicateLabel = match != null
+        ? Formatters.formatDateTimeCompact(match.startAt)
+        : 'sesi lain');
   }
 
-  Widget _buildStep2JadwalLokasi() {
-    final selectedVenueId = _venueId ?? MockData.venues.first.id;
-    final joinDeadline = _date.subtract(const Duration(hours: 6));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Venue dropdown
-        DropdownButtonFormField<String>(
-          initialValue: selectedVenueId,
-          isExpanded: true,
-          items: MockData.venues
-              .map(
-                (venue) => DropdownMenuItem(
-                  value: venue.id,
-                  child: Text(
-                    venue.name,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: (value) => setState(() => _venueId = value),
-          decoration: InputDecoration(
-            labelText: 'Venue',
-            prefixIcon: const Icon(Icons.location_on_outlined),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Date picker
-        Container(
-          decoration: BoxDecoration(
-            color: AppSurfaces.surface,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            boxShadow: AppShadows.xs,
-            border: Border.all(color: AppColors.neutral200),
-          ),
-          child: ListTile(
-            leading: Container(
-              padding: const EdgeInsets.all(AppDimensions.sm),
-              decoration: BoxDecoration(
-                color: AppColors.primary50,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-              ),
-              child: const Icon(
-                Icons.calendar_today_outlined,
-                color: AppColors.primary,
-                size: 20,
-              ),
-            ),
-            title: Text('Tanggal', style: AppTypography.caption),
-            subtitle: Text(
-              Formatters.formatDate(_date),
-              style: AppTypography.titleSmall,
-            ),
-            trailing: const Icon(
-              Icons.chevron_right,
-              color: AppColors.neutral400,
-            ),
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 365)),
-                initialDate: _date,
-              );
-              if (picked != null) {
-                setState(() => _date = picked);
-              }
-            },
-          ),
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Start / End time
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _startController,
-                decoration: InputDecoration(
-                  labelText: 'Mulai',
-                  hintText: '19:00',
-                  prefixIcon:
-                      const Icon(Icons.access_time, size: 20),
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusMd),
-                  ),
-                ),
-                onChanged: (v) => _start = v,
-              ),
-            ),
-            const SizedBox(width: AppDimensions.sm),
-            Expanded(
-              child: TextField(
-                controller: _endController,
-                decoration: InputDecoration(
-                  labelText: 'Selesai',
-                  hintText: '21:00',
-                  prefixIcon:
-                      const Icon(Icons.access_time, size: 20),
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusMd),
-                  ),
-                ),
-                onChanged: (v) => _end = v,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Join deadline (auto-calculated, read-only)
-        Container(
-          padding: const EdgeInsets.all(AppDimensions.md),
-          decoration: BoxDecoration(
-            color: AppColors.infoLight,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline, color: AppColors.info, size: 20),
-              const SizedBox(width: AppDimensions.sm),
-              Expanded(
-                child: Text(
-                  'Batas gabung: ${Formatters.formatDate(joinDeadline)} '
-                  '${joinDeadline.hour.toString().padLeft(2, '0')}:'
-                  '${joinDeadline.minute.toString().padLeft(2, '0')}',
-                  style: AppTypography.caption.copyWith(color: AppColors.info),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+  void _clearDuplicate() {
+    _notifier.reset();
+    _titleCtrl.clear();
+    _notesCtrl.clear();
+    _priceCtrl.clear();
+    setState(() => _appliedDuplicateLabel = null);
   }
 
-  Widget _buildStep3PesertaHarga() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Max players
-        Text('Maks Peserta', style: AppTypography.titleSmall),
-        const SizedBox(height: AppDimensions.sm),
-        _buildCounterRow(
-          value: _maxPlayers,
-          min: 2,
-          max: 20,
-          onChanged: (v) => setState(() {
-            _maxPlayers = v;
-            if (_minPlayers > _maxPlayers) _minPlayers = _maxPlayers;
-          }),
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Min players
-        Text('Min Peserta', style: AppTypography.titleSmall),
-        const SizedBox(height: AppDimensions.sm),
-        _buildCounterRow(
-          value: _minPlayers,
-          min: 2,
-          max: _maxPlayers,
-          onChanged: (v) => setState(() => _minPlayers = v),
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Level range
-        Text('Rentang Level (opsional)', style: AppTypography.titleSmall),
-        const SizedBox(height: AppDimensions.sm),
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<LevelTier?>(
-                initialValue: _minLevel,
-                isExpanded: true,
-                items: [
-                  const DropdownMenuItem<LevelTier?>(
-                    child: Text('Semua'),
-                  ),
-                  ...LevelTier.values.map(
-                    (tier) => DropdownMenuItem<LevelTier?>(
-                      value: tier,
-                      child: Text(_levelLabel(tier)),
-                    ),
-                  ),
-                ],
-                onChanged: (value) => setState(() => _minLevel = value),
-                decoration: InputDecoration(
-                  labelText: 'Min Level',
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusMd),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.md,
-                    vertical: AppDimensions.md,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: AppDimensions.sm),
-            Expanded(
-              child: DropdownButtonFormField<LevelTier?>(
-                initialValue: _maxLevel,
-                isExpanded: true,
-                items: [
-                  const DropdownMenuItem<LevelTier?>(
-                    child: Text('Semua'),
-                  ),
-                  ...LevelTier.values.map(
-                    (tier) => DropdownMenuItem<LevelTier?>(
-                      value: tier,
-                      child: Text(_levelLabel(tier)),
-                    ),
-                  ),
-                ],
-                onChanged: (value) => setState(() => _maxLevel = value),
-                decoration: InputDecoration(
-                  labelText: 'Maks Level',
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusMd),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.md,
-                    vertical: AppDimensions.md,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Price per person
-        TextField(
-          controller: _priceController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: 'Harga per Peserta',
-            prefixText: 'Rp ',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppDimensions.base),
-
-        // Pricing model
-        Text('Model Harga', style: AppTypography.titleSmall),
-        const SizedBox(height: AppDimensions.sm),
-        SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<SessionPricingModel>(
-            segments: const [
-              ButtonSegment(
-                value: SessionPricingModel.margin,
-                label: Text('Margin'),
-              ),
-              ButtonSegment(
-                value: SessionPricingModel.transparent,
-                label: Text('Transparan'),
-              ),
-            ],
-            selected: {_pricingModel},
-            onSelectionChanged: (selected) {
-              setState(() => _pricingModel = selected.first);
-            },
-          ),
-        ),
-      ],
-    );
+  Future<void> _submit() async {
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      final session = await _notifier.submit();
+      if (!mounted) return;
+      final wantPhoto = await showPostCreatePhotoPrompt(context);
+      if (wantPhoto) await _pickAndUploadCover(session.id);
+      _notifier.reset();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sesi berhasil dibuat')),
+      );
+      context.pop();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'Gagal membuat sesi. Coba lagi.');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
-  Widget _buildCounterRow({
-    required int value,
-    required int min,
-    required int max,
-    required ValueChanged<int> onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppSurfaces.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        boxShadow: AppShadows.xs,
-        border: Border.all(color: AppColors.neutral200),
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.md,
-        vertical: AppDimensions.xs,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            onPressed: value > min ? () => onChanged(value - 1) : null,
-            icon: const Icon(Icons.remove_circle_outline),
-            color: AppColors.primary,
-            disabledColor: AppColors.neutral300,
-          ),
-          SizedBox(
-            width: 48,
-            child: Text(
-              '$value',
-              textAlign: TextAlign.center,
-              style: AppTypography.titleMedium,
-            ),
-          ),
-          IconButton(
-            onPressed: value < max ? () => onChanged(value + 1) : null,
-            icon: const Icon(Icons.add_circle_outline),
-            color: AppColors.primary,
-            disabledColor: AppColors.neutral300,
-          ),
-        ],
-      ),
-    );
+  Future<void> _pickAndUploadCover(String sessionId) async {
+    final picked = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked == null || !mounted) return;
+    try {
+      await ref
+          .read(organizerRepositoryProvider)
+          .uploadSessionCoverPhoto(sessionId, File(picked.path));
+    } catch (_) {
+      // Non-blocking — the session is already created.
+    }
   }
-
-  Widget _buildStep4Review() {
-    final templatesAsync = ref.watch(organizerTemplatesProvider);
-    final sessionsAsync = ref.watch(organizerSessionsProvider);
-
-    final selectedVenueId = _venueId ?? MockData.venues.first.id;
-    final venueName = MockData.venues
-        .firstWhere((v) => v.id == selectedVenueId)
-        .name;
-    final price = int.tryParse(_priceController.text) ?? 0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Summary card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppDimensions.base),
-          decoration: BoxDecoration(
-            color: AppSurfaces.surface,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-            boxShadow: AppShadows.sm,
-            border: Border.all(color: AppColors.neutral200),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Ringkasan Sesi', style: AppTypography.titleMedium),
-              const SizedBox(height: AppDimensions.md),
-              _summaryRow(
-                'Judul',
-                _titleController.text.isEmpty
-                    ? '(belum diisi)'
-                    : _titleController.text,
-              ),
-              _summaryRow(
-                'Olahraga',
-                SportChipSelector.sportLabel(_sport),
-              ),
-              _summaryRow('Venue', venueName),
-              _summaryRow('Tanggal', Formatters.formatDate(_date)),
-              _summaryRow(
-                'Waktu',
-                Formatters.formatTimeRange(_start, _end),
-              ),
-              _summaryRow('Peserta', '$_minPlayers - $_maxPlayers pemain'),
-              if (_minLevel != null || _maxLevel != null)
-                _summaryRow(
-                  'Level',
-                  '${_minLevel != null ? _levelLabel(_minLevel!) : 'Semua'}'
-                  ' - '
-                  '${_maxLevel != null ? _levelLabel(_maxLevel!) : 'Semua'}',
-                ),
-              _summaryRow('Harga', Formatters.formatCurrency(
-                  price, ref.read(tenantCurrencyProvider))),
-              _summaryRow(
-                'Visibilitas',
-                Formatters.visibilityLabel(_visibility),
-              ),
-              _summaryRow(
-                'Model Harga',
-                _pricingModelLabel(_pricingModel),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppDimensions.lg),
-
-        // Template / Duplicate section
-        Text('Template & Duplikasi', style: AppTypography.titleSmall),
-        const SizedBox(height: AppDimensions.sm),
-        AsyncValueWidget(
-          value: templatesAsync,
-          data: (templates) {
-            if (templates.isEmpty) {
-              return Padding(
-                padding:
-                    const EdgeInsets.only(bottom: AppDimensions.sm),
-                child: Text(
-                  'Tidak ada template tersedia',
-                  style: AppTypography.caption,
-                ),
-              );
-            }
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-              child: Wrap(
-                spacing: AppDimensions.sm,
-                runSpacing: AppDimensions.sm,
-                children: templates.entries.map((entry) {
-                  final isActive = _templateId == entry.key;
-                  return ActionChip(
-                    avatar: Icon(
-                      Icons.description_outlined,
-                      size: 16,
-                      color: isActive
-                          ? AppColors.primary
-                          : AppColors.neutral400,
-                    ),
-                    label: Text(entry.value),
-                    backgroundColor: isActive
-                        ? AppColors.primary50
-                        : null,
-                    side: isActive
-                        ? const BorderSide(color: AppColors.primary)
-                        : null,
-                    onPressed: () {
-                      setState(() {
-                        _templateId =
-                            _templateId == entry.key ? null : entry.key;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: AppDimensions.sm),
-        Text('Duplikasi dari sesi sebelumnya', style: AppTypography.caption),
-        const SizedBox(height: AppDimensions.xs),
-        AsyncValueWidget(
-          value: sessionsAsync,
-          data: (sessions) {
-            if (sessions.isEmpty) {
-              return Text(
-                'Belum ada sesi untuk diduplikasi',
-                style: AppTypography.caption,
-              );
-            }
-            return Wrap(
-              spacing: AppDimensions.sm,
-              runSpacing: AppDimensions.sm,
-              children: sessions.take(5).map((session) {
-                return ActionChip(
-                  avatar: const Icon(
-                    Icons.copy_outlined,
-                    size: 16,
-                    color: AppColors.neutral400,
-                  ),
-                  label: Text(session.safeTitle),
-                  onPressed: () async {
-                    final nav = GoRouter.of(context);
-                    final created = await ref
-                        .read(createSessionDraftProvider.notifier)
-                        .duplicateFromSession(
-                          session.id,
-                          newDate: _date,
-                        );
-                    if (!mounted) return;
-                    nav.pushReplacement(
-                      AppRoutes.organizerSessionDetail(created.id),
-                    );
-                  },
-                );
-              }).toList(),
-            );
-          },
-        ),
-        const SizedBox(height: AppDimensions.lg),
-
-        // Publish button
-        SizedBox(
-          width: double.infinity,
-          height: AppDimensions.buttonHeightLg,
-          child: FilledButton.icon(
-            onPressed: _publish,
-            icon: const Icon(Icons.publish),
-            label: const Text('Terbitkan Sesi'),
-            style: FilledButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusMd),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppDimensions.sm),
-        SizedBox(
-          width: double.infinity,
-          child: TextButton(
-            onPressed: () => setState(() => _step--),
-            child: const Text('Kembali'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _summaryRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: AppTypography.caption,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: AppTypography.bodyMedium,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Build ──────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
+    final draft = ref.watch(createSessionDraftProvider);
     return Scaffold(
-      backgroundColor: AppSurfaces.background,
       appBar: AppBar(
-        title: const Text('Buat Sesi Organizer'),
-      ),
-      body: Stepper(
-        currentStep: _step,
-        physics: const ClampingScrollPhysics(),
-        onStepCancel: () {
-          if (_step > 0) {
-            setState(() => _step--);
-          } else {
-            Navigator.pop(context);
-          }
-        },
-        onStepContinue: () async {
-          if (_step < 3) {
-            _syncDraft();
-            setState(() => _step++);
-            return;
-          }
-          // Step 4 publish is handled via the button inside the step
-          await _publish();
-        },
-        onStepTapped: (index) {
-          if (index <= _step) {
-            setState(() => _step = index);
-          }
-        },
-        controlsBuilder: (context, details) {
-          // Step 4 has its own publish button
-          if (_step == 3) {
-            return const SizedBox.shrink();
-          }
-          return Padding(
-            padding: const EdgeInsets.only(top: AppDimensions.base),
-            child: Row(
-              children: [
-                FilledButton(
-                  onPressed: details.onStepContinue,
-                  style: FilledButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusMd),
-                    ),
-                  ),
-                  child: const Text('Lanjut'),
-                ),
-                const SizedBox(width: AppDimensions.sm),
-                TextButton(
-                  onPressed: details.onStepCancel,
-                  child: const Text('Kembali'),
-                ),
-              ],
+        title: const Text('Buat Sesi'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(28),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+            child: Text(
+              'Langkah ${_step + 1}/2 · ${_step == 0 ? 'Detail' : 'Jadwal & Rincian'}',
+              style:
+                  AppTypography.caption.copyWith(color: AppColors.textTertiary),
             ),
-          );
-        },
-        steps: [
-          Step(
-            title: const Text('Info Dasar'),
-            subtitle: _step > 0
-                ? Text(
-                    '${SportChipSelector.sportLabel(_sport)}'
-                    '${_titleController.text.isNotEmpty ? ' - ${_titleController.text}' : ''}',
-                    style: AppTypography.caption,
-                  )
-                : null,
-            isActive: _step >= 0,
-            state: _step > 0 ? StepState.complete : StepState.indexed,
-            content: _buildStep1InfoDasar(),
           ),
-          Step(
-            title: const Text('Jadwal & Lokasi'),
-            subtitle: _step > 1
-                ? Text(
-                    '${Formatters.formatDate(_date)} $_start-$_end',
-                    style: AppTypography.caption,
-                  )
-                : null,
-            isActive: _step >= 1,
-            state: _step > 1 ? StepState.complete : StepState.indexed,
-            content: _buildStep2JadwalLokasi(),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+              child: _step == 0 ? _buildStep1(draft) : _buildStep2(draft),
+            ),
           ),
-          Step(
-            title: const Text('Peserta & Harga'),
-            subtitle: _step > 2
-                ? Text(
-                    '$_minPlayers-$_maxPlayers pemain, '
-                    '${Formatters.formatCurrency(int.tryParse(_priceController.text) ?? 0, ref.read(tenantCurrencyProvider))}',
-                    style: AppTypography.caption,
-                  )
-                : null,
-            isActive: _step >= 2,
-            state: _step > 2 ? StepState.complete : StepState.indexed,
-            content: _buildStep3PesertaHarga(),
+          if (_error != null)
+            Container(
+              width: double.infinity,
+              color: AppColors.errorLight,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.lg, vertical: AppDimensions.sm),
+              child: Text(_error!,
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.errorDark)),
+            ),
+          _buildFooter(draft),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep1(CreateSessionDraft draft) {
+    final recent = ref.watch(createSessionRecentProvider).valueOrNull ?? [];
+    final coaches = ref.watch(createSessionCoachesProvider).valueOrNull ?? [];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DuplicatePicker(
+          recent: recent,
+          onPicked: _onDuplicatePicked,
+          appliedLabel: _appliedDuplicateLabel,
+          onClear: _clearDuplicate,
+        ),
+        const SizedBox(height: AppDimensions.xl),
+        _label('TIPE SESI'),
+        SessionTypeCards(value: draft.type, onChanged: _notifier.setType),
+        const SizedBox(height: AppDimensions.xl),
+        _label('JUDUL', optional: true),
+        TextField(
+          controller: _titleCtrl,
+          maxLength: 200,
+          onChanged: _notifier.setTitle,
+          decoration: const InputDecoration(
+            hintText: 'mis. Latihan Grup Kamis Pagi',
+            counterText: '',
           ),
-          Step(
-            title: const Text('Review & Terbitkan'),
-            isActive: _step >= 3,
-            state: _step == 3 ? StepState.editing : StepState.indexed,
-            content: _buildStep4Review(),
+        ),
+        const SizedBox(height: AppDimensions.lg),
+        _label('COACH'),
+        _CoachField(
+          coaches: coaches,
+          selectedIds: draft.coachIds,
+          onOpen: () async {
+            final result = await showCoachPicker(context,
+                coaches: coaches, selected: draft.coachIds);
+            if (result != null) _notifier.setCoaches(result);
+          },
+          onRemove: _notifier.toggleCoach,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStep2(CreateSessionDraft draft) {
+    final currency = ref.watch(tenantCurrencyProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _label('JADWAL'),
+        Row(
+          children: [
+            Expanded(
+              child: _PickerField(
+                icon: Icons.calendar_today_outlined,
+                label: draft.date != null
+                    ? Formatters.formatDate(draft.date!)
+                    : 'Tanggal',
+                filled: draft.date != null,
+                onTap: _pickDate,
+              ),
+            ),
+            const SizedBox(width: AppDimensions.sm),
+            Expanded(
+              child: _PickerField(
+                icon: Icons.schedule_outlined,
+                label: draft.startTime ?? 'Jam',
+                filled: draft.startTime != null,
+                onTap: _pickTime,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppDimensions.lg),
+        _label('DURASI'),
+        DurationPills(
+          value: draft.durationMinutes,
+          onChanged: _notifier.setDuration,
+        ),
+        if (draft.type != SessionType.private) ...[
+          const SizedBox(height: AppDimensions.xl),
+          _label('KAPASITAS'),
+          CapacitySelector(
+            value: draft.capacity,
+            onChanged: _notifier.setCapacity,
+            defaultLimit: draft.type == SessionType.trial ? 10 : 15,
           ),
         ],
+        const SizedBox(height: AppDimensions.xl),
+        _label('VENUE', optional: true),
+        _VenueField(
+          venueName: draft.venueName,
+          onOpen: _pickVenue,
+          onClear: _notifier.clearVenue,
+        ),
+        const SizedBox(height: AppDimensions.lg),
+        _label('HARGA SESI', optional: true),
+        TextField(
+          controller: _priceCtrl,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onChanged: (v) {
+            final n = num.tryParse(v);
+            _notifier.setPrice(
+                n == null ? null : Formatters.toMinorUnits(n, currency));
+          },
+          decoration: InputDecoration(
+            prefixText: '${Formatters.currencySymbol(currency)} ',
+            hintText: 'Kosongkan untuk gratis',
+          ),
+        ),
+        const SizedBox(height: AppDimensions.lg),
+        _label('CATATAN', optional: true),
+        TextField(
+          controller: _notesCtrl,
+          maxLines: 3,
+          maxLength: 2000,
+          onChanged: _notifier.setNotes,
+          decoration: const InputDecoration(counterText: ''),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter(CreateSessionDraft draft) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.lg),
+        child: _step == 0
+            ? SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed:
+                      draft.step1Valid ? () => setState(() => _step = 1) : null,
+                  child: const Text('Lanjut'),
+                ),
+              )
+            : Row(
+                children: [
+                  OutlinedButton(
+                    onPressed:
+                        _submitting ? null : () => setState(() => _step = 0),
+                    child: const Text('Kembali'),
+                  ),
+                  const SizedBox(width: AppDimensions.sm),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed:
+                          (!_submitting && draft.canSubmit) ? _submit : null,
+                      child: _submitting
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Text('Terbitkan Sesi'),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: ref.read(createSessionDraftProvider).date ?? now,
+      firstDate: now.subtract(const Duration(days: 1)),
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (picked != null) _notifier.setDate(picked);
+  }
+
+  Future<void> _pickTime() async {
+    final current = ref.read(createSessionDraftProvider).startTime;
+    final initial = current != null
+        ? TimeOfDay(
+            hour: int.tryParse(current.split(':').first) ?? 8,
+            minute: int.tryParse(current.split(':').last) ?? 0,
+          )
+        : const TimeOfDay(hour: 8, minute: 0);
+    final picked = await showTimePicker(context: context, initialTime: initial);
+    if (picked != null) {
+      // Snap the minutes to the nearest quarter hour.
+      final snapped = ((picked.minute / 15).round() * 15) % 60;
+      final hour = (picked.minute > 52) ? (picked.hour + 1) % 24 : picked.hour;
+      _notifier.setStartTime(
+        '${hour.toString().padLeft(2, '0')}:${snapped.toString().padLeft(2, '0')}',
+      );
+    }
+  }
+
+  Future<void> _pickVenue() async {
+    final venues = ref.read(createSessionVenuesProvider).valueOrNull ?? [];
+    final picked = await showVenuePicker(context,
+        venues: venues,
+        selectedId: ref.read(createSessionDraftProvider).venueId);
+    if (picked != null) _notifier.setVenue(id: picked.id, name: picked.name);
+  }
+
+  Widget _label(String text, {bool optional = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+      child: Row(
+        children: [
+          Text(text,
+              style: AppTypography.overline.copyWith(
+                color: AppColors.textTertiary,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+              )),
+          if (optional) ...[
+            const SizedBox(width: 6),
+            Text('(opsional)',
+                style: AppTypography.caption
+                    .copyWith(color: AppColors.textTertiary)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CoachField extends StatelessWidget {
+  const _CoachField({
+    required this.coaches,
+    required this.selectedIds,
+    required this.onOpen,
+    required this.onRemove,
+  });
+
+  final List coaches;
+  final List<int> selectedIds;
+  final VoidCallback onOpen;
+  final ValueChanged<int> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        OutlinedButton.icon(
+          onPressed: onOpen,
+          icon: const Icon(Icons.add, size: 18),
+          label: Text(selectedIds.isEmpty ? 'Pilih coach' : 'Ubah coach'),
+        ),
+        if (selectedIds.isNotEmpty) ...[
+          const SizedBox(height: AppDimensions.sm),
+          SelectedCoachChips(
+            coaches: coaches.cast(),
+            selectedIds: selectedIds,
+            onRemove: onRemove,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _VenueField extends StatelessWidget {
+  const _VenueField({
+    required this.venueName,
+    required this.onOpen,
+    required this.onClear,
+  });
+
+  final String? venueName;
+  final VoidCallback onOpen;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    if (venueName == null) {
+      return OutlinedButton.icon(
+        onPressed: onOpen,
+        icon: const Icon(Icons.place_outlined, size: 18),
+        label: const Text('Pilih / buat venue'),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.base, vertical: AppDimensions.sm),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.neutral200),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.place, size: 18, color: AppColors.primary),
+          const SizedBox(width: AppDimensions.sm),
+          Expanded(child: Text(venueName!, style: AppTypography.bodyMedium)),
+          GestureDetector(
+            onTap: onOpen,
+            child: Text('Ubah',
+                style: AppTypography.labelMedium.copyWith(
+                    color: AppColors.primary, fontWeight: FontWeight.w700)),
+          ),
+          const SizedBox(width: AppDimensions.md),
+          GestureDetector(
+            onTap: onClear,
+            child: const Icon(Icons.close,
+                size: 18, color: AppColors.textTertiary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PickerField extends StatelessWidget {
+  const _PickerField({
+    required this.icon,
+    required this.label,
+    required this.filled,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool filled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.base, vertical: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          border: Border.all(color: AppColors.neutral300),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.textSecondary),
+            const SizedBox(width: AppDimensions.sm),
+            Text(
+              label,
+              style: AppTypography.bodyMedium.copyWith(
+                color: filled ? AppColors.textPrimary : AppColors.textTertiary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

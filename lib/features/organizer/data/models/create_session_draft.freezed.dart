@@ -21,26 +21,19 @@ CreateSessionDraft _$CreateSessionDraftFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CreateSessionDraft {
+  List<int> get coachIds => throw _privateConstructorUsedError;
+  SessionType get type => throw _privateConstructorUsedError;
   String? get title => throw _privateConstructorUsedError;
-  String? get description => throw _privateConstructorUsedError;
-  Sport? get sport => throw _privateConstructorUsedError;
-  LevelTier? get minLevel => throw _privateConstructorUsedError;
-  LevelTier? get maxLevel => throw _privateConstructorUsedError;
+  DateTime? get date => throw _privateConstructorUsedError;
+  String? get startTime => throw _privateConstructorUsedError; // "HH:mm"
+  int get durationMinutes => throw _privateConstructorUsedError;
+  int? get capacity =>
+      throw _privateConstructorUsedError; // null = unlimited (also null for private)
   String? get venueId => throw _privateConstructorUsedError;
   String? get venueName => throw _privateConstructorUsedError;
-  DateTime? get date => throw _privateConstructorUsedError;
-  String? get startTime => throw _privateConstructorUsedError;
-  String? get endTime => throw _privateConstructorUsedError;
-  int? get pricePerPerson => throw _privateConstructorUsedError;
-  int get minParticipants => throw _privateConstructorUsedError;
-  int get maxParticipants => throw _privateConstructorUsedError;
-  DateTime? get joinDeadline => throw _privateConstructorUsedError;
-  SessionPricingModel get pricingModel => throw _privateConstructorUsedError;
-  SessionVisibility get visibility => throw _privateConstructorUsedError;
-  int? get courtCost => throw _privateConstructorUsedError;
-  int? get coachCost => throw _privateConstructorUsedError;
-  int? get organizerFeePerPerson => throw _privateConstructorUsedError;
-  String? get templateId => throw _privateConstructorUsedError;
+  int? get price =>
+      throw _privateConstructorUsedError; // minor units; null = free
+  String? get notes => throw _privateConstructorUsedError;
 
   /// Serializes this CreateSessionDraft to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -60,26 +53,17 @@ abstract class $CreateSessionDraftCopyWith<$Res> {
   ) = _$CreateSessionDraftCopyWithImpl<$Res, CreateSessionDraft>;
   @useResult
   $Res call({
+    List<int> coachIds,
+    SessionType type,
     String? title,
-    String? description,
-    Sport? sport,
-    LevelTier? minLevel,
-    LevelTier? maxLevel,
-    String? venueId,
-    String? venueName,
     DateTime? date,
     String? startTime,
-    String? endTime,
-    int? pricePerPerson,
-    int minParticipants,
-    int maxParticipants,
-    DateTime? joinDeadline,
-    SessionPricingModel pricingModel,
-    SessionVisibility visibility,
-    int? courtCost,
-    int? coachCost,
-    int? organizerFeePerPerson,
-    String? templateId,
+    int durationMinutes,
+    int? capacity,
+    String? venueId,
+    String? venueName,
+    int? price,
+    String? notes,
   });
 }
 
@@ -98,56 +82,31 @@ class _$CreateSessionDraftCopyWithImpl<$Res, $Val extends CreateSessionDraft>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? coachIds = null,
+    Object? type = null,
     Object? title = freezed,
-    Object? description = freezed,
-    Object? sport = freezed,
-    Object? minLevel = freezed,
-    Object? maxLevel = freezed,
-    Object? venueId = freezed,
-    Object? venueName = freezed,
     Object? date = freezed,
     Object? startTime = freezed,
-    Object? endTime = freezed,
-    Object? pricePerPerson = freezed,
-    Object? minParticipants = null,
-    Object? maxParticipants = null,
-    Object? joinDeadline = freezed,
-    Object? pricingModel = null,
-    Object? visibility = null,
-    Object? courtCost = freezed,
-    Object? coachCost = freezed,
-    Object? organizerFeePerPerson = freezed,
-    Object? templateId = freezed,
+    Object? durationMinutes = null,
+    Object? capacity = freezed,
+    Object? venueId = freezed,
+    Object? venueName = freezed,
+    Object? price = freezed,
+    Object? notes = freezed,
   }) {
     return _then(
       _value.copyWith(
+            coachIds: null == coachIds
+                ? _value.coachIds
+                : coachIds // ignore: cast_nullable_to_non_nullable
+                      as List<int>,
+            type: null == type
+                ? _value.type
+                : type // ignore: cast_nullable_to_non_nullable
+                      as SessionType,
             title: freezed == title
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            description: freezed == description
-                ? _value.description
-                : description // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            sport: freezed == sport
-                ? _value.sport
-                : sport // ignore: cast_nullable_to_non_nullable
-                      as Sport?,
-            minLevel: freezed == minLevel
-                ? _value.minLevel
-                : minLevel // ignore: cast_nullable_to_non_nullable
-                      as LevelTier?,
-            maxLevel: freezed == maxLevel
-                ? _value.maxLevel
-                : maxLevel // ignore: cast_nullable_to_non_nullable
-                      as LevelTier?,
-            venueId: freezed == venueId
-                ? _value.venueId
-                : venueId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            venueName: freezed == venueName
-                ? _value.venueName
-                : venueName // ignore: cast_nullable_to_non_nullable
                       as String?,
             date: freezed == date
                 ? _value.date
@@ -157,49 +116,29 @@ class _$CreateSessionDraftCopyWithImpl<$Res, $Val extends CreateSessionDraft>
                 ? _value.startTime
                 : startTime // ignore: cast_nullable_to_non_nullable
                       as String?,
-            endTime: freezed == endTime
-                ? _value.endTime
-                : endTime // ignore: cast_nullable_to_non_nullable
+            durationMinutes: null == durationMinutes
+                ? _value.durationMinutes
+                : durationMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            capacity: freezed == capacity
+                ? _value.capacity
+                : capacity // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            venueId: freezed == venueId
+                ? _value.venueId
+                : venueId // ignore: cast_nullable_to_non_nullable
                       as String?,
-            pricePerPerson: freezed == pricePerPerson
-                ? _value.pricePerPerson
-                : pricePerPerson // ignore: cast_nullable_to_non_nullable
+            venueName: freezed == venueName
+                ? _value.venueName
+                : venueName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            price: freezed == price
+                ? _value.price
+                : price // ignore: cast_nullable_to_non_nullable
                       as int?,
-            minParticipants: null == minParticipants
-                ? _value.minParticipants
-                : minParticipants // ignore: cast_nullable_to_non_nullable
-                      as int,
-            maxParticipants: null == maxParticipants
-                ? _value.maxParticipants
-                : maxParticipants // ignore: cast_nullable_to_non_nullable
-                      as int,
-            joinDeadline: freezed == joinDeadline
-                ? _value.joinDeadline
-                : joinDeadline // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            pricingModel: null == pricingModel
-                ? _value.pricingModel
-                : pricingModel // ignore: cast_nullable_to_non_nullable
-                      as SessionPricingModel,
-            visibility: null == visibility
-                ? _value.visibility
-                : visibility // ignore: cast_nullable_to_non_nullable
-                      as SessionVisibility,
-            courtCost: freezed == courtCost
-                ? _value.courtCost
-                : courtCost // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            coachCost: freezed == coachCost
-                ? _value.coachCost
-                : coachCost // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            organizerFeePerPerson: freezed == organizerFeePerPerson
-                ? _value.organizerFeePerPerson
-                : organizerFeePerPerson // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            templateId: freezed == templateId
-                ? _value.templateId
-                : templateId // ignore: cast_nullable_to_non_nullable
+            notes: freezed == notes
+                ? _value.notes
+                : notes // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -217,26 +156,17 @@ abstract class _$$CreateSessionDraftImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    List<int> coachIds,
+    SessionType type,
     String? title,
-    String? description,
-    Sport? sport,
-    LevelTier? minLevel,
-    LevelTier? maxLevel,
-    String? venueId,
-    String? venueName,
     DateTime? date,
     String? startTime,
-    String? endTime,
-    int? pricePerPerson,
-    int minParticipants,
-    int maxParticipants,
-    DateTime? joinDeadline,
-    SessionPricingModel pricingModel,
-    SessionVisibility visibility,
-    int? courtCost,
-    int? coachCost,
-    int? organizerFeePerPerson,
-    String? templateId,
+    int durationMinutes,
+    int? capacity,
+    String? venueId,
+    String? venueName,
+    int? price,
+    String? notes,
   });
 }
 
@@ -254,56 +184,31 @@ class __$$CreateSessionDraftImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? coachIds = null,
+    Object? type = null,
     Object? title = freezed,
-    Object? description = freezed,
-    Object? sport = freezed,
-    Object? minLevel = freezed,
-    Object? maxLevel = freezed,
-    Object? venueId = freezed,
-    Object? venueName = freezed,
     Object? date = freezed,
     Object? startTime = freezed,
-    Object? endTime = freezed,
-    Object? pricePerPerson = freezed,
-    Object? minParticipants = null,
-    Object? maxParticipants = null,
-    Object? joinDeadline = freezed,
-    Object? pricingModel = null,
-    Object? visibility = null,
-    Object? courtCost = freezed,
-    Object? coachCost = freezed,
-    Object? organizerFeePerPerson = freezed,
-    Object? templateId = freezed,
+    Object? durationMinutes = null,
+    Object? capacity = freezed,
+    Object? venueId = freezed,
+    Object? venueName = freezed,
+    Object? price = freezed,
+    Object? notes = freezed,
   }) {
     return _then(
       _$CreateSessionDraftImpl(
+        coachIds: null == coachIds
+            ? _value._coachIds
+            : coachIds // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
+        type: null == type
+            ? _value.type
+            : type // ignore: cast_nullable_to_non_nullable
+                  as SessionType,
         title: freezed == title
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        description: freezed == description
-            ? _value.description
-            : description // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        sport: freezed == sport
-            ? _value.sport
-            : sport // ignore: cast_nullable_to_non_nullable
-                  as Sport?,
-        minLevel: freezed == minLevel
-            ? _value.minLevel
-            : minLevel // ignore: cast_nullable_to_non_nullable
-                  as LevelTier?,
-        maxLevel: freezed == maxLevel
-            ? _value.maxLevel
-            : maxLevel // ignore: cast_nullable_to_non_nullable
-                  as LevelTier?,
-        venueId: freezed == venueId
-            ? _value.venueId
-            : venueId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        venueName: freezed == venueName
-            ? _value.venueName
-            : venueName // ignore: cast_nullable_to_non_nullable
                   as String?,
         date: freezed == date
             ? _value.date
@@ -313,49 +218,29 @@ class __$$CreateSessionDraftImplCopyWithImpl<$Res>
             ? _value.startTime
             : startTime // ignore: cast_nullable_to_non_nullable
                   as String?,
-        endTime: freezed == endTime
-            ? _value.endTime
-            : endTime // ignore: cast_nullable_to_non_nullable
+        durationMinutes: null == durationMinutes
+            ? _value.durationMinutes
+            : durationMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        capacity: freezed == capacity
+            ? _value.capacity
+            : capacity // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        venueId: freezed == venueId
+            ? _value.venueId
+            : venueId // ignore: cast_nullable_to_non_nullable
                   as String?,
-        pricePerPerson: freezed == pricePerPerson
-            ? _value.pricePerPerson
-            : pricePerPerson // ignore: cast_nullable_to_non_nullable
+        venueName: freezed == venueName
+            ? _value.venueName
+            : venueName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        price: freezed == price
+            ? _value.price
+            : price // ignore: cast_nullable_to_non_nullable
                   as int?,
-        minParticipants: null == minParticipants
-            ? _value.minParticipants
-            : minParticipants // ignore: cast_nullable_to_non_nullable
-                  as int,
-        maxParticipants: null == maxParticipants
-            ? _value.maxParticipants
-            : maxParticipants // ignore: cast_nullable_to_non_nullable
-                  as int,
-        joinDeadline: freezed == joinDeadline
-            ? _value.joinDeadline
-            : joinDeadline // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        pricingModel: null == pricingModel
-            ? _value.pricingModel
-            : pricingModel // ignore: cast_nullable_to_non_nullable
-                  as SessionPricingModel,
-        visibility: null == visibility
-            ? _value.visibility
-            : visibility // ignore: cast_nullable_to_non_nullable
-                  as SessionVisibility,
-        courtCost: freezed == courtCost
-            ? _value.courtCost
-            : courtCost // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        coachCost: freezed == coachCost
-            ? _value.coachCost
-            : coachCost // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        organizerFeePerPerson: freezed == organizerFeePerPerson
-            ? _value.organizerFeePerPerson
-            : organizerFeePerPerson // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        templateId: freezed == templateId
-            ? _value.templateId
-            : templateId // ignore: cast_nullable_to_non_nullable
+        notes: freezed == notes
+            ? _value.notes
+            : notes // ignore: cast_nullable_to_non_nullable
                   as String?,
       ),
     );
@@ -364,81 +249,63 @@ class __$$CreateSessionDraftImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$CreateSessionDraftImpl implements _CreateSessionDraft {
+class _$CreateSessionDraftImpl extends _CreateSessionDraft {
   const _$CreateSessionDraftImpl({
+    final List<int> coachIds = const <int>[],
+    this.type = SessionType.group,
     this.title,
-    this.description,
-    this.sport,
-    this.minLevel,
-    this.maxLevel,
-    this.venueId,
-    this.venueName,
     this.date,
     this.startTime,
-    this.endTime,
-    this.pricePerPerson,
-    this.minParticipants = 2,
-    this.maxParticipants = 8,
-    this.joinDeadline,
-    this.pricingModel = SessionPricingModel.margin,
-    this.visibility = SessionVisibility.free,
-    this.courtCost,
-    this.coachCost,
-    this.organizerFeePerPerson,
-    this.templateId,
-  });
+    this.durationMinutes = 60,
+    this.capacity,
+    this.venueId,
+    this.venueName,
+    this.price,
+    this.notes,
+  }) : _coachIds = coachIds,
+       super._();
 
   factory _$CreateSessionDraftImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreateSessionDraftImplFromJson(json);
 
+  final List<int> _coachIds;
+  @override
+  @JsonKey()
+  List<int> get coachIds {
+    if (_coachIds is EqualUnmodifiableListView) return _coachIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_coachIds);
+  }
+
+  @override
+  @JsonKey()
+  final SessionType type;
   @override
   final String? title;
   @override
-  final String? description;
+  final DateTime? date;
   @override
-  final Sport? sport;
+  final String? startTime;
+  // "HH:mm"
   @override
-  final LevelTier? minLevel;
+  @JsonKey()
+  final int durationMinutes;
   @override
-  final LevelTier? maxLevel;
+  final int? capacity;
+  // null = unlimited (also null for private)
   @override
   final String? venueId;
   @override
   final String? venueName;
   @override
-  final DateTime? date;
+  final int? price;
+  // minor units; null = free
   @override
-  final String? startTime;
-  @override
-  final String? endTime;
-  @override
-  final int? pricePerPerson;
-  @override
-  @JsonKey()
-  final int minParticipants;
-  @override
-  @JsonKey()
-  final int maxParticipants;
-  @override
-  final DateTime? joinDeadline;
-  @override
-  @JsonKey()
-  final SessionPricingModel pricingModel;
-  @override
-  @JsonKey()
-  final SessionVisibility visibility;
-  @override
-  final int? courtCost;
-  @override
-  final int? coachCost;
-  @override
-  final int? organizerFeePerPerson;
-  @override
-  final String? templateId;
+  final String? notes;
 
   @override
   String toString() {
-    return 'CreateSessionDraft(title: $title, description: $description, sport: $sport, minLevel: $minLevel, maxLevel: $maxLevel, venueId: $venueId, venueName: $venueName, date: $date, startTime: $startTime, endTime: $endTime, pricePerPerson: $pricePerPerson, minParticipants: $minParticipants, maxParticipants: $maxParticipants, joinDeadline: $joinDeadline, pricingModel: $pricingModel, visibility: $visibility, courtCost: $courtCost, coachCost: $coachCost, organizerFeePerPerson: $organizerFeePerPerson, templateId: $templateId)';
+    return 'CreateSessionDraft(coachIds: $coachIds, type: $type, title: $title, date: $date, startTime: $startTime, durationMinutes: $durationMinutes, capacity: $capacity, venueId: $venueId, venueName: $venueName, price: $price, notes: $notes)';
   }
 
   @override
@@ -446,68 +313,39 @@ class _$CreateSessionDraftImpl implements _CreateSessionDraft {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreateSessionDraftImpl &&
+            const DeepCollectionEquality().equals(other._coachIds, _coachIds) &&
+            (identical(other.type, type) || other.type == type) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
-            (identical(other.sport, sport) || other.sport == sport) &&
-            (identical(other.minLevel, minLevel) ||
-                other.minLevel == minLevel) &&
-            (identical(other.maxLevel, maxLevel) ||
-                other.maxLevel == maxLevel) &&
-            (identical(other.venueId, venueId) || other.venueId == venueId) &&
-            (identical(other.venueName, venueName) ||
-                other.venueName == venueName) &&
             (identical(other.date, date) || other.date == date) &&
             (identical(other.startTime, startTime) ||
                 other.startTime == startTime) &&
-            (identical(other.endTime, endTime) || other.endTime == endTime) &&
-            (identical(other.pricePerPerson, pricePerPerson) ||
-                other.pricePerPerson == pricePerPerson) &&
-            (identical(other.minParticipants, minParticipants) ||
-                other.minParticipants == minParticipants) &&
-            (identical(other.maxParticipants, maxParticipants) ||
-                other.maxParticipants == maxParticipants) &&
-            (identical(other.joinDeadline, joinDeadline) ||
-                other.joinDeadline == joinDeadline) &&
-            (identical(other.pricingModel, pricingModel) ||
-                other.pricingModel == pricingModel) &&
-            (identical(other.visibility, visibility) ||
-                other.visibility == visibility) &&
-            (identical(other.courtCost, courtCost) ||
-                other.courtCost == courtCost) &&
-            (identical(other.coachCost, coachCost) ||
-                other.coachCost == coachCost) &&
-            (identical(other.organizerFeePerPerson, organizerFeePerPerson) ||
-                other.organizerFeePerPerson == organizerFeePerPerson) &&
-            (identical(other.templateId, templateId) ||
-                other.templateId == templateId));
+            (identical(other.durationMinutes, durationMinutes) ||
+                other.durationMinutes == durationMinutes) &&
+            (identical(other.capacity, capacity) ||
+                other.capacity == capacity) &&
+            (identical(other.venueId, venueId) || other.venueId == venueId) &&
+            (identical(other.venueName, venueName) ||
+                other.venueName == venueName) &&
+            (identical(other.price, price) || other.price == price) &&
+            (identical(other.notes, notes) || other.notes == notes));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hashAll([
+  int get hashCode => Object.hash(
     runtimeType,
+    const DeepCollectionEquality().hash(_coachIds),
+    type,
     title,
-    description,
-    sport,
-    minLevel,
-    maxLevel,
-    venueId,
-    venueName,
     date,
     startTime,
-    endTime,
-    pricePerPerson,
-    minParticipants,
-    maxParticipants,
-    joinDeadline,
-    pricingModel,
-    visibility,
-    courtCost,
-    coachCost,
-    organizerFeePerPerson,
-    templateId,
-  ]);
+    durationMinutes,
+    capacity,
+    venueId,
+    venueName,
+    price,
+    notes,
+  );
 
   /// Create a copy of CreateSessionDraft
   /// with the given fields replaced by the non-null parameter values.
@@ -526,73 +364,47 @@ class _$CreateSessionDraftImpl implements _CreateSessionDraft {
   }
 }
 
-abstract class _CreateSessionDraft implements CreateSessionDraft {
+abstract class _CreateSessionDraft extends CreateSessionDraft {
   const factory _CreateSessionDraft({
+    final List<int> coachIds,
+    final SessionType type,
     final String? title,
-    final String? description,
-    final Sport? sport,
-    final LevelTier? minLevel,
-    final LevelTier? maxLevel,
-    final String? venueId,
-    final String? venueName,
     final DateTime? date,
     final String? startTime,
-    final String? endTime,
-    final int? pricePerPerson,
-    final int minParticipants,
-    final int maxParticipants,
-    final DateTime? joinDeadline,
-    final SessionPricingModel pricingModel,
-    final SessionVisibility visibility,
-    final int? courtCost,
-    final int? coachCost,
-    final int? organizerFeePerPerson,
-    final String? templateId,
+    final int durationMinutes,
+    final int? capacity,
+    final String? venueId,
+    final String? venueName,
+    final int? price,
+    final String? notes,
   }) = _$CreateSessionDraftImpl;
+  const _CreateSessionDraft._() : super._();
 
   factory _CreateSessionDraft.fromJson(Map<String, dynamic> json) =
       _$CreateSessionDraftImpl.fromJson;
 
   @override
+  List<int> get coachIds;
+  @override
+  SessionType get type;
+  @override
   String? get title;
   @override
-  String? get description;
+  DateTime? get date;
   @override
-  Sport? get sport;
+  String? get startTime; // "HH:mm"
   @override
-  LevelTier? get minLevel;
+  int get durationMinutes;
   @override
-  LevelTier? get maxLevel;
+  int? get capacity; // null = unlimited (also null for private)
   @override
   String? get venueId;
   @override
   String? get venueName;
   @override
-  DateTime? get date;
+  int? get price; // minor units; null = free
   @override
-  String? get startTime;
-  @override
-  String? get endTime;
-  @override
-  int? get pricePerPerson;
-  @override
-  int get minParticipants;
-  @override
-  int get maxParticipants;
-  @override
-  DateTime? get joinDeadline;
-  @override
-  SessionPricingModel get pricingModel;
-  @override
-  SessionVisibility get visibility;
-  @override
-  int? get courtCost;
-  @override
-  int? get coachCost;
-  @override
-  int? get organizerFeePerPerson;
-  @override
-  String? get templateId;
+  String? get notes;
 
   /// Create a copy of CreateSessionDraft
   /// with the given fields replaced by the non-null parameter values.

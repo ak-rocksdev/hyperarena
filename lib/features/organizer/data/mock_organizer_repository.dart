@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:hyperarena/core/mocks/mock_data.dart';
@@ -6,6 +7,7 @@ import 'package:hyperarena/features/booking/data/models/booking.dart';
 import 'package:hyperarena/features/organizer/data/models/club_member.dart';
 import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/organizer/data/models/create_session_draft.dart';
+import 'package:hyperarena/features/organizer/data/models/session_lookup_options.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
@@ -39,27 +41,29 @@ class MockOrganizerRepository implements OrganizerRepository {
   DateTime _endOfDay(DateTime date) =>
       DateTime(date.year, date.month, date.day, 23, 59, 59);
 
+  /// End time as "HH:mm" from a start time + duration (mock display only —
+  /// the real model is start_at + duration_minutes).
+  String _endTimeFrom(String? startTime, int durationMinutes) {
+    if (startTime == null) return '00:00';
+    final parts = startTime.split(':');
+    final start = (int.tryParse(parts.first) ?? 0) * 60 +
+        (parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0);
+    final end = (start + durationMinutes) % (24 * 60);
+    return '${(end ~/ 60).toString().padLeft(2, '0')}:'
+        '${(end % 60).toString().padLeft(2, '0')}';
+  }
+
   OpenSession _applyDraftToSession(OpenSession base, CreateSessionDraft draft) {
     return base.copyWith(
       title: draft.title ?? base.title,
-      description: draft.description ?? base.description,
-      sport: draft.sport ?? base.sport,
-      minLevel: draft.minLevel ?? base.minLevel,
-      maxLevel: draft.maxLevel ?? base.maxLevel,
+      description: draft.notes ?? base.description,
       venueId: draft.venueId ?? base.venueId,
       venueName: draft.venueName ?? base.venueName,
       date: draft.date ?? base.date,
       startTime: draft.startTime ?? base.startTime,
-      endTime: draft.endTime ?? base.endTime,
-      pricePerPerson: draft.pricePerPerson ?? base.pricePerPerson,
-      maxPlayers: draft.maxParticipants,
-      joinDeadline: draft.joinDeadline ?? base.joinDeadline,
-      pricingModel: draft.pricingModel,
-      visibility: draft.visibility,
-      courtCost: draft.courtCost ?? base.courtCost,
-      coachCost: draft.coachCost ?? base.coachCost,
-      organizerFeePerPerson:
-          draft.organizerFeePerPerson ?? base.organizerFeePerPerson,
+      endTime: _endTimeFrom(draft.startTime ?? base.startTime, draft.durationMinutes),
+      pricePerPerson: draft.price ?? base.pricePerPerson,
+      maxPlayers: draft.capacity ?? base.maxPlayers,
     );
   }
 
@@ -168,34 +172,98 @@ class MockOrganizerRepository implements OrganizerRepository {
 
     final session = OpenSession(
       id: id,
-      title: draft.title ?? 'Session Baru',
-      sport: draft.sport ?? MockData.sessions.first.sport,
+      title: draft.title?.trim().isNotEmpty == true
+          ? draft.title!.trim()
+          : 'Sesi Baru',
+      sport: MockData.sessions.first.sport,
       hostId: _organizerId,
       hostName: MockData.organizerUser.name,
       venueName: draft.venueName ?? 'Venue Belum Dipilih',
       venueId: draft.venueId ?? MockData.venues.first.id,
       date: draft.date ?? now.add(const Duration(days: 1)),
       startTime: draft.startTime ?? '19:00',
-      endTime: draft.endTime ?? '21:00',
+      endTime: _endTimeFrom(draft.startTime ?? '19:00', draft.durationMinutes),
       currentPlayers: 1,
-      maxPlayers: draft.maxParticipants,
-      minLevel: draft.minLevel,
-      maxLevel: draft.maxLevel,
-      pricePerPerson: draft.pricePerPerson ?? 100000,
-      description: draft.description,
+      maxPlayers: draft.capacity ?? 99,
+      pricePerPerson: draft.price ?? 0,
+      description: draft.notes,
       participantNames: [MockData.organizerUser.name],
       status: OpenSessionStatus.open,
-      joinDeadline: draft.joinDeadline ?? now.add(const Duration(hours: 12)),
-      pricingModel: draft.pricingModel,
-      visibility: draft.visibility,
-      courtCost: draft.courtCost,
-      coachCost: draft.coachCost,
-      organizerFeePerPerson: draft.organizerFeePerPerson,
       settlementStatus: SessionSettlementStatus.pending,
       health: const SessionHealth(),
     );
     MockData.upsertSession(session);
     return session;
+  }
+
+  @override
+  Future<List<CoachOption>> getCoaches() async {
+    await Future.delayed(_delay);
+    return const [
+      CoachOption(id: 1, name: 'Coach Joko', ratePerSession: 150000, currency: 'IDR'),
+      CoachOption(id: 2, name: 'Coach Aditya', ratePerSession: 200000, currency: 'IDR'),
+      CoachOption(id: 3, name: 'Coach Bima', ratePerSession: 175000, currency: 'IDR'),
+      CoachOption(id: 4, name: 'Coach Sari', ratePerSession: 160000, currency: 'IDR'),
+    ];
+  }
+
+  @override
+  Future<List<VenueOption>> getVenues() async {
+    await Future.delayed(_delay);
+    return MockData.venues
+        .map((v) => VenueOption(id: v.id, name: v.name))
+        .toList();
+  }
+
+  @override
+  Future<List<RecentSessionOption>> getRecentSessions() async {
+    await Future.delayed(_delay);
+    final sessions = [..._mySessions]..sort((a, b) => b.date.compareTo(a.date));
+    return sessions.take(10).map((s) {
+      final parts = s.startTime.split(':');
+      final startAt = DateTime(
+        s.date.year,
+        s.date.month,
+        s.date.day,
+        int.tryParse(parts.first) ?? 0,
+        parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0,
+      );
+      return RecentSessionOption(
+        id: s.id,
+        startAt: startAt,
+        type: SessionType.group,
+        coachName: s.hostName,
+        venueName: s.venueName,
+        createdAt: s.date,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<CreateSessionDraft> getDuplicatePayload(String sessionId) async {
+    await Future.delayed(_delay);
+    final s = await getSessionDetail(sessionId);
+    // Title & date are intentionally left blank (admin duplicate behaviour).
+    return CreateSessionDraft(
+      type: SessionType.group,
+      capacity: s.maxPlayers >= 99 ? null : s.maxPlayers,
+      venueId: s.venueId,
+      venueName: s.venueName,
+      price: s.pricePerPerson,
+      notes: s.description,
+    );
+  }
+
+  @override
+  Future<bool> isPayoutConfigured() async {
+    await Future.delayed(_delay);
+    return true; // flip to false to exercise the payment guard in the demo
+  }
+
+  @override
+  Future<void> uploadSessionCoverPhoto(String sessionId, File photo) async {
+    await Future.delayed(_delay);
+    // no-op in mock
   }
 
   @override

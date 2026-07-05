@@ -24,6 +24,10 @@ enum BookingType { court, coaching, openSession }
 
 enum LevelTier { rookie, amateur, intermediate, advanced, pro }
 
+/// Session kind. Wire values (`trial`/`group`/`private`) match the backend
+/// `StoreSessionRequest` `type` rule. `private` sessions carry no capacity.
+enum SessionType { trial, group, private }
+
 enum UserRole { player, coach, organizer, courtOwner }
 
 enum PaymentMethodType { qris, bankTransfer }

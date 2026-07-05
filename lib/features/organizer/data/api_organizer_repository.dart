@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:hyperarena/core/network/api_client.dart';
 import 'package:hyperarena/core/network/dio_error_handler.dart';
@@ -5,11 +7,13 @@ import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/features/organizer/data/models/club_member.dart';
 import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/organizer/data/models/create_session_draft.dart';
+import 'package:hyperarena/features/organizer/data/models/session_lookup_options.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
 import 'package:hyperarena/features/organizer/data/models/session_financial.dart';
 import 'package:hyperarena/features/organizer/data/organizer_repository.dart';
+import 'package:hyperarena/features/organizer/data/mock_organizer_repository.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
 
@@ -223,9 +227,39 @@ class ApiOrganizerRepository implements OrganizerRepository {
     }).toList();
   }
 
+  // TODO(backend): the mobile-organizer create endpoint and organizer-scoped
+  // lookup endpoints (coaches, venues, recent/duplicate, payout flag, cover
+  // upload) don't exist yet. Until they land, the create-session flow is
+  // served by a mock bridge so it's fully interactive on-device. Replace each
+  // delegate below with a real API call once the endpoints ship — the payload
+  // is already the exact StoreSessionRequest shape (toCreatePayload).
+  final MockOrganizerRepository _createSessionBridge = MockOrganizerRepository();
+
   @override
   Future<OpenSession> createSession(CreateSessionDraft draft) =>
-      throw UnimplementedError('createSession: backend endpoint not yet available');
+      _createSessionBridge.createSession(draft);
+
+  @override
+  Future<List<CoachOption>> getCoaches() => _createSessionBridge.getCoaches();
+
+  @override
+  Future<List<VenueOption>> getVenues() => _createSessionBridge.getVenues();
+
+  @override
+  Future<List<RecentSessionOption>> getRecentSessions() =>
+      _createSessionBridge.getRecentSessions();
+
+  @override
+  Future<CreateSessionDraft> getDuplicatePayload(String sessionId) =>
+      _createSessionBridge.getDuplicatePayload(sessionId);
+
+  @override
+  Future<bool> isPayoutConfigured() =>
+      _createSessionBridge.isPayoutConfigured();
+
+  @override
+  Future<void> uploadSessionCoverPhoto(String sessionId, File photo) =>
+      _createSessionBridge.uploadSessionCoverPhoto(sessionId, photo);
 
   @override
   Future<OpenSession> updateSession(

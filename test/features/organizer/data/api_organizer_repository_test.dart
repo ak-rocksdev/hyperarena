@@ -109,9 +109,15 @@ void main() {
             {
               'id': 1,
               'user': {'name': 'Coach Joko'},
-              'current_rate': 150000,
+              // Real admin serializer nests the rate as a CoachRate object.
+              'current_rate': {
+                'id': 17,
+                'coach_id': 1,
+                'rate_per_session': 150000,
+                'currency': 'IDR',
+              },
             },
-            {'id': 2, 'user': null, 'name': 'Coach Sari'},
+            {'id': 2, 'user': null, 'name': 'Coach Sari', 'current_rate': null},
           ],
         }),
       );

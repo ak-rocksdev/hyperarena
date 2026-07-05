@@ -283,12 +283,23 @@ class ApiOrganizerRepository implements OrganizerRepository {
                   : null) ??
               json['name'] as String? ??
               'Coach',
-          ratePerSession: (json['current_rate'] as num?)?.toInt(),
+          ratePerSession: _rateOf(json['current_rate']),
         );
       }).toList();
     } on DioException catch (e) {
       rethrowDio(e);
     }
+  }
+
+  /// `current_rate` arrives as the full CoachRate object
+  /// (`{rate_per_session, currency, …}`) from the admin serializer — but a
+  /// leaner deploy might send a bare number. Handle both, never throw.
+  static int? _rateOf(dynamic currentRate) {
+    if (currentRate is num) return currentRate.toInt();
+    if (currentRate is Map<String, dynamic>) {
+      return (currentRate['rate_per_session'] as num?)?.toInt();
+    }
+    return null;
   }
 
   @override

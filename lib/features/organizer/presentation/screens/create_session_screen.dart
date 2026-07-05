@@ -24,6 +24,7 @@ import 'package:hyperarena/features/organizer/presentation/widgets/create_sessio
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/section_card.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_ticket_card.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_type_cards.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/time_wheel_picker.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/venue_picker_sheet.dart';
 import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
@@ -498,21 +499,11 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   }
 
   Future<void> _pickTime() async {
-    final current = ref.read(createSessionDraftProvider).startTime;
-    final initial = current != null
-        ? TimeOfDay(
-            hour: int.tryParse(current.split(':').first) ?? 8,
-            minute: int.tryParse(current.split(':').last) ?? 0,
-          )
-        : const TimeOfDay(hour: 8, minute: 0);
-    final picked = await showTimePicker(context: context, initialTime: initial);
-    if (picked != null) {
-      final snapped = ((picked.minute / 15).round() * 15) % 60;
-      final hour = (picked.minute > 52) ? (picked.hour + 1) % 24 : picked.hour;
-      _notifier.setStartTime(
-        '${hour.toString().padLeft(2, '0')}:${snapped.toString().padLeft(2, '0')}',
-      );
-    }
+    final picked = await showTimeWheelPicker(
+      context,
+      initial: ref.read(createSessionDraftProvider).startTime,
+    );
+    if (picked != null) _notifier.setStartTime(picked);
   }
 
   Future<void> _pickVenue() async {

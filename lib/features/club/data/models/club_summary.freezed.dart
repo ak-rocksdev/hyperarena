@@ -531,6 +531,8 @@ ClubStats _$ClubStatsFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$ClubStats {
+  @JsonKey(name: 'total_members_count')
+  int get totalMembersCount => throw _privateConstructorUsedError;
   @JsonKey(name: 'active_members_count')
   int get activeMembersCount => throw _privateConstructorUsedError;
   @JsonKey(name: 'active_coaches_count')
@@ -558,6 +560,7 @@ abstract class $ClubStatsCopyWith<$Res> {
       _$ClubStatsCopyWithImpl<$Res, ClubStats>;
   @useResult
   $Res call({
+    @JsonKey(name: 'total_members_count') int totalMembersCount,
     @JsonKey(name: 'active_members_count') int activeMembersCount,
     @JsonKey(name: 'active_coaches_count') int activeCoachesCount,
     @JsonKey(name: 'sessions_this_month') int sessionsThisMonth,
@@ -581,6 +584,7 @@ class _$ClubStatsCopyWithImpl<$Res, $Val extends ClubStats>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? totalMembersCount = null,
     Object? activeMembersCount = null,
     Object? activeCoachesCount = null,
     Object? sessionsThisMonth = null,
@@ -589,6 +593,10 @@ class _$ClubStatsCopyWithImpl<$Res, $Val extends ClubStats>
   }) {
     return _then(
       _value.copyWith(
+            totalMembersCount: null == totalMembersCount
+                ? _value.totalMembersCount
+                : totalMembersCount // ignore: cast_nullable_to_non_nullable
+                      as int,
             activeMembersCount: null == activeMembersCount
                 ? _value.activeMembersCount
                 : activeMembersCount // ignore: cast_nullable_to_non_nullable
@@ -625,6 +633,7 @@ abstract class _$$ClubStatsImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    @JsonKey(name: 'total_members_count') int totalMembersCount,
     @JsonKey(name: 'active_members_count') int activeMembersCount,
     @JsonKey(name: 'active_coaches_count') int activeCoachesCount,
     @JsonKey(name: 'sessions_this_month') int sessionsThisMonth,
@@ -647,6 +656,7 @@ class __$$ClubStatsImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? totalMembersCount = null,
     Object? activeMembersCount = null,
     Object? activeCoachesCount = null,
     Object? sessionsThisMonth = null,
@@ -655,6 +665,10 @@ class __$$ClubStatsImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$ClubStatsImpl(
+        totalMembersCount: null == totalMembersCount
+            ? _value.totalMembersCount
+            : totalMembersCount // ignore: cast_nullable_to_non_nullable
+                  as int,
         activeMembersCount: null == activeMembersCount
             ? _value.activeMembersCount
             : activeMembersCount // ignore: cast_nullable_to_non_nullable
@@ -684,6 +698,7 @@ class __$$ClubStatsImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ClubStatsImpl implements _ClubStats {
   const _$ClubStatsImpl({
+    @JsonKey(name: 'total_members_count') this.totalMembersCount = 0,
     @JsonKey(name: 'active_members_count') this.activeMembersCount = 0,
     @JsonKey(name: 'active_coaches_count') this.activeCoachesCount = 0,
     @JsonKey(name: 'sessions_this_month') this.sessionsThisMonth = 0,
@@ -694,6 +709,9 @@ class _$ClubStatsImpl implements _ClubStats {
   factory _$ClubStatsImpl.fromJson(Map<String, dynamic> json) =>
       _$$ClubStatsImplFromJson(json);
 
+  @override
+  @JsonKey(name: 'total_members_count')
+  final int totalMembersCount;
   @override
   @JsonKey(name: 'active_members_count')
   final int activeMembersCount;
@@ -712,7 +730,7 @@ class _$ClubStatsImpl implements _ClubStats {
 
   @override
   String toString() {
-    return 'ClubStats(activeMembersCount: $activeMembersCount, activeCoachesCount: $activeCoachesCount, sessionsThisMonth: $sessionsThisMonth, outstandingTotal: $outstandingTotal, outstandingCount: $outstandingCount)';
+    return 'ClubStats(totalMembersCount: $totalMembersCount, activeMembersCount: $activeMembersCount, activeCoachesCount: $activeCoachesCount, sessionsThisMonth: $sessionsThisMonth, outstandingTotal: $outstandingTotal, outstandingCount: $outstandingCount)';
   }
 
   @override
@@ -720,6 +738,8 @@ class _$ClubStatsImpl implements _ClubStats {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ClubStatsImpl &&
+            (identical(other.totalMembersCount, totalMembersCount) ||
+                other.totalMembersCount == totalMembersCount) &&
             (identical(other.activeMembersCount, activeMembersCount) ||
                 other.activeMembersCount == activeMembersCount) &&
             (identical(other.activeCoachesCount, activeCoachesCount) ||
@@ -736,6 +756,7 @@ class _$ClubStatsImpl implements _ClubStats {
   @override
   int get hashCode => Object.hash(
     runtimeType,
+    totalMembersCount,
     activeMembersCount,
     activeCoachesCount,
     sessionsThisMonth,
@@ -759,6 +780,7 @@ class _$ClubStatsImpl implements _ClubStats {
 
 abstract class _ClubStats implements ClubStats {
   const factory _ClubStats({
+    @JsonKey(name: 'total_members_count') final int totalMembersCount,
     @JsonKey(name: 'active_members_count') final int activeMembersCount,
     @JsonKey(name: 'active_coaches_count') final int activeCoachesCount,
     @JsonKey(name: 'sessions_this_month') final int sessionsThisMonth,
@@ -769,6 +791,9 @@ abstract class _ClubStats implements ClubStats {
   factory _ClubStats.fromJson(Map<String, dynamic> json) =
       _$ClubStatsImpl.fromJson;
 
+  @override
+  @JsonKey(name: 'total_members_count')
+  int get totalMembersCount;
   @override
   @JsonKey(name: 'active_members_count')
   int get activeMembersCount;

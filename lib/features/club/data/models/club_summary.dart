@@ -37,6 +37,7 @@ class ClubTenant with _$ClubTenant {
 @freezed
 class ClubStats with _$ClubStats {
   const factory ClubStats({
+    @JsonKey(name: 'total_members_count') @Default(0) int totalMembersCount,
     @JsonKey(name: 'active_members_count') @Default(0) int activeMembersCount,
     @JsonKey(name: 'active_coaches_count') @Default(0) int activeCoachesCount,
     @JsonKey(name: 'sessions_this_month') @Default(0) int sessionsThisMonth,

@@ -734,8 +734,8 @@ class _ClubStatsCard extends ConsumerWidget {
             Expanded(
               child: _StatTile(
                 label: 'ANGGOTA',
-                value: stats.activeMembersCount.toString(),
-                hint: 'aktif 30 hari',
+                value: stats.totalMembersCount.toString(),
+                hint: 'total terdaftar',
                 color: AppColors.primary900,
               ),
             ),

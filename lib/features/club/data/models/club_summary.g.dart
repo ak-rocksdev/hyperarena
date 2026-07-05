@@ -41,6 +41,7 @@ Map<String, dynamic> _$$ClubTenantImplToJson(_$ClubTenantImpl instance) =>
 
 _$ClubStatsImpl _$$ClubStatsImplFromJson(Map<String, dynamic> json) =>
     _$ClubStatsImpl(
+      totalMembersCount: (json['total_members_count'] as num?)?.toInt() ?? 0,
       activeMembersCount: (json['active_members_count'] as num?)?.toInt() ?? 0,
       activeCoachesCount: (json['active_coaches_count'] as num?)?.toInt() ?? 0,
       sessionsThisMonth: (json['sessions_this_month'] as num?)?.toInt() ?? 0,
@@ -50,6 +51,7 @@ _$ClubStatsImpl _$$ClubStatsImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$ClubStatsImplToJson(_$ClubStatsImpl instance) =>
     <String, dynamic>{
+      'total_members_count': instance.totalMembersCount,
       'active_members_count': instance.activeMembersCount,
       'active_coaches_count': instance.activeCoachesCount,
       'sessions_this_month': instance.sessionsThisMonth,

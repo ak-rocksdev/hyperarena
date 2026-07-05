@@ -7,16 +7,22 @@ import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
+import 'package:hyperarena/core/theme/app_shadows.dart';
+import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/create_session_draft.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/capacity_selector.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/coach_picker_sheet.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/create_session_header.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/duplicate_picker.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/duration_pills.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/payment_guard_sheet.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/picker_tile.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/post_create_photo_prompt.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/section_card.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_ticket_card.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_type_cards.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/venue_picker_sheet.dart';
 import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
@@ -25,7 +31,8 @@ import 'package:hyperarena/routing/app_routes.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// Two-step create-session flow aligned to the backend `StoreSessionRequest`
-/// contract. Step 1 = Detail (type, title, coaches); Step 2 = Jadwal & Rincian.
+/// contract. Step 1 = Detail (type, title, coaches); Step 2 = Jadwal & Rincian,
+/// anchored by a live session-ticket preview.
 class CreateSessionScreen extends ConsumerStatefulWidget {
   const CreateSessionScreen({super.key});
 
@@ -60,6 +67,14 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
   CreateSessionDraftNotifier get _notifier =>
       ref.read(createSessionDraftProvider.notifier);
+
+  void _back() {
+    if (_step == 1) {
+      setState(() => _step = 0);
+    } else {
+      context.pop();
+    }
+  }
 
   Future<void> _checkPaymentGuard() async {
     final ready =
@@ -138,208 +153,339 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   Widget build(BuildContext context) {
     final draft = ref.watch(createSessionDraftProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buat Sesi'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(28),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-            child: Text(
-              'Langkah ${_step + 1}/2 · ${_step == 0 ? 'Detail' : 'Jadwal & Rincian'}',
-              style:
-                  AppTypography.caption.copyWith(color: AppColors.textTertiary),
-            ),
-          ),
-        ),
-      ),
+      backgroundColor: AppSurfaces.background,
       body: Column(
         children: [
+          CreateSessionHeader(step: _step, onBack: _back),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.base,
+                AppDimensions.base,
+                AppDimensions.base,
+                AppDimensions.xxl,
+              ),
               child: _step == 0 ? _buildStep1(draft) : _buildStep2(draft),
             ),
           ),
-          if (_error != null)
-            Container(
-              width: double.infinity,
-              color: AppColors.errorLight,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.lg, vertical: AppDimensions.sm),
-              child: Text(_error!,
-                  style: AppTypography.caption
-                      .copyWith(color: AppColors.errorDark)),
-            ),
+          if (_error != null) _errorBanner(),
           _buildFooter(draft),
         ],
       ),
     );
   }
 
+  // ── Step 1: Detail ──────────────────────────────────────────────────
   Widget _buildStep1(CreateSessionDraft draft) {
     final recent = ref.watch(createSessionRecentProvider).valueOrNull ?? [];
     final coaches = ref.watch(createSessionCoachesProvider).valueOrNull ?? [];
+    final showDuplicate = recent.isNotEmpty || _appliedDuplicateLabel != null;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DuplicatePicker(
-          recent: recent,
-          onPicked: _onDuplicatePicked,
-          appliedLabel: _appliedDuplicateLabel,
-          onClear: _clearDuplicate,
-        ),
-        const SizedBox(height: AppDimensions.xl),
-        _label('TIPE SESI'),
-        SessionTypeCards(value: draft.type, onChanged: _notifier.setType),
-        const SizedBox(height: AppDimensions.xl),
-        _label('JUDUL', optional: true),
-        TextField(
-          controller: _titleCtrl,
-          maxLength: 200,
-          onChanged: _notifier.setTitle,
-          decoration: const InputDecoration(
-            hintText: 'mis. Latihan Grup Kamis Pagi',
-            counterText: '',
+        if (showDuplicate) ...[
+          FormSectionCard(
+            eyebrow: 'MULAI CEPAT',
+            helper: 'Salin detail dari sesi sebelumnya, lalu sesuaikan.',
+            child: DuplicatePicker(
+              recent: recent,
+              onPicked: _onDuplicatePicked,
+              appliedLabel: _appliedDuplicateLabel,
+              onClear: _clearDuplicate,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.md),
+        ],
+        FormSectionCard(
+          eyebrow: 'JENIS SESI',
+          helper: 'Trial & group bisa dibatasi kapasitasnya; privat 1-on-1.',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SessionTypeCards(value: draft.type, onChanged: _notifier.setType),
+              const SizedBox(height: AppDimensions.base),
+              TextField(
+                controller: _titleCtrl,
+                maxLength: 200,
+                onChanged: _notifier.setTitle,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Judul (opsional)',
+                  hintText: 'mis. Latihan Grup Kamis Pagi',
+                  counterText: '',
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppDimensions.lg),
-        _label('COACH'),
-        _CoachField(
-          coaches: coaches,
-          selectedIds: draft.coachIds,
-          onOpen: () async {
-            final result = await showCoachPicker(context,
-                coaches: coaches, selected: draft.coachIds);
-            if (result != null) _notifier.setCoaches(result);
-          },
-          onRemove: _notifier.toggleCoach,
+        const SizedBox(height: AppDimensions.md),
+        FormSectionCard(
+          eyebrow: 'COACH',
+          helper: 'Minimal satu coach memimpin sesi.',
+          trailing: draft.coachIds.isNotEmpty
+              ? _CountPill(count: draft.coachIds.length)
+              : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PickerTile(
+                icon: Icons.sports_tennis_outlined,
+                label: 'Coach',
+                placeholder: 'Pilih coach',
+                value: draft.coachIds.isEmpty
+                    ? null
+                    : '${draft.coachIds.length} coach dipilih',
+                onTap: () async {
+                  final result = await showCoachPicker(context,
+                      coaches: coaches, selected: draft.coachIds);
+                  if (result != null) _notifier.setCoaches(result);
+                },
+              ),
+              if (draft.coachIds.isNotEmpty) ...[
+                const SizedBox(height: AppDimensions.md),
+                SelectedCoachChips(
+                  coaches: coaches,
+                  selectedIds: draft.coachIds,
+                  onRemove: _notifier.toggleCoach,
+                ),
+              ],
+            ],
+          ),
         ),
       ],
     );
   }
 
+  // ── Step 2: Jadwal & rincian ────────────────────────────────────────
   Widget _buildStep2(CreateSessionDraft draft) {
     final currency = ref.watch(tenantCurrencyProvider);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _label('JADWAL'),
-        Row(
-          children: [
-            Expanded(
-              child: _PickerField(
-                icon: Icons.calendar_today_outlined,
-                label: draft.date != null
-                    ? Formatters.formatDate(draft.date!)
-                    : 'Tanggal',
-                filled: draft.date != null,
-                onTap: _pickDate,
-              ),
-            ),
-            const SizedBox(width: AppDimensions.sm),
-            Expanded(
-              child: _PickerField(
-                icon: Icons.schedule_outlined,
-                label: draft.startTime ?? 'Jam',
-                filled: draft.startTime != null,
-                onTap: _pickTime,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppDimensions.lg),
-        _label('DURASI'),
-        DurationPills(
-          value: draft.durationMinutes,
-          onChanged: _notifier.setDuration,
-        ),
-        if (draft.type != SessionType.private) ...[
-          const SizedBox(height: AppDimensions.xl),
-          _label('KAPASITAS'),
-          CapacitySelector(
-            value: draft.capacity,
-            onChanged: _notifier.setCapacity,
-            defaultLimit: draft.type == SessionType.trial ? 10 : 15,
-          ),
-        ],
-        const SizedBox(height: AppDimensions.xl),
-        _label('VENUE', optional: true),
-        _VenueField(
-          venueName: draft.venueName,
-          onOpen: _pickVenue,
-          onClear: _notifier.clearVenue,
-        ),
-        const SizedBox(height: AppDimensions.lg),
-        _label('HARGA SESI', optional: true),
-        TextField(
-          controller: _priceCtrl,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (v) {
-            final n = num.tryParse(v);
-            _notifier.setPrice(
-                n == null ? null : Formatters.toMinorUnits(n, currency));
-          },
-          decoration: InputDecoration(
-            prefixText: '${Formatters.currencySymbol(currency)} ',
-            hintText: 'Kosongkan untuk gratis',
-          ),
-        ),
-        const SizedBox(height: AppDimensions.lg),
-        _label('CATATAN', optional: true),
-        TextField(
-          controller: _notesCtrl,
-          maxLines: 3,
-          maxLength: 2000,
-          onChanged: _notifier.setNotes,
-          decoration: const InputDecoration(counterText: ''),
-        ),
-      ],
-    );
-  }
+    final isPrivate = draft.type == SessionType.private;
 
-  Widget _buildFooter(CreateSessionDraft draft) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.lg),
-        child: _step == 0
-            ? SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed:
-                      draft.step1Valid ? () => setState(() => _step = 1) : null,
-                  child: const Text('Lanjut'),
-                ),
-              )
-            : Row(
+    return Column(
+      children: [
+        SessionTicketCard(
+          type: draft.type,
+          title: _titleCtrl.text,
+          whenLine: _whenLine(draft),
+          capacityText: _capacityText(draft),
+          priceText: draft.price == null
+              ? 'Gratis'
+              : Formatters.formatCurrency(draft.price!, currency),
+        ),
+        const SizedBox(height: AppDimensions.md),
+        FormSectionCard(
+          eyebrow: 'WAKTU & DURASI',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  OutlinedButton(
-                    onPressed:
-                        _submitting ? null : () => setState(() => _step = 0),
-                    child: const Text('Kembali'),
+                  Expanded(
+                    child: PickerTile(
+                      icon: Icons.calendar_today_outlined,
+                      label: 'Tanggal',
+                      placeholder: 'Pilih',
+                      value: draft.date != null
+                          ? Formatters.formatDate(draft.date!)
+                          : null,
+                      onTap: _pickDate,
+                      trailing: const SizedBox.shrink(),
+                    ),
                   ),
                   const SizedBox(width: AppDimensions.sm),
                   Expanded(
-                    child: FilledButton(
-                      onPressed:
-                          (!_submitting && draft.canSubmit) ? _submit : null,
-                      child: _submitting
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Text('Terbitkan Sesi'),
+                    child: PickerTile(
+                      icon: Icons.schedule_outlined,
+                      label: 'Jam',
+                      placeholder: 'Pilih',
+                      value: draft.startTime,
+                      onTap: _pickTime,
+                      trailing: const SizedBox.shrink(),
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: AppDimensions.base),
+              DurationPills(
+                value: draft.durationMinutes,
+                onChanged: _notifier.setDuration,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppDimensions.md),
+        FormSectionCard(
+          eyebrow: isPrivate ? 'TEMPAT' : 'KAPASITAS & TEMPAT',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!isPrivate) ...[
+                CapacitySelector(
+                  value: draft.capacity,
+                  onChanged: _notifier.setCapacity,
+                  defaultLimit: draft.type == SessionType.trial ? 10 : 15,
+                ),
+                const SizedBox(height: AppDimensions.base),
+              ],
+              _venueField(draft),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppDimensions.md),
+        FormSectionCard(
+          eyebrow: 'BIAYA & CATATAN',
+          optional: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _priceCtrl,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (v) {
+                  final n = num.tryParse(v);
+                  _notifier.setPrice(n == null
+                      ? null
+                      : Formatters.toMinorUnits(n, currency));
+                },
+                decoration: InputDecoration(
+                  labelText: 'Harga per sesi',
+                  prefixText: Formatters.currencySymbol(currency),
+                  hintText: 'Kosongkan untuk gratis',
+                ),
+              ),
+              const SizedBox(height: AppDimensions.md),
+              TextField(
+                controller: _notesCtrl,
+                maxLines: 3,
+                maxLength: 2000,
+                onChanged: _notifier.setNotes,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Catatan',
+                  hintText: 'Info tambahan untuk peserta…',
+                  counterText: '',
+                  alignLabelWithHint: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _venueField(CreateSessionDraft draft) {
+    if (draft.venueName == null) {
+      return PickerTile(
+        icon: Icons.place_outlined,
+        label: 'Venue (opsional)',
+        placeholder: 'Pilih atau buat venue',
+        value: null,
+        onTap: _pickVenue,
+      );
+    }
+    return PickerTile(
+      icon: Icons.place,
+      label: 'Venue',
+      value: draft.venueName,
+      onTap: _pickVenue,
+      trailing: IconButton(
+        visualDensity: VisualDensity.compact,
+        onPressed: _notifier.clearVenue,
+        icon: const Icon(Icons.close, size: 18, color: AppColors.textTertiary),
       ),
     );
   }
 
+  // ── Footer ──────────────────────────────────────────────────────────
+  Widget _buildFooter(CreateSessionDraft draft) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppSurfaces.surface,
+        border: const Border(top: BorderSide(color: AppColors.neutral100)),
+        boxShadow: AppShadows.bottomNav,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppDimensions.base,
+              AppDimensions.md, AppDimensions.base, AppDimensions.md),
+          child: _step == 0
+              ? SizedBox(
+                  height: AppDimensions.buttonHeightLg,
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: draft.step1Valid
+                        ? () => setState(() => _step = 1)
+                        : null,
+                    child: const Text('Lanjut ke jadwal'),
+                  ),
+                )
+              : Row(
+                  children: [
+                    SizedBox(
+                      height: AppDimensions.buttonHeightLg,
+                      child: OutlinedButton(
+                        onPressed: _submitting
+                            ? null
+                            : () => setState(() => _step = 0),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimensions.base),
+                        ),
+                        child: const Icon(Icons.arrow_back, size: 20),
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.sm),
+                    Expanded(
+                      child: SizedBox(
+                        height: AppDimensions.buttonHeightLg,
+                        child: FilledButton.icon(
+                          onPressed: (!_submitting && draft.canSubmit)
+                              ? _submit
+                              : null,
+                          icon: _submitting
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.check_circle_outline, size: 20),
+                          label: Text(
+                              _submitting ? 'Menerbitkan…' : 'Terbitkan sesi'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _errorBanner() {
+    return Container(
+      width: double.infinity,
+      color: AppColors.errorLight,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.base, vertical: AppDimensions.sm),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, size: 16, color: AppColors.errorDark),
+          const SizedBox(width: AppDimensions.sm),
+          Expanded(
+            child: Text(_error!,
+                style:
+                    AppTypography.caption.copyWith(color: AppColors.errorDark)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Pickers ─────────────────────────────────────────────────────────
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -361,7 +507,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
         : const TimeOfDay(hour: 8, minute: 0);
     final picked = await showTimePicker(context: context, initialTime: initial);
     if (picked != null) {
-      // Snap the minutes to the nearest quarter hour.
       final snapped = ((picked.minute / 15).round() * 15) % 60;
       final hour = (picked.minute > 52) ? (picked.hour + 1) % 24 : picked.hour;
       _notifier.setStartTime(
@@ -378,151 +523,39 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     if (picked != null) _notifier.setVenue(id: picked.id, name: picked.name);
   }
 
-  Widget _label(String text, {bool optional = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-      child: Row(
-        children: [
-          Text(text,
-              style: AppTypography.overline.copyWith(
-                color: AppColors.textTertiary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-              )),
-          if (optional) ...[
-            const SizedBox(width: 6),
-            Text('(opsional)',
-                style: AppTypography.caption
-                    .copyWith(color: AppColors.textTertiary)),
-          ],
-        ],
-      ),
-    );
+  // ── Ticket helpers ──────────────────────────────────────────────────
+  String? _whenLine(CreateSessionDraft draft) {
+    if (draft.date == null || draft.startTime == null) return null;
+    final d = draft.date!;
+    return '${Formatters.formatDayShort(d)}, ${Formatters.formatDateShort(d)}'
+        ' · ${draft.startTime} · ${draft.durationMinutes} mnt';
+  }
+
+  String _capacityText(CreateSessionDraft draft) {
+    if (draft.type == SessionType.private) return '1 orang';
+    if (draft.capacity == null) return 'Tak terbatas';
+    return '${draft.capacity} orang';
   }
 }
 
-class _CoachField extends StatelessWidget {
-  const _CoachField({
-    required this.coaches,
-    required this.selectedIds,
-    required this.onOpen,
-    required this.onRemove,
-  });
+class _CountPill extends StatelessWidget {
+  const _CountPill({required this.count});
 
-  final List coaches;
-  final List<int> selectedIds;
-  final VoidCallback onOpen;
-  final ValueChanged<int> onRemove;
+  final int count;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        OutlinedButton.icon(
-          onPressed: onOpen,
-          icon: const Icon(Icons.add, size: 18),
-          label: Text(selectedIds.isEmpty ? 'Pilih coach' : 'Ubah coach'),
-        ),
-        if (selectedIds.isNotEmpty) ...[
-          const SizedBox(height: AppDimensions.sm),
-          SelectedCoachChips(
-            coaches: coaches.cast(),
-            selectedIds: selectedIds,
-            onRemove: onRemove,
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _VenueField extends StatelessWidget {
-  const _VenueField({
-    required this.venueName,
-    required this.onOpen,
-    required this.onClear,
-  });
-
-  final String? venueName;
-  final VoidCallback onOpen;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    if (venueName == null) {
-      return OutlinedButton.icon(
-        onPressed: onOpen,
-        icon: const Icon(Icons.place_outlined, size: 18),
-        label: const Text('Pilih / buat venue'),
-      );
-    }
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.base, vertical: AppDimensions.sm),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        border: Border.all(color: AppColors.neutral200),
+        color: AppColors.primary50,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.place, size: 18, color: AppColors.primary),
-          const SizedBox(width: AppDimensions.sm),
-          Expanded(child: Text(venueName!, style: AppTypography.bodyMedium)),
-          GestureDetector(
-            onTap: onOpen,
-            child: Text('Ubah',
-                style: AppTypography.labelMedium.copyWith(
-                    color: AppColors.primary, fontWeight: FontWeight.w700)),
-          ),
-          const SizedBox(width: AppDimensions.md),
-          GestureDetector(
-            onTap: onClear,
-            child: const Icon(Icons.close,
-                size: 18, color: AppColors.textTertiary),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PickerField extends StatelessWidget {
-  const _PickerField({
-    required this.icon,
-    required this.label,
-    required this.filled,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool filled;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.base, vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(color: AppColors.neutral300),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: AppColors.textSecondary),
-            const SizedBox(width: AppDimensions.sm),
-            Text(
-              label,
-              style: AppTypography.bodyMedium.copyWith(
-                color: filled ? AppColors.textPrimary : AppColors.textTertiary,
-              ),
-            ),
-          ],
+      child: Text(
+        '$count dipilih',
+        style: AppTypography.labelSmall.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

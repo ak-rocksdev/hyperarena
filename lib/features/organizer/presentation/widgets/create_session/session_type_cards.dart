@@ -64,7 +64,7 @@ class _Card extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(
           vertical: AppDimensions.base,
           horizontal: AppDimensions.xs,
@@ -77,28 +77,55 @@ class _Card extends StatelessWidget {
             width: selected ? 2 : 1,
           ),
         ),
-        child: Column(
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            Icon(
-              type.icon,
-              size: 24,
-              color: selected ? AppColors.primary : AppColors.neutral500,
+            Column(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.primary : AppColors.neutral100,
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                  ),
+                  child: Icon(
+                    type.icon,
+                    size: 22,
+                    color: selected ? Colors.white : AppColors.neutral500,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.sm),
+                Text(
+                  type.label,
+                  style: AppTypography.titleSmall.copyWith(
+                    color:
+                        selected ? AppColors.primary900 : AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  type.description,
+                  style: AppTypography.caption.copyWith(
+                    color: selected ? AppColors.primary : AppColors.textTertiary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppDimensions.xs),
-            Text(
-              type.label,
-              style: AppTypography.titleSmall.copyWith(
-                color: selected ? AppColors.primary900 : AppColors.textPrimary,
-                fontWeight: FontWeight.w700,
+            if (selected)
+              Positioned(
+                top: -4,
+                right: -4,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: const Icon(Icons.check, size: 12, color: Colors.white),
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              type.description,
-              style: AppTypography.caption.copyWith(
-                color: selected ? AppColors.primary : AppColors.textTertiary,
-              ),
-            ),
           ],
         ),
       ),

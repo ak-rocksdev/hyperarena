@@ -79,8 +79,10 @@ class _Card extends StatelessWidget {
         ),
         child: Stack(
           clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
           children: [
             Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   width: 44,

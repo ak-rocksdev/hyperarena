@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/network/api_exceptions.dart';
@@ -11,6 +10,7 @@ import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_shadows.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/utils/currency_input_formatter.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/create_session_draft.dart';
@@ -98,7 +98,11 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     _titleCtrl.text = payload.title ?? '';
     _notesCtrl.text = payload.notes ?? '';
     _priceCtrl.text = payload.price != null
-        ? Formatters.fromMinorUnits(payload.price!, currency).toString()
+        ? Formatters.groupDigits(
+            Formatters.fromMinorUnits(payload.price!, currency)
+                .toInt()
+                .toString(),
+            currency)
         : '';
     final recent = ref.read(createSessionRecentProvider).valueOrNull ?? [];
     final match = recent.where((r) => r.id == sessionId).firstOrNull;
@@ -287,16 +291,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
     return Column(
       children: [
-        SessionTicketCard(
-          type: draft.type,
-          title: _titleCtrl.text,
-          whenLine: _whenLine(draft),
-          capacityText: _capacityText(draft),
-          priceText: draft.price == null
-              ? 'Gratis'
-              : Formatters.formatCurrency(draft.price!, currency),
-        ),
-        const SizedBox(height: AppDimensions.md),
         FormSectionCard(
           eyebrow: 'WAKTU & DURASI',
           child: Column(
@@ -365,16 +359,18 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
               TextField(
                 controller: _priceCtrl,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [ThousandsSeparatorInputFormatter(currency)],
                 onChanged: (v) {
-                  final n = num.tryParse(v);
-                  _notifier.setPrice(n == null
-                      ? null
-                      : Formatters.toMinorUnits(n, currency));
+                  // Strip the grouping separators the mask inserts before
+                  // parsing, else "185.000" reads as 185.0.
+                  final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
+                  final n = int.tryParse(digits);
+                  _notifier.setPrice(
+                      n == null ? null : Formatters.toMinorUnits(n, currency));
                 },
                 decoration: InputDecoration(
                   labelText: 'Harga per sesi',
-                  prefixText: Formatters.currencySymbol(currency),
+                  prefixText: '${Formatters.currencySymbol(currency)} ',
                   hintText: 'Kosongkan untuk gratis',
                 ),
               ),
@@ -394,6 +390,18 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: AppDimensions.md),
+        // Live preview sits at the foot of the form: it reads as the result of
+        // the fields above and updates as they scroll down to it.
+        SessionTicketCard(
+          type: draft.type,
+          title: _titleCtrl.text,
+          whenLine: _whenLine(draft),
+          capacityText: _capacityText(draft),
+          priceText: draft.price == null
+              ? 'Gratis'
+              : Formatters.formatCurrency(draft.price!, currency),
         ),
       ],
     );
@@ -490,8 +498,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                                       strokeWidth: 2, color: Colors.white),
                                 )
                               : const Icon(Icons.check_circle_outline, size: 20),
-                          label: Text(
-                              _submitting ? 'Menerbitkan…' : 'Terbitkan sesi'),
+                          label: Text(_submitting ? 'Membuat…' : 'Buat Sesi'),
                         ),
                       ),
                     ),

@@ -59,7 +59,7 @@ class SessionTicketCard extends StatelessWidget {
                           _TypeBadge(type: type),
                           const Spacer(),
                           Text(
-                            'PRATINJAU',
+                            'PREVIEW',
                             style: AppTypography.overline.copyWith(
                               color: AppColors.textTertiary,
                               fontWeight: FontWeight.w700,

@@ -59,8 +59,18 @@ abstract final class Formatters {
           decimalDigits: isZeroDecimal ? 0 : 2,
         ),
         decimal: NumberFormat('0.#', locale),
+        grouping: NumberFormat.decimalPattern(locale),
       );
     });
+  }
+
+  /// Group a run of digits with the currency locale's thousands separator:
+  /// `groupDigits('185000', 'IDR')` → "185.000", `…, 'USD')` → "185,000".
+  /// Used by the price-field input mask. Empty/non-numeric input → "".
+  static String groupDigits(String digits, String currency) {
+    final n = int.tryParse(digits);
+    if (n == null) return '';
+    return _specFor(currency.toUpperCase()).grouping.format(n);
   }
 
   /// Locale-aware currency formatter.
@@ -317,11 +327,13 @@ class _CurrencySpec {
   final int multiplier;
   final NumberFormat currency;
   final NumberFormat decimal;
+  final NumberFormat grouping;
 
   const _CurrencySpec({
     required this.symbol,
     required this.multiplier,
     required this.currency,
     required this.decimal,
+    required this.grouping,
   });
 }

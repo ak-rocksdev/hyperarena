@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:hyperarena/features/organizer/data/models/club_member.dart';
 import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/organizer/data/models/create_session_draft.dart';
+import 'package:hyperarena/features/organizer/data/models/session_lookup_options.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_action_item.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
@@ -18,6 +21,27 @@ abstract class OrganizerRepository {
   Future<OpenSession> getSessionDetail(String sessionId);
 
   Future<OpenSession> createSession(CreateSessionDraft draft);
+
+  // ── Create-session lookups & helpers ──
+  /// Coaches assignable to a session (tenant scope).
+  Future<List<CoachOption>> getCoaches();
+
+  /// Active venues selectable for a session.
+  Future<List<VenueOption>> getVenues();
+
+  /// Recent sessions offered by the "duplicate" accelerator.
+  Future<List<RecentSessionOption>> getRecentSessions();
+
+  /// Pre-fill payload for duplicating [sessionId] (title & date cleared).
+  Future<CreateSessionDraft> getDuplicatePayload(String sessionId);
+
+  /// Whether the tenant has configured payout/bank details — a precondition
+  /// for creating any session.
+  Future<bool> isPayoutConfigured();
+
+  /// Upload a cover photo to an already-created session.
+  Future<void> uploadSessionCoverPhoto(String sessionId, File photo);
+
   Future<OpenSession> updateSession(String sessionId, CreateSessionDraft draft);
   Future<OpenSession> duplicateSession(
     String sessionId, {

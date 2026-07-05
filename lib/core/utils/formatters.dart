@@ -76,6 +76,23 @@ abstract final class Formatters {
     return spec.currency.format(display);
   }
 
+  /// Minor-unit multiplier for a currency: 1 for zero-decimal currencies
+  /// (IDR — the amount already IS rupiah) and 100 otherwise (MYR — sen).
+  /// Mirrors the admin panel's `currencyMultiplier`.
+  static int currencyMultiplier(String currency) =>
+      _specFor(currency.toUpperCase()).multiplier;
+
+  /// Convert a user-facing display amount (e.g. 50 ringgit, 150000 rupiah)
+  /// into the smallest-unit integer the backend stores (5000 sen, 150000).
+  static int toMinorUnits(num displayAmount, String currency) =>
+      (displayAmount * currencyMultiplier(currency)).round();
+
+  /// Inverse of [toMinorUnits]: smallest-unit integer → display amount.
+  static num fromMinorUnits(int minorAmount, String currency) {
+    final m = currencyMultiplier(currency);
+    return m == 1 ? minorAmount : minorAmount / m;
+  }
+
   /// Currency prefix (without trailing space): "Rp", "RM", "$". Falls back
   /// to the upper-cased currency code for unknown currencies.
   static String currencySymbol(String currency) {

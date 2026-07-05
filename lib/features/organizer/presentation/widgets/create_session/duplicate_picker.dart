@@ -81,7 +81,7 @@ class DuplicatePicker extends StatelessWidget {
                   style: AppTypography.bodyMedium
                       .copyWith(color: AppColors.textSecondary)),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            const Icon(Icons.chevron_right, color: AppColors.neutral500),
           ],
         ),
       ),
@@ -120,7 +120,7 @@ Future<String?> _showRecentPicker(
                   subtitle: Text(
                     '${r.type.label} · ${r.coachName ?? '—'} · ${r.venueName ?? '—'}',
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.textTertiary),
+                        .copyWith(color: AppColors.neutral500),
                   ),
                   onTap: () => Navigator.of(context).pop(r.id),
                 );

@@ -153,7 +153,9 @@ abstract final class AppTheme {
           color: AppColors.textSecondary,
         ),
         hintStyle: AppTypography.bodyMedium.copyWith(
-          color: AppColors.textDisabled,
+          // neutral500 clears WCAG AA (~4.6:1); the old textDisabled (#CBD5E1)
+          // was ~1.5:1 — placeholders were barely legible.
+          color: AppColors.neutral500,
         ),
         prefixIconColor: AppColors.neutral400,
         suffixIconColor: AppColors.neutral400,

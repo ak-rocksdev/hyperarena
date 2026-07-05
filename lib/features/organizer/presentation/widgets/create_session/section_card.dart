@@ -49,7 +49,7 @@ class FormSectionCard extends StatelessWidget {
               Text(
                 eyebrow,
                 style: AppTypography.overline.copyWith(
-                  color: AppColors.textTertiary,
+                  color: AppColors.textSecondary,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.1,
                 ),
@@ -59,7 +59,7 @@ class FormSectionCard extends StatelessWidget {
                 Text(
                   'opsional',
                   style: AppTypography.overline.copyWith(
-                    color: AppColors.neutral300,
+                    color: AppColors.neutral500,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.6,
                   ),
@@ -73,7 +73,7 @@ class FormSectionCard extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               helper!,
-              style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
+              style: AppTypography.caption.copyWith(color: AppColors.neutral500),
             ),
           ],
           const SizedBox(height: AppDimensions.md),

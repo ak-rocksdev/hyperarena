@@ -109,7 +109,7 @@ class _Card extends StatelessWidget {
                 Text(
                   type.description,
                   style: AppTypography.caption.copyWith(
-                    color: selected ? AppColors.primary : AppColors.textTertiary,
+                    color: selected ? AppColors.primary : AppColors.neutral500,
                   ),
                 ),
               ],

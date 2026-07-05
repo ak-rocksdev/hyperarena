@@ -243,6 +243,20 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                   counterText: '',
                 ),
               ),
+              const SizedBox(height: AppDimensions.md),
+              TextField(
+                controller: _notesCtrl,
+                maxLines: 3,
+                maxLength: 2000,
+                onChanged: _notifier.setNotes,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Deskripsi (opsional)',
+                  hintText: 'Ceritakan sesi ini ke peserta…',
+                  counterText: '',
+                  alignLabelWithHint: true,
+                ),
+              ),
             ],
           ),
         ),
@@ -351,44 +365,31 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
         ),
         const SizedBox(height: AppDimensions.md),
         FormSectionCard(
-          eyebrow: 'BIAYA & CATATAN',
+          eyebrow: 'BIAYA',
           optional: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: _priceCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [ThousandsSeparatorInputFormatter(currency)],
-                onChanged: (v) {
-                  // Strip the grouping separators the mask inserts before
-                  // parsing, else "185.000" reads as 185.0.
-                  final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
-                  final n = int.tryParse(digits);
-                  _notifier.setPrice(
-                      n == null ? null : Formatters.toMinorUnits(n, currency));
-                },
-                decoration: InputDecoration(
-                  labelText: 'Harga per sesi',
-                  prefixText: '${Formatters.currencySymbol(currency)} ',
-                  hintText: 'Kosongkan untuk gratis',
-                ),
+          child: TextField(
+            controller: _priceCtrl,
+            keyboardType: TextInputType.number,
+            inputFormatters: [ThousandsSeparatorInputFormatter(currency)],
+            onChanged: (v) {
+              // Strip the grouping separators the mask inserts before
+              // parsing, else "185.000" reads as 185.0.
+              final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
+              final n = int.tryParse(digits);
+              _notifier.setPrice(
+                  n == null ? null : Formatters.toMinorUnits(n, currency));
+            },
+            decoration: InputDecoration(
+              labelText: 'Harga per sesi',
+              prefixText: '${Formatters.currencySymbol(currency)} ',
+              // The prefix is a persistent unit, not a placeholder — give it
+              // real contrast instead of the pale hint colour it defaults to.
+              prefixStyle: AppTypography.bodyLarge.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: AppDimensions.md),
-              TextField(
-                controller: _notesCtrl,
-                maxLines: 3,
-                maxLength: 2000,
-                onChanged: _notifier.setNotes,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Catatan',
-                  hintText: 'Info tambahan untuk peserta…',
-                  counterText: '',
-                  alignLabelWithHint: true,
-                ),
-              ),
-            ],
+              hintText: 'Kosongkan untuk gratis',
+            ),
           ),
         ),
         const SizedBox(height: AppDimensions.md),

@@ -136,7 +136,7 @@ class _VenuePickerSheetState extends ConsumerState<_VenuePickerSheet> {
             subtitle: v.city != null
                 ? Text(v.city!,
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.textTertiary))
+                        .copyWith(color: AppColors.neutral500))
                 : null,
             trailing: v.id == widget.selectedId
                 ? const Icon(Icons.check, color: AppColors.primary)

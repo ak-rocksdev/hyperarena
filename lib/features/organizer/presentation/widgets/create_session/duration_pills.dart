@@ -79,7 +79,7 @@ class _DurationPillsState extends State<DurationPills> {
               const SizedBox(width: AppDimensions.sm),
               Text('menit (15–480)',
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.textTertiary)),
+                      .copyWith(color: AppColors.neutral500)),
             ],
           ),
         ],

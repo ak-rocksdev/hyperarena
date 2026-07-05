@@ -56,7 +56,7 @@ class PickerTile extends StatelessWidget {
                   Text(
                     label,
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.textTertiary),
+                        .copyWith(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 1),
                   Text(
@@ -66,7 +66,7 @@ class PickerTile extends StatelessWidget {
                     style: AppTypography.bodyMedium.copyWith(
                       color: _filled
                           ? AppColors.textPrimary
-                          : AppColors.textTertiary,
+                          : AppColors.neutral500,
                       fontWeight: _filled ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
@@ -75,7 +75,7 @@ class PickerTile extends StatelessWidget {
             ),
             trailing ??
                 const Icon(Icons.chevron_right,
-                    color: AppColors.textTertiary, size: 22),
+                    color: AppColors.neutral500, size: 22),
           ],
         ),
       ),

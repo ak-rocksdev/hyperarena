@@ -75,7 +75,7 @@ class _CoachPickerSheetState extends ConsumerState<_CoachPickerSheet> {
                   const Spacer(),
                   Text('${_selected.length} dipilih',
                       style: AppTypography.caption
-                          .copyWith(color: AppColors.textTertiary)),
+                          .copyWith(color: AppColors.neutral500)),
                 ],
               ),
             ),
@@ -168,7 +168,7 @@ class _CoachPickerSheetState extends ConsumerState<_CoachPickerSheet> {
               ? Text(
                   '${Formatters.formatCurrency(c.ratePerSession!, c.currency ?? 'IDR')} / sesi',
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.textTertiary),
+                      .copyWith(color: AppColors.neutral500),
                 )
               : null,
         );

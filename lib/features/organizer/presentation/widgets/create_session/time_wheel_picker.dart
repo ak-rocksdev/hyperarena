@@ -35,6 +35,7 @@ Future<String?> showTimeWheelPicker(
   }
   return showModalBottomSheet<String>(
     context: context,
+    isScrollControlled: true,
     backgroundColor: AppSurfaces.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

@@ -1,3 +1,13 @@
+import java.io.FileInputStream
+import java.util.Properties
+
+// Maps SDK key loaded from the gitignored android/secrets.properties and
+// injected into the manifest placeholder ${MAPS_API_KEY} (never hardcoded).
+val mapsSecrets = Properties().apply {
+    val f = rootProject.file("secrets.properties")
+    if (f.exists()) load(FileInputStream(f))
+}
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -32,6 +42,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["MAPS_API_KEY"] =
+            mapsSecrets.getProperty("MAPS_API_KEY", "")
     }
 
     buildTypes {

@@ -9,6 +9,7 @@ import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/club_profile.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_stats.dart';
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
+import 'package:hyperarena/features/notification/providers/notification_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 import 'package:hyperarena/shared/providers/money_visibility_provider.dart';
 import 'package:hyperarena/shared/widgets/money_text.dart';
@@ -87,7 +88,7 @@ class OrganizerHeroBand extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────────
 // Header row — logo + club + greeting + bell
 // ─────────────────────────────────────────────────────────────
-class _HeaderRow extends StatelessWidget {
+class _HeaderRow extends ConsumerWidget {
   const _HeaderRow({
     required this.clubName,
     required this.firstName,
@@ -99,7 +100,11 @@ class _HeaderRow extends StatelessWidget {
   final String greeting;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Drive the bell dot off real unread state — clears once notifications
+    // are read (the read-flow invalidates unreadCountProvider). No dot while
+    // the count is still loading (null → 0).
+    final hasUnread = (ref.watch(unreadCountProvider).valueOrNull ?? 0) > 0;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppDimensions.lg,
@@ -153,7 +158,7 @@ class _HeaderRow extends StatelessWidget {
           ),
           _CircleIconButton(
             icon: Icons.notifications_outlined,
-            showDot: true,
+            showDot: hasUnread,
             onTap: () => context.push(AppRoutes.notifications),
           ),
           const SizedBox(width: 8),
@@ -198,17 +203,17 @@ class _CircleIconButton extends StatelessWidget {
               Icon(icon, color: Colors.white, size: 20),
               if (showDot)
                 Positioned(
-                  top: size * 0.22,
-                  right: size * 0.22,
+                  top: size * 0.16,
+                  right: size * 0.16,
                   child: Container(
-                    width: 8,
-                    height: 8,
+                    width: 12,
+                    height: 12,
                     decoration: BoxDecoration(
                       color: AppColors.error,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: const Color(0xFF155956),
-                        width: 1.5,
+                        width: 2,
                       ),
                     ),
                   ),

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
+import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/organizer/data/models/session_lookup_options.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/picker_list_skeleton.dart';
+import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
 
 /// Opens the venue picker: search + select an existing active venue, or add a
-/// new one inline. Returns the chosen [VenueOption], or null if dismissed.
+/// new one inline. The sheet loads the venue list itself (shimmer / retry /
+/// empty states). Returns the chosen [VenueOption], or null if dismissed.
 Future<VenueOption?> showVenuePicker(
   BuildContext context, {
-  required List<VenueOption> venues,
   String? selectedId,
 }) {
   return showModalBottomSheet<VenueOption>(
@@ -19,32 +24,25 @@ Future<VenueOption?> showVenuePicker(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (_) => _VenuePickerSheet(venues: venues, selectedId: selectedId),
+    builder: (_) => _VenuePickerSheet(selectedId: selectedId),
   );
 }
 
-class _VenuePickerSheet extends StatefulWidget {
-  const _VenuePickerSheet({required this.venues, this.selectedId});
+class _VenuePickerSheet extends ConsumerStatefulWidget {
+  const _VenuePickerSheet({this.selectedId});
 
-  final List<VenueOption> venues;
   final String? selectedId;
 
   @override
-  State<_VenuePickerSheet> createState() => _VenuePickerSheetState();
+  ConsumerState<_VenuePickerSheet> createState() => _VenuePickerSheetState();
 }
 
-class _VenuePickerSheetState extends State<_VenuePickerSheet> {
+class _VenuePickerSheetState extends ConsumerState<_VenuePickerSheet> {
   String _query = '';
 
   @override
   Widget build(BuildContext context) {
-    final q = _query.trim();
-    final filtered = widget.venues
-        .where((v) => v.name.toLowerCase().contains(q.toLowerCase()))
-        .toList();
-    final showCreate = q.isNotEmpty &&
-        !widget.venues.any((v) => v.name.toLowerCase() == q.toLowerCase());
-
+    final venuesAsync = ref.watch(createSessionVenuesProvider);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: DraggableScrollableSheet(
@@ -85,40 +83,67 @@ class _VenuePickerSheetState extends State<_VenuePickerSheet> {
             ),
             const SizedBox(height: AppDimensions.sm),
             Expanded(
-              child: ListView(
-                controller: scrollController,
-                children: [
-                  if (showCreate)
-                    ListTile(
-                      leading: const Icon(Icons.add_location_alt_outlined,
-                          color: AppColors.primary),
-                      title: Text('Buat venue "$q"',
-                          style: AppTypography.bodyMedium
-                              .copyWith(color: AppColors.primary900)),
-                      onTap: () => Navigator.of(context).pop(
-                        VenueOption(id: 'new:$q', name: q),
-                      ),
-                    ),
-                  for (final v in filtered)
-                    ListTile(
-                      leading: const Icon(Icons.place_outlined),
-                      title: Text(v.name, style: AppTypography.bodyMedium),
-                      subtitle: v.city != null
-                          ? Text(v.city!,
-                              style: AppTypography.caption
-                                  .copyWith(color: AppColors.textTertiary))
-                          : null,
-                      trailing: v.id == widget.selectedId
-                          ? const Icon(Icons.check, color: AppColors.primary)
-                          : null,
-                      onTap: () => Navigator.of(context).pop(v),
-                    ),
-                ],
+              child: venuesAsync.when(
+                loading: () => const PickerListSkeleton(),
+                error: (_, _) => ErrorView(
+                  error: 'Gagal memuat daftar venue',
+                  onRetry: () => ref.invalidate(createSessionVenuesProvider),
+                ),
+                data: (venues) => _venueList(venues, scrollController),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _venueList(
+    List<VenueOption> venues,
+    ScrollController scrollController,
+  ) {
+    final q = _query.trim();
+    final filtered = venues
+        .where((v) => v.name.toLowerCase().contains(q.toLowerCase()))
+        .toList();
+    final showCreate = q.isNotEmpty &&
+        !venues.any((v) => v.name.toLowerCase() == q.toLowerCase());
+
+    if (venues.isEmpty && q.isEmpty) {
+      return const EmptyState(
+        icon: Icons.place_outlined,
+        message: 'Belum ada venue.\nKetik nama di atas untuk membuat baru.',
+      );
+    }
+    return ListView(
+      controller: scrollController,
+      children: [
+        if (showCreate)
+          ListTile(
+            leading: const Icon(Icons.add_location_alt_outlined,
+                color: AppColors.primary),
+            title: Text('Buat venue "$q"',
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.primary900)),
+            onTap: () => Navigator.of(context).pop(
+              VenueOption(id: 'new:$q', name: q),
+            ),
+          ),
+        for (final v in filtered)
+          ListTile(
+            leading: const Icon(Icons.place_outlined),
+            title: Text(v.name, style: AppTypography.bodyMedium),
+            subtitle: v.city != null
+                ? Text(v.city!,
+                    style: AppTypography.caption
+                        .copyWith(color: AppColors.textTertiary))
+                : null,
+            trailing: v.id == widget.selectedId
+                ? const Icon(Icons.check, color: AppColors.primary)
+                : null,
+            onTap: () => Navigator.of(context).pop(v),
+          ),
+      ],
     );
   }
 }

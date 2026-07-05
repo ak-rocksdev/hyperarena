@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hyperarena/core/config/app_env.dart';
 import 'package:hyperarena/core/config/http_headers.dart';
 import 'package:hyperarena/core/network/api_interceptor.dart';
@@ -38,6 +39,10 @@ class ApiClient {
       ));
     }
   }
+
+  /// Test hook: lets http_mock_adapter attach a mock HttpClientAdapter.
+  @visibleForTesting
+  Dio get dio => _dio;
 
   Future<Response> get(
     String path, {

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
+import 'package:hyperarena/core/widgets/empty_state.dart';
+import 'package:hyperarena/core/widgets/error_view.dart';
 import 'package:hyperarena/features/organizer/data/models/session_lookup_options.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/picker_list_skeleton.dart';
+import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
 
-/// Opens the multi-select coach picker. Returns the new selection, or null if
+/// Opens the multi-select coach picker. The sheet loads the coach list itself
+/// (shimmer / retry / empty states). Returns the new selection, or null if
 /// dismissed.
 Future<List<int>?> showCoachPicker(
   BuildContext context, {
-  required List<CoachOption> coaches,
   required List<int> selected,
 }) {
   return showModalBottomSheet<List<int>>(
@@ -20,29 +25,26 @@ Future<List<int>?> showCoachPicker(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (_) => _CoachPickerSheet(coaches: coaches, initial: selected),
+    builder: (_) => _CoachPickerSheet(initial: selected),
   );
 }
 
-class _CoachPickerSheet extends StatefulWidget {
-  const _CoachPickerSheet({required this.coaches, required this.initial});
+class _CoachPickerSheet extends ConsumerStatefulWidget {
+  const _CoachPickerSheet({required this.initial});
 
-  final List<CoachOption> coaches;
   final List<int> initial;
 
   @override
-  State<_CoachPickerSheet> createState() => _CoachPickerSheetState();
+  ConsumerState<_CoachPickerSheet> createState() => _CoachPickerSheetState();
 }
 
-class _CoachPickerSheetState extends State<_CoachPickerSheet> {
+class _CoachPickerSheetState extends ConsumerState<_CoachPickerSheet> {
   late final Set<int> _selected = {...widget.initial};
   String _query = '';
 
   @override
   Widget build(BuildContext context) {
-    final filtered = widget.coaches
-        .where((c) => c.name.toLowerCase().contains(_query.toLowerCase()))
-        .toList();
+    final coachesAsync = ref.watch(createSessionCoachesProvider);
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -91,36 +93,14 @@ class _CoachPickerSheetState extends State<_CoachPickerSheet> {
             ),
             const SizedBox(height: AppDimensions.sm),
             Expanded(
-              child: ListView.builder(
-                controller: scrollController,
-                itemCount: filtered.length,
-                itemBuilder: (_, i) {
-                  final c = filtered[i];
-                  final checked = _selected.contains(c.id);
-                  return CheckboxListTile(
-                    value: checked,
-                    onChanged: (_) => setState(() {
-                      checked ? _selected.remove(c.id) : _selected.add(c.id);
-                    }),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    secondary: CircleAvatar(
-                      backgroundColor: AppColors.primary50,
-                      child: Text(
-                        c.name.isNotEmpty ? c.name.characters.first : '?',
-                        style: AppTypography.titleSmall
-                            .copyWith(color: AppColors.primary900),
-                      ),
-                    ),
-                    title: Text(c.name, style: AppTypography.bodyMedium),
-                    subtitle: c.ratePerSession != null
-                        ? Text(
-                            '${Formatters.formatCurrency(c.ratePerSession!, c.currency ?? 'IDR')} / sesi',
-                            style: AppTypography.caption
-                                .copyWith(color: AppColors.textTertiary),
-                          )
-                        : null,
-                  );
-                },
+              child: coachesAsync.when(
+                loading: () => const PickerListSkeleton(),
+                error: (_, _) => ErrorView(
+                  error: 'Gagal memuat daftar coach',
+                  onRetry: () => ref.invalidate(createSessionCoachesProvider),
+                ),
+                data: (coaches) =>
+                    _coachList(coaches, scrollController),
               ),
             ),
             SafeArea(
@@ -140,6 +120,59 @@ class _CoachPickerSheetState extends State<_CoachPickerSheet> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _coachList(
+    List<CoachOption> coaches,
+    ScrollController scrollController,
+  ) {
+    if (coaches.isEmpty) {
+      return const EmptyState(
+        icon: Icons.sports_outlined,
+        message: 'Belum ada coach di klub ini.\n'
+            'Tambahkan coach dari panel admin dulu.',
+      );
+    }
+    final filtered = coaches
+        .where((c) => c.name.toLowerCase().contains(_query.toLowerCase()))
+        .toList();
+    if (filtered.isEmpty) {
+      return EmptyState(
+        icon: Icons.search_off_outlined,
+        message: 'Tidak ada coach bernama "${_query.trim()}"',
+      );
+    }
+    return ListView.builder(
+      controller: scrollController,
+      itemCount: filtered.length,
+      itemBuilder: (_, i) {
+        final c = filtered[i];
+        final checked = _selected.contains(c.id);
+        return CheckboxListTile(
+          value: checked,
+          onChanged: (_) => setState(() {
+            checked ? _selected.remove(c.id) : _selected.add(c.id);
+          }),
+          controlAffinity: ListTileControlAffinity.leading,
+          secondary: CircleAvatar(
+            backgroundColor: AppColors.primary50,
+            child: Text(
+              c.name.isNotEmpty ? c.name.characters.first : '?',
+              style: AppTypography.titleSmall
+                  .copyWith(color: AppColors.primary900),
+            ),
+          ),
+          title: Text(c.name, style: AppTypography.bodyMedium),
+          subtitle: c.ratePerSession != null
+              ? Text(
+                  '${Formatters.formatCurrency(c.ratePerSession!, c.currency ?? 'IDR')} / sesi',
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.textTertiary),
+                )
+              : null,
+        );
+      },
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hyperarena/core/network/api_exceptions.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
 import 'package:hyperarena/core/theme/app_enums.dart';
@@ -45,6 +46,7 @@ class CreateSessionScreen extends ConsumerStatefulWidget {
 class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   int _step = 0;
   bool _submitting = false;
+  bool _creatingVenue = false;
   String? _error;
   String? _appliedDuplicateLabel;
 
@@ -129,6 +131,27 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
         const SnackBar(content: Text('Sesi berhasil dibuat')),
       );
       context.pop();
+    } on ValidationException catch (e) {
+      if (!mounted) return;
+      if (e.errors.containsKey('tenant')) {
+        // Bank details unset — same guard UX as the init-time check.
+        final goSettings = await showPaymentGuard(context);
+        if (!mounted) return;
+        if (goSettings) context.push(AppRoutes.organizerProfile);
+      } else {
+        // Field-level rejection (e.g. coach schedule conflict) — surface the
+        // server's message in the banner.
+        final firstError = e.errors.values
+            .expand((messages) => messages)
+            .map((m) => m.toString())
+            .firstOrNull;
+        setState(
+            () => _error = firstError ?? 'Gagal membuat sesi. Coba lagi.');
+      }
+    } on ForbiddenException {
+      if (!mounted) return;
+      setState(() => _error =
+          'Langganan tidak aktif. Perbarui langganan untuk membuat sesi.');
     } catch (_) {
       if (!mounted) return;
       setState(() => _error = 'Gagal membuat sesi. Coba lagi.');
@@ -237,8 +260,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                     ? null
                     : '${draft.coachIds.length} coach dipilih',
                 onTap: () async {
-                  final result = await showCoachPicker(context,
-                      coaches: coaches, selected: draft.coachIds);
+                  final result =
+                      await showCoachPicker(context, selected: draft.coachIds);
                   if (result != null) _notifier.setCoaches(result);
                 },
               ),
@@ -377,6 +400,19 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   }
 
   Widget _venueField(CreateSessionDraft draft) {
+    if (_creatingVenue) {
+      return PickerTile(
+        icon: Icons.place_outlined,
+        label: 'Venue',
+        placeholder: 'Membuat venue…',
+        onTap: () {},
+        trailing: const SizedBox(
+          height: 16,
+          width: 16,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
     if (draft.venueName == null) {
       return PickerTile(
         icon: Icons.place_outlined,
@@ -507,11 +543,34 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   }
 
   Future<void> _pickVenue() async {
-    final venues = ref.read(createSessionVenuesProvider).valueOrNull ?? [];
     final picked = await showVenuePicker(context,
-        venues: venues,
         selectedId: ref.read(createSessionDraftProvider).venueId);
-    if (picked != null) _notifier.setVenue(id: picked.id, name: picked.name);
+    if (picked == null) return;
+    if (picked.id.startsWith('new:')) {
+      await _createVenue(picked.name);
+    } else {
+      _notifier.setVenue(id: picked.id, name: picked.name);
+    }
+  }
+
+  /// Persist a venue typed into the picker's "buat venue" affordance — the
+  /// draft needs a real numeric id (`toCreatePayload` parses `venue_id`).
+  Future<void> _createVenue(String name) async {
+    setState(() => _creatingVenue = true);
+    try {
+      final created =
+          await ref.read(organizerRepositoryProvider).createVenue(name);
+      ref.invalidate(createSessionVenuesProvider);
+      if (!mounted) return;
+      _notifier.setVenue(id: created.id, name: created.name);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal membuat venue "$name". Coba lagi.')),
+      );
+    } finally {
+      if (mounted) setState(() => _creatingVenue = false);
+    }
   }
 
   // ── Ticket helpers ──────────────────────────────────────────────────

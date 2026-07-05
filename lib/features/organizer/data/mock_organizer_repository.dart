@@ -207,12 +207,25 @@ class MockOrganizerRepository implements OrganizerRepository {
     ];
   }
 
+  /// Venues created in-session via [createVenue] (mock persistence).
+  final List<VenueOption> _createdVenues = [];
+
   @override
   Future<List<VenueOption>> getVenues() async {
     await Future.delayed(_delay);
-    return MockData.venues
-        .map((v) => VenueOption(id: v.id, name: v.name))
-        .toList();
+    return [
+      ...MockData.venues.map((v) => VenueOption(id: v.id, name: v.name)),
+      ..._createdVenues,
+    ];
+  }
+
+  @override
+  Future<VenueOption> createVenue(String name) async {
+    await Future.delayed(_delay);
+    // Numeric id so `toCreatePayload`'s int.tryParse keeps working.
+    final venue = VenueOption(id: '${900 + _createdVenues.length}', name: name);
+    _createdVenues.add(venue);
+    return venue;
   }
 
   @override

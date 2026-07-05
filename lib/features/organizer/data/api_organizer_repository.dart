@@ -13,7 +13,6 @@ import 'package:hyperarena/features/organizer/data/models/organizer_dashboard_st
 import 'package:hyperarena/features/organizer/data/models/organizer_earnings_summary.dart';
 import 'package:hyperarena/features/organizer/data/models/session_financial.dart';
 import 'package:hyperarena/features/organizer/data/organizer_repository.dart';
-import 'package:hyperarena/features/organizer/data/mock_organizer_repository.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 import 'package:hyperarena/features/session/data/models/session_participant.dart';
 
@@ -227,39 +226,192 @@ class ApiOrganizerRepository implements OrganizerRepository {
     }).toList();
   }
 
-  // TODO(backend): the mobile-organizer create endpoint and organizer-scoped
-  // lookup endpoints (coaches, venues, recent/duplicate, payout flag, cover
-  // upload) don't exist yet. Until they land, the create-session flow is
-  // served by a mock bridge so it's fully interactive on-device. Replace each
-  // delegate below with a real API call once the endpoints ship — the payload
-  // is already the exact StoreSessionRequest shape (toCreatePayload).
-  final MockOrganizerRepository _createSessionBridge = MockOrganizerRepository();
+  // ── Create-session flow (organizer-scoped endpoints) ────────────────
+
+  List<dynamic> _unwrapList(dynamic data, String key) {
+    if (data is List) return data;
+    if (data is Map<String, dynamic>) {
+      return (data['data'] ?? data[key] ?? []) as List<dynamic>;
+    }
+    return [];
+  }
 
   @override
-  Future<OpenSession> createSession(CreateSessionDraft draft) =>
-      _createSessionBridge.createSession(draft);
+  Future<OpenSession> createSession(CreateSessionDraft draft) async {
+    try {
+      final response = await _apiClient.post(
+        '/v1/marketplace/organizer/sessions',
+        data: draft.toCreatePayload(),
+      );
+      final data = response.data;
+      final sessionJson = data is Map<String, dynamic>
+          ? (data['session'] ?? data['data'] ?? data)
+          : null;
+      final id = sessionJson is Map<String, dynamic>
+          ? sessionJson['id']?.toString()
+          : null;
+      // The store response is the admin serialization, not the marketplace
+      // OpenSession shape — re-fetch the organizer sessions (same serializer
+      // as getMySessions) and return the created row.
+      if (id != null) {
+        _sessionsCache = null;
+        _sessionsCacheTime = null;
+        final sessions = await _fetchSessions();
+        for (final session in sessions) {
+          if (session.id == id) return session;
+        }
+      }
+      return OpenSession.fromJson(sessionJson as Map<String, dynamic>);
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 
   @override
-  Future<List<CoachOption>> getCoaches() => _createSessionBridge.getCoaches();
+  Future<List<CoachOption>> getCoaches() async {
+    try {
+      final response =
+          await _apiClient.get('/v1/marketplace/organizer/coaches');
+      return _unwrapList(response.data, 'coaches')
+          .whereType<Map<String, dynamic>>()
+          .map((json) {
+        final user = json['user'];
+        return CoachOption(
+          id: (json['id'] as num).toInt(),
+          name: (user is Map<String, dynamic>
+                  ? user['name'] as String?
+                  : null) ??
+              json['name'] as String? ??
+              'Coach',
+          ratePerSession: (json['current_rate'] as num?)?.toInt(),
+        );
+      }).toList();
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 
   @override
-  Future<List<VenueOption>> getVenues() => _createSessionBridge.getVenues();
+  Future<List<VenueOption>> getVenues() async {
+    try {
+      final response =
+          await _apiClient.get('/v1/marketplace/organizer/venues');
+      return _unwrapList(response.data, 'venues')
+          .whereType<Map<String, dynamic>>()
+          .map((json) => VenueOption(
+                id: json['id'].toString(),
+                name: json['name'] as String? ?? '',
+                city: json['city'] as String?,
+              ))
+          .toList();
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 
   @override
-  Future<List<RecentSessionOption>> getRecentSessions() =>
-      _createSessionBridge.getRecentSessions();
+  Future<VenueOption> createVenue(String name) async {
+    try {
+      final response = await _apiClient.post(
+        '/v1/marketplace/organizer/venues',
+        data: {'name': name},
+      );
+      final data = response.data;
+      final json = data is Map<String, dynamic>
+          ? (data['venue'] ?? data['data'] ?? data) as Map<String, dynamic>
+          : const <String, dynamic>{};
+      return VenueOption(
+        id: json['id'].toString(),
+        name: json['name'] as String? ?? name,
+        city: json['city'] as String?,
+      );
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 
   @override
-  Future<CreateSessionDraft> getDuplicatePayload(String sessionId) =>
-      _createSessionBridge.getDuplicatePayload(sessionId);
+  Future<List<RecentSessionOption>> getRecentSessions() async {
+    try {
+      final response =
+          await _apiClient.get('/v1/marketplace/organizer/sessions/recent');
+      return _unwrapList(response.data, 'sessions')
+          .whereType<Map<String, dynamic>>()
+          .map((json) {
+        final startAt = DateTime.parse(json['start_at'] as String);
+        return RecentSessionOption(
+          id: json['id'].toString(),
+          startAt: startAt,
+          type: SessionType.values.asNameMap()[json['type'] as String?] ??
+              SessionType.group,
+          coachName: json['primary_coach_name'] as String?,
+          venueName: json['venue_name'] as String?,
+          createdAt:
+              DateTime.tryParse(json['created_at'] as String? ?? '') ?? startAt,
+        );
+      }).toList();
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 
   @override
-  Future<bool> isPayoutConfigured() =>
-      _createSessionBridge.isPayoutConfigured();
+  Future<CreateSessionDraft> getDuplicatePayload(String sessionId) async {
+    try {
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/sessions/$sessionId/duplicate-payload',
+      );
+      final data = response.data;
+      final json = data is Map<String, dynamic>
+          ? (data['data'] ?? data) as Map<String, dynamic>
+          : const <String, dynamic>{};
+      // Title & date stay blank (admin duplicate behaviour). `venue_id`
+      // arrives as an int — CreateSessionDraft holds it as a String.
+      return CreateSessionDraft(
+        coachIds: ((json['coach_ids'] as List?) ?? const [])
+            .map((e) => (e as num).toInt())
+            .toList(),
+        type: SessionType.values.asNameMap()[json['type'] as String?] ??
+            SessionType.group,
+        startTime: json['start_time'] as String?,
+        durationMinutes: (json['duration_minutes'] as num?)?.toInt() ?? 60,
+        capacity: (json['capacity'] as num?)?.toInt(),
+        venueId: json['venue_id']?.toString(),
+        venueName: json['venue_name'] as String?,
+        price: (json['price'] as num?)?.toInt(),
+        notes: json['notes'] as String?,
+      );
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 
   @override
-  Future<void> uploadSessionCoverPhoto(String sessionId, File photo) =>
-      _createSessionBridge.uploadSessionCoverPhoto(sessionId, photo);
+  Future<bool> isPayoutConfigured() async {
+    try {
+      final data = await _fetchDashboardData();
+      // Absent on older BE deploys — never false-block the flow; the server
+      // still rejects create (422 errors.tenant) when bank details are unset.
+      return data['payout_configured'] as bool? ?? true;
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  @override
+  Future<void> uploadSessionCoverPhoto(String sessionId, File photo) async {
+    try {
+      final formData = FormData.fromMap({
+        'photo': await MultipartFile.fromFile(photo.path),
+      });
+      await _apiClient.post(
+        '/v1/marketplace/organizer/sessions/$sessionId/photo',
+        data: formData,
+      );
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 
   @override
   Future<OpenSession> updateSession(

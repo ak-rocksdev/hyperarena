@@ -29,6 +29,11 @@ abstract class OrganizerRepository {
   /// Active venues selectable for a session.
   Future<List<VenueOption>> getVenues();
 
+  /// Create a new venue from the picker's "buat venue baru" affordance.
+  /// Returns the persisted option (real numeric id) so it can be selected
+  /// immediately — `toCreatePayload` needs a parseable `venue_id`.
+  Future<VenueOption> createVenue(String name);
+
   /// Recent sessions offered by the "duplicate" accelerator.
   Future<List<RecentSessionOption>> getRecentSessions();
 

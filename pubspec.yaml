@@ -75,6 +75,7 @@ dev_dependencies:
 
   # App Icon
   flutter_launcher_icons: ^0.14.3
+  http_mock_adapter: ^0.6.1
 
 flutter_launcher_icons:
   android: true

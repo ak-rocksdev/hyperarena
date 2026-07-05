@@ -377,7 +377,10 @@ class ApiOrganizerRepository implements OrganizerRepository {
         durationMinutes: (json['duration_minutes'] as num?)?.toInt() ?? 60,
         capacity: (json['capacity'] as num?)?.toInt(),
         venueId: json['venue_id']?.toString(),
-        venueName: json['venue_name'] as String?,
+        // BE nests the venue as `venue: {id, name, location}` — read the name
+        // from there (falling back to a flat `venue_name` for safety).
+        venueName: (json['venue'] as Map<String, dynamic>?)?['name'] as String? ??
+            json['venue_name'] as String?,
         price: (json['price'] as num?)?.toInt(),
         notes: json['notes'] as String?,
       );

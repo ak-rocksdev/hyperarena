@@ -179,7 +179,12 @@ void main() {
             'duration_minutes': 90,
             'capacity': null,
             'venue_id': 7,
-            'venue_name': 'Lapangan A',
+            // Real BE shape: venue is a nested object, not a flat name.
+            'venue': {
+              'id': 7,
+              'name': 'Lapangan A',
+              'location': {'id': 3, 'address': 'Jl. Merdeka'},
+            },
             'price': 50000,
             'notes': 'Bawa raket sendiri',
           },
@@ -194,6 +199,7 @@ void main() {
       expect(payload.type, SessionType.private);
       expect(payload.durationMinutes, 90);
       expect(payload.venueId, '7');
+      expect(payload.venueName, 'Lapangan A');
       expect(payload.price, 50000);
     });
   });

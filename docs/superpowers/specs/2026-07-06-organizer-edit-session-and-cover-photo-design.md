@@ -53,6 +53,9 @@ multi-photo gallery is explicitly out of scope.
   `resolve.tenant.from-user` + `ensure.subscription`):
   - `DELETE organizer/sessions/{id}/photo` → `Admin\SessionPhotoController@destroy`
     (admin already has this at `api.php:278`; controller is tenant-aware).
+    Placed under `ensure.subscription` for parity with upload — intentional, but
+    a reasonable spot to relax later if a lapsed organizer should still be able
+    to remove a photo.
 - Upload route already exists and needs no change. `PhotoService::HERO_UPLOAD_RULES`
   (`image, mimes:jpg,jpeg,png,webp, max:5120, dimensions:max 4096×4096`) is the
   contract the FE must respect.
@@ -125,10 +128,15 @@ is route-only plus a prefill endpoint.
 - **Add a prefill endpoint** so the edit form reads fresh server data instead of
   the FE's current cached-list stub (`api_organizer_repository.dart:87-105`,
   marked TODO):
-  - `GET organizer/sessions/{id}` → return the editable fields + `photo_urls` +
-    `status`. Reuse `Marketplace\SessionController@show` if its payload already
-    covers `coach_ids, type, start_at, duration_minutes, capacity, title, notes,
-    venue_id, price, status, photo_urls`; otherwise add a thin organizer `show`.
+  - `GET organizer/sessions/{id}` → `Admin\SessionController@show` (admin already
+    exposes `GET /admin/sessions/{id}`, `api.php:250`), reused via
+    `resolve.tenant.from-user` — the same reuse pattern as update. This returns
+    the full editable/admin shape (`coach_ids, type, start_at,
+    duration_minutes, capacity, title, notes, venue_id + venue name, price,
+    status, photo_urls`). **Not** the public `Marketplace\SessionController@show`
+    (`api.php:686`), whose participant-facing payload omits `coach_ids`.
+    Verify `Admin@show` includes `coach_ids` and the venue name; add them to its
+    resource if missing.
 - Editable fields (from `UpdateSessionRequest`): `coach_ids[]`, `type`,
   `start_at`, `duration_minutes`, `capacity`, `notes`, `title`, `venue_id`,
   `price`. **Not** editable here: `status` (dedicated cancel/complete endpoints),
@@ -138,9 +146,11 @@ is route-only plus a prefill endpoint.
 
 **Draft/state (`create_session_draft.dart` + `create_session_provider.dart`):**
 - Add `int? sessionId` to `CreateSessionDraft` (null = create, non-null = edit).
-- Add `CreateSessionDraftNotifier.hydrateFromSession(...)` that seeds the whole
-  draft from the prefill DTO/`OpenSession`, and captures a **baseline** copy for
-  dirty comparison.
+- Add `CreateSessionDraftNotifier.hydrateFromDetail(...)` that seeds the whole
+  draft from the **`GET …/sessions/{id}` response** (not `OpenSession` — that
+  model carries `primary_coach_name` but not the `coach_ids` array the form
+  needs), and captures a **baseline** copy for dirty comparison. This likely
+  needs a small `SessionEditDetail` DTO for the prefill payload.
 - Add `bool get isDirty` (current draft ≠ baseline) and
   `Map<String,dynamic> toUpdatePayload()` (only changed/updatable fields).
 - `submit()` routes to `repo.updateSession(sessionId!, state)` when
@@ -153,7 +163,10 @@ is route-only plus a prefill endpoint.
 - Implement `updateSession(id, draft)` → `PUT /v1/marketplace/organizer/
   sessions/{id}` with `toUpdatePayload()` (replaces the current
   `UnimplementedError`); parse the returned session.
-- Replace `getSessionDetail` stub with a real `GET .../sessions/{id}` call.
+- Back the prefill with a real `GET .../sessions/{id}` call. The response is a
+  superset: map its subset into `OpenSession` to also replace the
+  `getSessionDetail` cached-list stub (improving the detail screen), and map the
+  full payload into `SessionEditDetail` for the edit form's hydrate.
 
 **Screen (`create_session_screen.dart` → create-or-edit):**
 - Accept an optional `sessionId` (via route `/organizer/session/:id/edit`).
@@ -187,7 +200,7 @@ is route-only plus a prefill endpoint.
   cancelled/completed session → 422; another tenant cannot update. `GET
   organizer/sessions/{id}` returns the editable shape.
 - **FE:** repo test — `updateSession` posts `toUpdatePayload` to the right path
-  and parses the result; unit tests for `hydrateFromSession` + `isDirty`; an
+  and parses the result; unit tests for `hydrateFromDetail` + `isDirty`; an
   edit-mode widget test (single-scroll render, Save disabled until a field
   changes).
 
@@ -202,7 +215,7 @@ is route-only plus a prefill endpoint.
   notifies only **coaches**; changing that is a separate decision.
 
 ## Verification (end-to-end)
-- BE: `php artisan test` green for the new Places-style feature tests.
+- BE: `php artisan test` green for the new update + photo-delete feature tests.
 - FE: `flutter analyze` clean; `flutter test` green.
 - Live on device (Herd `http://hypercoach.test`): add/replace/remove a cover
   from the detail hero and post-create prompt (Phase 1); edit a session's

@@ -63,25 +63,24 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(
-          vertical: AppDimensions.base,
-          horizontal: AppDimensions.xs,
-        ),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary50 : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.neutral200,
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
-          children: [
-            Column(
+      child: Stack(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              vertical: AppDimensions.base,
+              horizontal: AppDimensions.xs,
+            ),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.primary50 : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              border: Border.all(
+                color: selected ? AppColors.primary : AppColors.neutral200,
+                width: selected ? 2 : 1,
+              ),
+            ),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
@@ -115,21 +114,21 @@ class _Card extends StatelessWidget {
                 ),
               ],
             ),
-            if (selected)
-              Positioned(
-                top: -4,
-                right: -4,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  padding: const EdgeInsets.all(2),
-                  child: const Icon(Icons.check, size: 12, color: Colors.white),
+          ),
+          if (selected)
+            Positioned(
+              top: AppDimensions.sm,
+              right: AppDimensions.sm,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
                 ),
+                padding: const EdgeInsets.all(2),
+                child: const Icon(Icons.check, size: 12, color: Colors.white),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

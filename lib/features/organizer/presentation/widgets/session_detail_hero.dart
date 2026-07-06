@@ -9,7 +9,9 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/auth/presentation/widgets/sport_chip_selector.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_cover_editor.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
+import 'package:hyperarena/shared/widgets/scrim_icon_button.dart';
 import 'package:hyperarena/shared/widgets/session_hero.dart';
 
 /// Sport-tinted detail hero card. Layout (top to bottom):
@@ -41,13 +43,33 @@ class SessionDetailHero extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SessionHero(
-            photoUrls: session.photoUrls,
-            photoPath: session.photoPath,
-            size: SessionHeroSize.lg,
-            borderRadius: 0,
-            enableZoom: true,
-            heroTag: 'organizer-session-hero-${session.id}',
+          Stack(
+            children: [
+              SessionHero(
+                photoUrls: session.photoUrls,
+                photoPath: session.photoPath,
+                size: SessionHeroSize.lg,
+                borderRadius: 0,
+                enableZoom: true,
+                heroTag: 'organizer-session-hero-${session.id}',
+              ),
+              Positioned(
+                top: AppDimensions.sm,
+                right: AppDimensions.sm,
+                child: Builder(
+                  builder: (context) => ScrimIconButton(
+                    icon: Icons.photo_camera_outlined,
+                    semanticLabel: 'Ubah sampul',
+                    onPressed: () => editSessionCover(
+                      context,
+                      ref,
+                      sessionId: session.id,
+                      hasPhoto: session.photoPath != null,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           // Content area gets a subtle sport-tinted top gradient so the
           // session feels "themed" without overwhelming the body text.

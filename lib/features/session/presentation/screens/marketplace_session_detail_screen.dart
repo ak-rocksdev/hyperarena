@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/theme/app_dimensions.dart';
+import 'package:hyperarena/core/theme/app_enums.dart';
 import 'package:hyperarena/core/theme/app_surfaces.dart';
 import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/app_haptics.dart';
@@ -169,7 +170,12 @@ class _DetailBody extends ConsumerWidget {
             leading: ScrimIconButton(
               icon: Icons.arrow_back,
               semanticLabel: 'Kembali',
-              onPressed: () => Navigator.maybePop(context),
+              // After a payment, this screen is reached via `context.go` (stack
+              // replaced), so there's nothing to pop — fall back to the browse
+              // screen instead of leaving the back button a dead no-op.
+              onPressed: () => context.canPop()
+                  ? context.pop()
+                  : context.go(AppRoutes.explore(UserRole.player)),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(

@@ -94,3 +94,4 @@ flutter:
   assets:
     - google_fonts/
     - assets/brand/
+    - assets/brand/payment_methods/

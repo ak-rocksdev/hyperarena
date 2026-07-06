@@ -41,6 +41,17 @@ class OrganizerSessionDetailScreen extends ConsumerWidget {
             context.go(AppRoutes.organizerSessions);
           },
         ),
+        actions: [
+          if (sessionAsync.valueOrNull != null &&
+              sessionAsync.value!.status != OpenSessionStatus.cancelled &&
+              sessionAsync.value!.status != OpenSessionStatus.completed)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit sesi',
+              onPressed: () =>
+                  context.push(AppRoutes.organizerEditSession(sessionId)),
+            ),
+        ],
       ),
       body: AsyncValueWidget(
         value: sessionAsync,

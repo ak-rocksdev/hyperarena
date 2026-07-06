@@ -669,6 +669,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) =>
             ParticipantManagementScreen(sessionId: state.pathParameters['id']!),
       ),
+      GoRoute(
+        path: '/organizer/session/:id/edit',
+        builder: (_, state) =>
+            CreateSessionScreen(sessionId: state.pathParameters['id']!),
+      ),
       // organizerEarnings moved into the organizer shell as a tab (PR 4d).
       // Profile is now reachable via the dashboard header icon (not in nav).
       GoRoute(

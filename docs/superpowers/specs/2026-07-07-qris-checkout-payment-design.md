@@ -46,7 +46,11 @@ pattern, the fee, and the amount convention. No new payment concepts.
   `POST /api/v1/webhooks/xendit/va` (name is VA-era; it already handles both — not
   renamed, to avoid re-registering the existing FVA callback).
 - **`XenditWebhookEvent`** captures `payload['external_id'] ?? payload['reference_id']`
-  → QR callbacks carry `reference_id`, so the external id is captured.
+  from the **top level** — but see **BE-6a**: Xendit's QR (2022-07-31) callback
+  nests `reference_id`/`qr_id`/`amount` under a `data` envelope, so the controller
+  needs a normalization pass before this extraction (and `classifyEvent`) works for
+  QR. The existing `classifyEvent`'s `qris_paid` branch is a **flat-shape guess**,
+  not verified against a real QR callback.
 - **`PurchaseService::confirmPurchase()`** — fires `PurchaseConfirmed` + all
   listeners (credit allocation, notifications). VA confirm already uses it.
 - **FE `purchaseStatusStreamProvider`** + `va_waiting_screen.dart` — polls status
@@ -64,7 +68,10 @@ pattern, the fee, and the amount convention. No new payment concepts.
   EMVCo QRIS payload string the client renders.
 - **Reuse** `xendit_callback_id` for the Xendit **QR id** (the same slot VA uses
   for its VA id) and `xendit_external_id` for `{prefix}-PURCHASE-{id}` (unchanged).
-  No other new columns.
+  No other new columns. `xendit_external_id` keeps its **unique** constraint; like
+  VA, a purchase mints its QR intent once — the controller's `idempotency_key`
+  guard prevents a duplicate `store`, so the stable `-PURCHASE-{id}` id never
+  collides in the normal flow.
 
 ### BE-2. `XenditQrisGateway implements PaymentGateway` (new)
 File: `app/Services/Payment/Gateways/XenditQrisGateway.php`, parallel to
@@ -111,16 +118,35 @@ $this->app->singleton(XenditQrisGateway::class, fn ($app) => new XenditQrisGatew
 - Add `public ?string $qrString = null` to the constructor.
 - `toArray()`: add `'qr_string' => $this->qrString`.
 
-### BE-6. `ConfirmPurchaseFromXenditWebhook` — accept `qris_paid`
+### BE-6a. `XenditWebhookController` — normalize the QR payment envelope
+The controller today reads **flat top-level** fields (`payload['id']`,
+`payload['external_id']/['reference_id']`, `payload['qr_id']`, `payload['amount']`)
+— correct for the legacy VA callback. Xendit's **QR Code API 2022-07-31** (the
+version `createQrCode` uses) delivers the payment webhook as a **nested envelope**:
+`{ "event": "qr.payment", "data": { "id", "qr_id", "reference_id", "amount", "status", … } }`.
+Left as-is, `classifyEvent` returns `unknown` and the external id / amount resolve
+to null / 0 → the QR confirmation misroutes and fails.
+- **First implementation step — capture the real payload.** Trigger a Xendit
+  **test** QR payment (simulate) against a throwaway QR and log the exact webhook
+  body. Code to that shape — do not trust this spec's field guesses.
+- Add a normalization at the top of `handle()`: if the body carries a `data`
+  object (QR envelope), unwrap `reference_id` / `qr_id` / `amount` / `status` from
+  `data` while keeping the top-level event `id` for dedup. Then `classifyEvent`,
+  the `XenditWebhookEvent` external-id capture, and the dispatch routing work
+  unchanged for both VA (flat) and QR (nested). Cover both shapes with tests.
+
+### BE-6b. `ConfirmPurchaseFromXenditWebhook` — accept `qris_paid`
 - Change the type guard from `!== 'va_paid'` to allow both `va_paid` **and**
   `qris_paid` (reject anything else).
 - `-PURCHASE-(\d+)` external-id parse, amount verification
   (`webhookAmount === purchase->amount_paid`), idempotency, `confirmPurchase`,
-  activity log — **all unchanged**.
+  activity log — **all unchanged** (reading the **normalized** payload from BE-6a).
 - **Provider-id verification branches by event type:**
-  - `va_paid`: `payload['callback_virtual_account_id'] === purchase->xendit_callback_id` (existing).
-  - `qris_paid`: `payload['qr_id'] === purchase->xendit_callback_id` (the QR id
-    we stored). Mismatch → `markFailed`.
+  - `va_paid`: `callback_virtual_account_id === purchase->xendit_callback_id` (existing).
+  - `qris_paid`: `qr_id === purchase->xendit_callback_id` (the QR id we stored).
+    Mismatch → `markFailed`.
+- **Status guard:** for `qris_paid`, confirm only on a success status
+  (`SUCCEEDED`/`COMPLETED`, per the captured payload) — ignore intermediate events.
 
 ### BE-7. Xendit "QR paid" callback registration (ops, not app code)
 Xendit delivers QR payment callbacks to the account's **QR-paid** callback URL,
@@ -192,9 +218,12 @@ File: `lib/features/payment/presentation/screens/qris_waiting_screen.dart`.
   `Purchase` row has `payment_method=qris`, `xendit_qr_string` set,
   `xendit_callback_id` = the QR id, `xendit_fee_amount` = configured fee; the JSON
   response carries `qr_string` and `provider=automatic`.
-- **Webhook confirm:** a `qris_paid` event (payload `qr_id`, `reference_id` =
-  external_id, matching `amount`) confirms the purchase; **amount mismatch** →
-  failed; **qr_id mismatch** → failed; duplicate event id → deduped.
+- **Webhook confirm (real QR shape):** a `qris_paid` event built from the
+  **captured nested envelope** (`data.qr_id`, `data.reference_id` = external_id,
+  matching `data.amount`, `data.status = SUCCEEDED`) confirms the purchase;
+  **amount mismatch** → failed; **qr_id mismatch** → failed; **non-success status**
+  → ignored; duplicate event id → deduped. Keep a VA (flat) case in the same suite
+  to prove BE-6a normalization handles both shapes.
 
 ### Frontend (`flutter analyze` + `flutter test`)
 - `PaymentIntent.fromJson` parses `qr_string`.
@@ -205,7 +234,8 @@ File: `lib/features/payment/presentation/screens/qris_waiting_screen.dart`.
 
 ## Verification (end-to-end, live)
 On both emulators against local Herd: pick **QRIS** at checkout → QR screen
-renders a scannable QR + countdown → simulate the QR payment via Xendit test API
-→ webhook lands → queue worker runs `ConfirmPurchaseFromXenditWebhook` → screen
-auto-navigates to success. (Requires the public tunnel + registered QR callback
-for the live webhook, same as VA testing.)
+renders a scannable QR + countdown → simulate the QR payment via the Xendit test
+API → webhook lands on the tunnel → confirmation runs **inline**
+(`QUEUE_CONNECTION=sync`, no worker) → the status stream flips to `confirmed` →
+screen auto-navigates to success. (Requires the public tunnel + a registered
+QR-paid callback, same as VA testing.)

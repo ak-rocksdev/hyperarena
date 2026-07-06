@@ -50,6 +50,7 @@ dependencies:
 
   # Media
   image_picker: ^1.1.2
+  image_cropper: ^12.2.1
 
   # Icons
   cupertino_icons: ^1.0.8

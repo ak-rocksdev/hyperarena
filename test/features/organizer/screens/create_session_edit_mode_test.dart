@@ -8,6 +8,7 @@ import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/organizer/data/models/create_session_draft.dart';
 import 'package:hyperarena/features/organizer/data/organizer_repository.dart';
 import 'package:hyperarena/features/organizer/presentation/screens/create_session_screen.dart';
+import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/features/session/data/models/open_session.dart';
 
@@ -73,4 +74,59 @@ void main() {
     );
     expect(saveBtn2.onPressed, isNotNull);
   });
+
+  testWidgets(
+    'leaving edit without saving resets the shared draft '
+    '(regression: create must not silently overwrite the edited session)',
+    (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          organizerRepositoryProvider.overrideWithValue(_FakeRepo()),
+          tenantCurrencyProvider.overrideWithValue('IDR'),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Push the edit screen on top of a regular route so the AppBar gets a
+      // real back button and PopScope's onPopInvokedWithResult actually fires
+      // (a bare `home:` route has nothing to pop back to).
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CreateSessionScreen(sessionId: '42'),
+                      ),
+                    ),
+                    child: const Text('open edit'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open edit'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit sesi'), findsOneWidget);
+
+      // Hydrated draft carries the edited session's id.
+      expect(container.read(createSessionDraftProvider).sessionId, 42);
+
+      // Leave without editing anything (not dirty -> immediate pop path).
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      // The shared draft must be cleared, otherwise a subsequent "create"
+      // would read the stale sessionId and silently call updateSession(42, ...)
+      // instead of createSession(...).
+      expect(container.read(createSessionDraftProvider).sessionId, isNull);
+    },
+  );
 }

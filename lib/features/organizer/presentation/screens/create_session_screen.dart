@@ -279,9 +279,15 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     return PopScope(
       canPop: !dirty,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
+        if (didPop) {
+          _notifier.reset(); // leaving edit — clear the shared draft so a later create starts blank
+          return;
+        }
         final leave = await _confirmDiscard();
-        if (leave && mounted) Navigator.of(context).pop();
+        if (leave && mounted) {
+          _notifier.reset();
+          Navigator.of(context).pop();
+        }
       },
       child: Scaffold(
         backgroundColor: AppSurfaces.background,

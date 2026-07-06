@@ -345,4 +345,15 @@ void main() {
       await repo.uploadSessionCoverPhoto('123', tmp);
     });
   });
+
+  group('deleteSessionCoverPhoto', () {
+    test('DELETEs the organizer photo path', () async {
+      dioAdapter.onDelete(
+        '$sessionsPath/42/photo',
+        (server) => server.reply(200, {'ok': true}),
+      );
+
+      await repo.deleteSessionCoverPhoto('42');
+    });
+  });
 }

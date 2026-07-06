@@ -499,11 +499,25 @@ class ApiOrganizerRepository implements OrganizerRepository {
   Future<void> uploadSessionCoverPhoto(String sessionId, File photo) async {
     try {
       final formData = FormData.fromMap({
-        'photo': await MultipartFile.fromFile(photo.path),
+        'photo': await MultipartFile.fromFile(
+          photo.path,
+          filename: photo.path.split('/').last,
+        ),
       });
       await _apiClient.post(
         '/v1/marketplace/organizer/sessions/$sessionId/photo',
         data: formData,
+      );
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  @override
+  Future<void> deleteSessionCoverPhoto(String sessionId) async {
+    try {
+      await _apiClient.delete(
+        '/v1/marketplace/organizer/sessions/$sessionId/photo',
       );
     } on DioException catch (e) {
       rethrowDio(e);

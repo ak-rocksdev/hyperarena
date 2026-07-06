@@ -62,6 +62,10 @@ abstract class OrganizerRepository {
   /// Upload a cover photo to an already-created session.
   Future<void> uploadSessionCoverPhoto(String sessionId, File photo);
 
+  /// Remove the cover photo from a session (reverts to the tenant-logo
+  /// fallback). No-op server-side if the session has none.
+  Future<void> deleteSessionCoverPhoto(String sessionId);
+
   Future<OpenSession> updateSession(String sessionId, CreateSessionDraft draft);
   Future<OpenSession> duplicateSession(
     String sessionId, {

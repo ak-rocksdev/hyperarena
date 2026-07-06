@@ -315,6 +315,12 @@ class MockOrganizerRepository implements OrganizerRepository {
   }
 
   @override
+  Future<void> deleteSessionCoverPhoto(String sessionId) async {
+    await Future.delayed(_delay);
+    // no-op in mock
+  }
+
+  @override
   Future<OpenSession> updateSession(
     String sessionId,
     CreateSessionDraft draft,

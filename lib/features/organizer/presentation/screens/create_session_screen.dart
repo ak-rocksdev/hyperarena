@@ -35,7 +35,12 @@ import 'package:hyperarena/routing/app_routes.dart';
 /// contract. Step 1 = Detail (type, title, coaches); Step 2 = Jadwal & Rincian,
 /// anchored by a live session-ticket preview.
 class CreateSessionScreen extends ConsumerStatefulWidget {
-  const CreateSessionScreen({super.key});
+  const CreateSessionScreen({super.key, this.sessionId});
+
+  /// Non-null puts the screen in edit mode: hydrates from
+  /// `getEditPayload`, renders a single-scroll form, and saves via update
+  /// instead of create.
+  final String? sessionId;
 
   @override
   ConsumerState<CreateSessionScreen> createState() =>
@@ -52,10 +57,16 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   final _notesCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
 
+  bool get _isEdit => widget.sessionId != null;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPaymentGuard());
+    if (_isEdit) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadForEdit());
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkPaymentGuard());
+    }
   }
 
   @override
@@ -86,6 +97,32 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     if (!mounted) return;
     context.pop();
     if (goSettings) context.push(AppRoutes.organizerProfile);
+  }
+
+  Future<void> _loadForEdit() async {
+    try {
+      final draft = await ref
+          .read(organizerRepositoryProvider)
+          .getEditPayload(widget.sessionId!);
+      if (!mounted) return;
+      _notifier.hydrate(draft);
+      _titleCtrl.text = draft.title ?? '';
+      _notesCtrl.text = draft.notes ?? '';
+      _priceCtrl.text = draft.price != null
+          ? Formatters.groupDigits(
+              Formatters.fromMinorUnits(
+                draft.price!,
+                ref.read(tenantCurrencyProvider),
+              ).toInt().toString(),
+              ref.read(tenantCurrencyProvider),
+            )
+          : '';
+      setState(() {}); // reflect prefill
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = 'Gagal memuat sesi. Coba lagi.');
+      }
+    }
   }
 
   Future<void> _onDuplicatePicked(String sessionId) async {
@@ -175,9 +212,45 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     }
   }
 
+  Future<void> _submitEdit() async {
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      await _notifier.submit(); // routes to updateSession (sessionId is set)
+      if (!mounted) return;
+      _notifier.reset();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Perubahan disimpan')));
+      Navigator.of(context).pop();
+    } on ValidationException catch (e) {
+      if (!mounted) return;
+      final firstError = e.errors.values
+          .expand((messages) => messages)
+          .map((m) => m.toString())
+          .firstOrNull;
+      setState(() => _error = firstError ?? 'Gagal menyimpan. Coba lagi.');
+    } on ForbiddenException {
+      if (!mounted) return;
+      setState(() => _error = 'Sesi ini tidak bisa diubah.');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'Gagal menyimpan. Coba lagi.');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(createSessionDraftProvider);
+    if (_isEdit) return _buildEditScaffold(draft);
+    return _buildCreateScaffold(draft);
+  }
+
+  Widget _buildCreateScaffold(CreateSessionDraft draft) {
     return Scaffold(
       backgroundColor: AppSurfaces.background,
       body: Column(
@@ -201,6 +274,94 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     );
   }
 
+  Widget _buildEditScaffold(CreateSessionDraft draft) {
+    final dirty = ref.read(createSessionDraftProvider.notifier).isDirty;
+    return PopScope(
+      canPop: !dirty,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final leave = await _confirmDiscard();
+        if (leave && mounted) Navigator.of(context).pop();
+      },
+      child: Scaffold(
+        backgroundColor: AppSurfaces.background,
+        appBar: AppBar(title: const Text('Edit sesi')),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppDimensions.base,
+                  AppDimensions.base,
+                  AppDimensions.base,
+                  AppDimensions.xxl,
+                ),
+                child: Column(
+                  children: [
+                    _buildStep1(draft),
+                    const SizedBox(height: AppDimensions.md),
+                    _buildStep2(draft),
+                  ],
+                ),
+              ),
+            ),
+            if (_error != null) _errorBanner(),
+            _buildEditFooter(draft, dirty),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _confirmDiscard() async {
+    final r = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Buang perubahan?'),
+        content: const Text('Perubahan yang belum disimpan akan hilang.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Lanjut edit'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Buang',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    return r ?? false;
+  }
+
+  Widget _buildEditFooter(CreateSessionDraft draft, bool dirty) {
+    return SafeArea(
+      minimum: const EdgeInsets.all(AppDimensions.base),
+      child: SizedBox(
+        width: double.infinity,
+        height: AppDimensions.buttonHeightLg,
+        child: FilledButton(
+          onPressed: (dirty && draft.canSubmit && !_submitting)
+              ? _submitEdit
+              : null,
+          child: _submitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Simpan perubahan'),
+        ),
+      ),
+    );
+  }
+
   // ── Step 1: Detail ──────────────────────────────────────────────────
   Widget _buildStep1(CreateSessionDraft draft) {
     final recent = ref.watch(createSessionRecentProvider).valueOrNull ?? [];
@@ -209,7 +370,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
     return Column(
       children: [
-        if (showDuplicate) ...[
+        if (!_isEdit && showDuplicate) ...[
           FormSectionCard(
             eyebrow: 'MULAI CEPAT',
             helper: 'Salin detail dari sesi sebelumnya, lalu sesuaikan.',
@@ -363,6 +524,29 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
             ],
           ),
         ),
+        if (_isEdit) ...[
+          const SizedBox(height: AppDimensions.md),
+          Consumer(
+            builder: (context, ref, _) {
+              final detail = ref.watch(
+                organizerSessionDetailProvider(widget.sessionId!),
+              );
+              final hasPhoto = detail.valueOrNull?.photoPath != null;
+              return PickerTile(
+                icon: Icons.photo_camera_outlined,
+                label: 'Sampul',
+                placeholder: 'Tambah foto sampul',
+                value: hasPhoto ? 'Foto terpasang' : null,
+                onTap: () => editSessionCover(
+                  context,
+                  ref,
+                  sessionId: widget.sessionId!,
+                  hasPhoto: hasPhoto,
+                ),
+              );
+            },
+          ),
+        ],
         const SizedBox(height: AppDimensions.md),
         FormSectionCard(
           eyebrow: 'BIAYA',

@@ -219,8 +219,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     });
     try {
       await _notifier.submit(); // routes to updateSession (sessionId is set)
+      _notifier.reset(); // clear shared draft regardless of mount state (create/edit invariant)
       if (!mounted) return;
-      _notifier.reset();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Perubahan disimpan')));

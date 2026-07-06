@@ -27,8 +27,20 @@ final createSessionRecentProvider =
 });
 
 class CreateSessionDraftNotifier extends Notifier<CreateSessionDraft> {
+  CreateSessionDraft? _baseline;
+
   @override
   CreateSessionDraft build() => const CreateSessionDraft();
+
+  /// Seed the draft from an existing session's edit-payload and snapshot a
+  /// baseline for dirty-tracking.
+  void hydrate(CreateSessionDraft draft) {
+    _baseline = draft;
+    state = draft;
+  }
+
+  /// True once the hydrated draft differs from its baseline (edit mode).
+  bool get isDirty => _baseline != null && state != _baseline;
 
   // ── Step 1 ──
   void setType(SessionType type) {
@@ -75,12 +87,22 @@ class CreateSessionDraftNotifier extends Notifier<CreateSessionDraft> {
   // ── Submit ──
   Future<OpenSession> submit() async {
     final repo = ref.read(organizerRepositoryProvider);
-    final created = await repo.createSession(state);
+    final result = state.sessionId == null
+        ? await repo.createSession(state)
+        : await repo.updateSession(state.sessionId!.toString(), state);
     _invalidateOrganizerQueries();
-    return created;
+    if (state.sessionId != null) {
+      ref.invalidate(
+        organizerSessionDetailProvider(state.sessionId!.toString()),
+      );
+    }
+    return result;
   }
 
-  void reset() => state = const CreateSessionDraft();
+  void reset() {
+    _baseline = null;
+    state = const CreateSessionDraft();
+  }
 
   void _invalidateOrganizerQueries() {
     ref.invalidate(organizerDashboardProvider);

@@ -76,4 +76,36 @@ void main() {
     expect(repo.submitted!.coachIds, [2]);
     expect(repo.submitted!.startAtString, '2026-07-09 08:00');
   });
+
+  test('hydrate seeds state and starts not dirty; edits mark dirty', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final notifier = container.read(createSessionDraftProvider.notifier);
+
+    const seed = CreateSessionDraft(
+      sessionId: 42,
+      coachIds: [1],
+      title: 'Awal',
+      durationMinutes: 90,
+    );
+    notifier.hydrate(seed);
+
+    expect(container.read(createSessionDraftProvider).sessionId, 42);
+    expect(notifier.isDirty, isFalse);
+
+    notifier.setTitle('Diubah');
+    expect(notifier.isDirty, isTrue);
+  });
+
+  test('reset clears the baseline and the draft', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final notifier = container.read(createSessionDraftProvider.notifier);
+
+    notifier.hydrate(const CreateSessionDraft(sessionId: 7, coachIds: [1]));
+    notifier.reset();
+
+    expect(container.read(createSessionDraftProvider).sessionId, isNull);
+    expect(notifier.isDirty, isFalse);
+  });
 }

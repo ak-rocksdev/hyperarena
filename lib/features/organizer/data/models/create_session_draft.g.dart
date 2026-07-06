@@ -9,6 +9,7 @@ part of 'create_session_draft.dart';
 _$CreateSessionDraftImpl _$$CreateSessionDraftImplFromJson(
   Map<String, dynamic> json,
 ) => _$CreateSessionDraftImpl(
+  sessionId: (json['session_id'] as num?)?.toInt(),
   coachIds:
       (json['coach_ids'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
@@ -31,6 +32,7 @@ _$CreateSessionDraftImpl _$$CreateSessionDraftImplFromJson(
 Map<String, dynamic> _$$CreateSessionDraftImplToJson(
   _$CreateSessionDraftImpl instance,
 ) => <String, dynamic>{
+  'session_id': instance.sessionId,
   'coach_ids': instance.coachIds,
   'type': _$SessionTypeEnumMap[instance.type]!,
   'title': instance.title,

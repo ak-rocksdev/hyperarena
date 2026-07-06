@@ -21,6 +21,8 @@ CreateSessionDraft _$CreateSessionDraftFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CreateSessionDraft {
+  int? get sessionId =>
+      throw _privateConstructorUsedError; // null = create, non-null = editing an existing session
   List<int> get coachIds => throw _privateConstructorUsedError;
   SessionType get type => throw _privateConstructorUsedError;
   String? get title => throw _privateConstructorUsedError;
@@ -53,6 +55,7 @@ abstract class $CreateSessionDraftCopyWith<$Res> {
   ) = _$CreateSessionDraftCopyWithImpl<$Res, CreateSessionDraft>;
   @useResult
   $Res call({
+    int? sessionId,
     List<int> coachIds,
     SessionType type,
     String? title,
@@ -82,6 +85,7 @@ class _$CreateSessionDraftCopyWithImpl<$Res, $Val extends CreateSessionDraft>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? sessionId = freezed,
     Object? coachIds = null,
     Object? type = null,
     Object? title = freezed,
@@ -96,6 +100,10 @@ class _$CreateSessionDraftCopyWithImpl<$Res, $Val extends CreateSessionDraft>
   }) {
     return _then(
       _value.copyWith(
+            sessionId: freezed == sessionId
+                ? _value.sessionId
+                : sessionId // ignore: cast_nullable_to_non_nullable
+                      as int?,
             coachIds: null == coachIds
                 ? _value.coachIds
                 : coachIds // ignore: cast_nullable_to_non_nullable
@@ -156,6 +164,7 @@ abstract class _$$CreateSessionDraftImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    int? sessionId,
     List<int> coachIds,
     SessionType type,
     String? title,
@@ -184,6 +193,7 @@ class __$$CreateSessionDraftImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? sessionId = freezed,
     Object? coachIds = null,
     Object? type = null,
     Object? title = freezed,
@@ -198,6 +208,10 @@ class __$$CreateSessionDraftImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$CreateSessionDraftImpl(
+        sessionId: freezed == sessionId
+            ? _value.sessionId
+            : sessionId // ignore: cast_nullable_to_non_nullable
+                  as int?,
         coachIds: null == coachIds
             ? _value._coachIds
             : coachIds // ignore: cast_nullable_to_non_nullable
@@ -251,6 +265,7 @@ class __$$CreateSessionDraftImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CreateSessionDraftImpl extends _CreateSessionDraft {
   const _$CreateSessionDraftImpl({
+    this.sessionId,
     final List<int> coachIds = const <int>[],
     this.type = SessionType.group,
     this.title,
@@ -268,7 +283,11 @@ class _$CreateSessionDraftImpl extends _CreateSessionDraft {
   factory _$CreateSessionDraftImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreateSessionDraftImplFromJson(json);
 
+  @override
+  final int? sessionId;
+  // null = create, non-null = editing an existing session
   final List<int> _coachIds;
+  // null = create, non-null = editing an existing session
   @override
   @JsonKey()
   List<int> get coachIds {
@@ -305,7 +324,7 @@ class _$CreateSessionDraftImpl extends _CreateSessionDraft {
 
   @override
   String toString() {
-    return 'CreateSessionDraft(coachIds: $coachIds, type: $type, title: $title, date: $date, startTime: $startTime, durationMinutes: $durationMinutes, capacity: $capacity, venueId: $venueId, venueName: $venueName, price: $price, notes: $notes)';
+    return 'CreateSessionDraft(sessionId: $sessionId, coachIds: $coachIds, type: $type, title: $title, date: $date, startTime: $startTime, durationMinutes: $durationMinutes, capacity: $capacity, venueId: $venueId, venueName: $venueName, price: $price, notes: $notes)';
   }
 
   @override
@@ -313,6 +332,8 @@ class _$CreateSessionDraftImpl extends _CreateSessionDraft {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreateSessionDraftImpl &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
             const DeepCollectionEquality().equals(other._coachIds, _coachIds) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.title, title) || other.title == title) &&
@@ -334,6 +355,7 @@ class _$CreateSessionDraftImpl extends _CreateSessionDraft {
   @override
   int get hashCode => Object.hash(
     runtimeType,
+    sessionId,
     const DeepCollectionEquality().hash(_coachIds),
     type,
     title,
@@ -366,6 +388,7 @@ class _$CreateSessionDraftImpl extends _CreateSessionDraft {
 
 abstract class _CreateSessionDraft extends CreateSessionDraft {
   const factory _CreateSessionDraft({
+    final int? sessionId,
     final List<int> coachIds,
     final SessionType type,
     final String? title,
@@ -383,6 +406,8 @@ abstract class _CreateSessionDraft extends CreateSessionDraft {
   factory _CreateSessionDraft.fromJson(Map<String, dynamic> json) =
       _$CreateSessionDraftImpl.fromJson;
 
+  @override
+  int? get sessionId; // null = create, non-null = editing an existing session
   @override
   List<int> get coachIds;
   @override

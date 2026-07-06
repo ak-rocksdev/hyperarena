@@ -12,6 +12,7 @@ class CreateSessionDraft with _$CreateSessionDraft {
   const CreateSessionDraft._();
 
   const factory CreateSessionDraft({
+    int? sessionId, // null = create, non-null = editing an existing session
     @Default(<int>[]) List<int> coachIds,
     @Default(SessionType.group) SessionType type,
     String? title,

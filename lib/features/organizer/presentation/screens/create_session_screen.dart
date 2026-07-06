@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +21,7 @@ import 'package:hyperarena/features/organizer/presentation/widgets/create_sessio
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/picker_tile.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/post_create_photo_prompt.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/section_card.dart';
+import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_cover_editor.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_ticket_card.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/session_type_cards.dart';
 import 'package:hyperarena/features/organizer/presentation/widgets/create_session/time_wheel_picker.dart';
@@ -31,7 +30,6 @@ import 'package:hyperarena/features/organizer/presentation/widgets/create_sessio
 import 'package:hyperarena/features/organizer/providers/create_session_provider.dart';
 import 'package:hyperarena/features/organizer/providers/organizer_providers.dart';
 import 'package:hyperarena/routing/app_routes.dart';
-import 'package:image_picker/image_picker.dart';
 
 /// Two-step create-session flow aligned to the backend `StoreSessionRequest`
 /// contract. Step 1 = Detail (type, title, coaches); Step 2 = Jadwal & Rincian,
@@ -133,7 +131,14 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
       final session = await _notifier.submit();
       if (!mounted) return;
       final wantPhoto = await showPostCreatePhotoPrompt(context);
-      if (wantPhoto) await _pickAndUploadCover(session.id);
+      if (wantPhoto && mounted) {
+        await editSessionCover(
+          context,
+          ref,
+          sessionId: session.id,
+          hasPhoto: false,
+        );
+      }
       _notifier.reset();
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -167,21 +172,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
       setState(() => _error = 'Gagal membuat sesi. Coba lagi.');
     } finally {
       if (mounted) setState(() => _submitting = false);
-    }
-  }
-
-  Future<void> _pickAndUploadCover(String sessionId) async {
-    final picked = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
-    if (picked == null || !mounted) return;
-    try {
-      await ref
-          .read(organizerRepositoryProvider)
-          .uploadSessionCoverPhoto(sessionId, File(picked.path));
-    } catch (_) {
-      // Non-blocking — the session is already created.
     }
   }
 

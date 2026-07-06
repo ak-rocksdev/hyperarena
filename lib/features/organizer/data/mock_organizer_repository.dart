@@ -303,6 +303,25 @@ class MockOrganizerRepository implements OrganizerRepository {
   }
 
   @override
+  Future<CreateSessionDraft> getEditPayload(String sessionId) async {
+    await Future.delayed(_delay);
+    final s = await getSessionDetail(sessionId);
+    return CreateSessionDraft(
+      sessionId: int.tryParse(sessionId),
+      coachIds: const [1],
+      type: SessionType.group,
+      title: s.title,
+      date: s.date,
+      startTime: s.startTime,
+      capacity: s.maxPlayers >= 99 ? null : s.maxPlayers,
+      venueId: s.venueId,
+      venueName: s.venueName,
+      price: s.pricePerPerson,
+      notes: s.description,
+    );
+  }
+
+  @override
   Future<bool> isPayoutConfigured() async {
     await Future.delayed(_delay);
     return true; // flip to false to exercise the payment guard in the demo

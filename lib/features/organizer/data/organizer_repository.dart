@@ -55,6 +55,9 @@ abstract class OrganizerRepository {
   /// Pre-fill payload for duplicating [sessionId] (title & date cleared).
   Future<CreateSessionDraft> getDuplicatePayload(String sessionId);
 
+  /// Pre-fill draft for editing [sessionId] (all editable fields + sessionId).
+  Future<CreateSessionDraft> getEditPayload(String sessionId);
+
   /// Whether the tenant has configured payout/bank details — a precondition
   /// for creating any session.
   Future<bool> isPayoutConfigured();

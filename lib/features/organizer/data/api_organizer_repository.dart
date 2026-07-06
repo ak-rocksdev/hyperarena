@@ -484,6 +484,38 @@ class ApiOrganizerRepository implements OrganizerRepository {
   }
 
   @override
+  Future<CreateSessionDraft> getEditPayload(String sessionId) async {
+    try {
+      final response = await _apiClient.get(
+        '/v1/marketplace/organizer/sessions/$sessionId/edit-payload',
+      );
+      final json = _unwrapMap(response.data);
+      return CreateSessionDraft(
+        sessionId: (json['id'] as num).toInt(),
+        coachIds: ((json['coach_ids'] as List?) ?? const [])
+            .map((e) => (e as num).toInt())
+            .toList(),
+        type: SessionType.values.asNameMap()[json['type'] as String?] ??
+            SessionType.group,
+        title: json['title'] as String?,
+        date: json['date'] != null
+            ? DateTime.parse(json['date'] as String)
+            : null,
+        startTime: json['start_time'] as String?,
+        durationMinutes: (json['duration_minutes'] as num?)?.toInt() ?? 60,
+        capacity: (json['capacity'] as num?)?.toInt(),
+        venueId: json['venue_id']?.toString(),
+        venueName:
+            (json['venue'] as Map<String, dynamic>?)?['name'] as String?,
+        price: (json['price'] as num?)?.toInt(),
+        notes: json['notes'] as String?,
+      );
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
+
+  @override
   Future<bool> isPayoutConfigured() async {
     try {
       final data = await _fetchDashboardData();
@@ -528,9 +560,24 @@ class ApiOrganizerRepository implements OrganizerRepository {
   Future<OpenSession> updateSession(
     String sessionId,
     CreateSessionDraft draft,
-  ) => throw UnimplementedError(
-    'updateSession: backend endpoint not yet available',
-  );
+  ) async {
+    try {
+      // update accepts exactly the create field set (partial-friendly).
+      await _apiClient.put(
+        '/v1/marketplace/organizer/sessions/$sessionId',
+        data: draft.toCreatePayload(),
+      );
+      _sessionsCache = null;
+      _sessionsCacheTime = null;
+      final sessions = await _fetchSessions();
+      for (final session in sessions) {
+        if (session.id == sessionId) return session;
+      }
+      return getSessionDetail(sessionId);
+    } on DioException catch (e) {
+      rethrowDio(e);
+    }
+  }
 
   @override
   Future<OpenSession> duplicateSession(

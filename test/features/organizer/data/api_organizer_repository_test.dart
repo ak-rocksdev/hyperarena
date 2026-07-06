@@ -210,6 +210,68 @@ void main() {
     });
   });
 
+  group('getEditPayload', () {
+    test('maps the flat edit-payload into a draft', () async {
+      dioAdapter.onGet(
+        '$sessionsPath/42/edit-payload',
+        (server) => server.reply(200, {
+          'data': {
+            'id': 42,
+            'coach_ids': [1, 2],
+            'type': 'group',
+            'title': 'Pagi',
+            'date': '2026-08-01',
+            'start_time': '09:00',
+            'duration_minutes': 90,
+            'capacity': 8,
+            'venue_id': 3,
+            'venue': {'id': 3, 'name': 'GOR'},
+            'price': 50000,
+            'notes': null,
+            'status': 'scheduled',
+          },
+        }),
+      );
+
+      final draft = await repo.getEditPayload('42');
+
+      expect(draft.sessionId, 42);
+      expect(draft.coachIds, [1, 2]);
+      expect(draft.title, 'Pagi');
+      expect(draft.date, DateTime.parse('2026-08-01'));
+      expect(draft.startTime, '09:00');
+      expect(draft.venueId, '3');
+      expect(draft.venueName, 'GOR');
+    });
+  });
+
+  group('updateSession', () {
+    test('PUTs toCreatePayload to the organizer path and re-fetches', () async {
+      final editDraft = CreateSessionDraft(
+        sessionId: 42,
+        coachIds: const [1],
+        type: SessionType.group,
+        date: DateTime(2026, 8, 1),
+        startTime: '09:00',
+      );
+      dioAdapter.onPut(
+        '$sessionsPath/42',
+        (server) => server.reply(200, {'ok': true}),
+        data: editDraft.toCreatePayload(),
+      );
+      dioAdapter.onGet(
+        sessionsPath,
+        (server) => server.reply(200, {
+          'data': [openSessionJson('42')],
+        }),
+      );
+
+      final updated = await repo.updateSession('42', editDraft);
+
+      expect(updated.id, '42');
+    });
+  });
+
   group('createVenue', () {
     test('POSTs the name and returns the persisted option', () async {
       dioAdapter.onPost(

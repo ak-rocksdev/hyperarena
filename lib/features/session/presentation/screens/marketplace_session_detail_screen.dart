@@ -719,6 +719,27 @@ class _BottomBar extends ConsumerWidget {
     MarketplaceSessionJoinState joinState,
     bool isFull,
   ) {
+    // Started/ended sessions are read-only — the BE rejects any new purchase
+    // for them, so never offer a booking/payment CTA (labels mirror the
+    // status pills on the session list).
+    final now = DateTime.now();
+    if (!now.isBefore(session.startAt)) {
+      final ended = !now.isBefore(session.endAt);
+      return FilledButton.icon(
+        onPressed: null,
+        icon: Icon(
+          ended ? Icons.check_circle_outline : Icons.play_circle_outline,
+          size: 18,
+        ),
+        label: Text(ended ? 'Sesi Selesai' : 'Sedang Berlangsung'),
+        style: FilledButton.styleFrom(
+          disabledBackgroundColor: AppColors.neutral500.withValues(alpha: 0.7),
+          disabledForegroundColor: Colors.white,
+          minimumSize: const Size(160, AppDimensions.buttonHeightMd),
+        ),
+      );
+    }
+
     // Already booked — check if payment is pending and resumable
     if (userStatus.isBooked) {
       final status = userStatus.paymentStatus;

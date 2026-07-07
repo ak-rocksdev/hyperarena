@@ -59,6 +59,7 @@ dependencies:
   latlong2: ^0.9.1
   # Google Maps — venue create (map confirm); keys via native Secrets files.
   google_maps_flutter: ^2.9.0
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

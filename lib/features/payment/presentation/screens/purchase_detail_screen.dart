@@ -146,6 +146,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
                       p.resume!,
                       p.id,
                       p.session?.displayTitle ?? p.productLabel ?? 'Sesi',
+                      p.session,
                     ),
                     icon: const Icon(Icons.payment),
                     label: const Text('Lanjutkan Pembayaran'),
@@ -208,6 +209,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
     PurchaseResume resume,
     int purchaseId,
     String sessionLabel,
+    DetailSession? session,
   ) {
     if (resume.provider == 'automatic') {
       final intent = PaymentIntent(
@@ -231,7 +233,10 @@ class PurchaseDetailScreen extends ConsumerWidget {
         extra: {
           'amount': resume.amountTotal,
           'intent': intent,
+          'sessionId': session?.id,
           'sessionLabel': sessionLabel,
+          'sessionStartAt': session?.startAt,
+          'venueName': session?.venue?.name,
           'paymentMethodLabel': isQris
               ? 'QRIS'
               : 'Virtual Account ${(resume.vaBank ?? '').toUpperCase()}',
@@ -243,7 +248,10 @@ class PurchaseDetailScreen extends ConsumerWidget {
       context.push('/payment/manual/$purchaseId', extra: {
         'amount': resume.amountTotal,
         'bankDetails': bankDetails,
+        'sessionId': session?.id,
         'sessionLabel': sessionLabel,
+        'sessionStartAt': session?.startAt,
+        'venueName': session?.venue?.name,
         'paymentMethodLabel': 'Transfer Manual',
       });
     }

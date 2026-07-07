@@ -927,7 +927,10 @@ class _BottomBar extends ConsumerWidget {
         extra: {
           'amount': pending.amountTotal,
           'intent': intent,
+          'sessionId': int.tryParse(sessionId),
           'sessionLabel': sessionLabel,
+          'sessionStartAt': session.startAt,
+          'venueName': session.venue?.name,
           'paymentMethodLabel': isQris
               ? 'QRIS'
               : 'Virtual Account ${(pending.vaBank ?? '').toUpperCase()}',
@@ -939,7 +942,10 @@ class _BottomBar extends ConsumerWidget {
       context.push('/payment/manual/${pending.purchaseId}', extra: {
         'amount': pending.amountTotal,
         'bankDetails': bankDetails,
+        'sessionId': int.tryParse(sessionId),
         'sessionLabel': sessionLabel,
+        'sessionStartAt': session.startAt,
+        'venueName': session.venue?.name,
         'paymentMethodLabel': 'Transfer Manual',
       });
     }

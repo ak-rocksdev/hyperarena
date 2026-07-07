@@ -9,6 +9,17 @@ import 'package:hyperarena/features/payment/presentation/widgets/cost_breakdown_
 import 'package:hyperarena/features/payment/presentation/widgets/payment_method_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/refund_policy_card.dart';
 
+/// Chooses the post-create payment route by provider/method.
+String paymentTargetPath({
+  required String provider,
+  required String method,
+  required int id,
+}) {
+  if (provider == 'manual') return '/payment/manual/$id';
+  if (method == 'qris') return '/payment/qris/$id';
+  return '/payment/va/$id';
+}
+
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
     super.key,
@@ -153,17 +164,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         'venueName': widget.venueName,
         'paymentMethodLabel': _selected!.label,
       };
+      final target = paymentTargetPath(
+        provider: intent.provider,
+        method: intent.paymentMethod,
+        id: intent.purchaseId,
+      );
       if (intent.provider == 'manual') {
-        context.go('/payment/manual/${intent.purchaseId}', extra: {
+        context.go(target, extra: {
           ...sharedExtra,
           'bankDetails': intent.bankDetails,
           'proofUploadUrl': intent.proofUploadUrl,
         });
       } else {
-        context.go('/payment/va/${intent.purchaseId}', extra: {
-          ...sharedExtra,
-          'intent': intent,
-        });
+        context.go(target, extra: {...sharedExtra, 'intent': intent});
       }
     } catch (e) {
       if (!mounted) return;

@@ -262,7 +262,10 @@ class _MarketplaceSessionCard extends ConsumerWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '${session.bookedCount}/${session.capacity} peserta',
+                        // Capacity 0/null = unlimited — no "/0" denominator.
+                        session.capacity > 0
+                            ? '${session.bookedCount}/${session.capacity} peserta'
+                            : '${session.bookedCount} peserta',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.primary,
                         ),

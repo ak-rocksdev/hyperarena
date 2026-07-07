@@ -234,14 +234,22 @@ class _DetailBody extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppDimensions.md),
 
-                  // Capacity card
+                  // Capacity card. Capacity 0 is the defensive default for
+                  // null-capacity rows — that means unlimited, never "full"
+                  // (same rule as the session list).
                   _InfoCard(
                     icon: Icons.groups_outlined,
-                    title: '${session.bookedCount}/${session.capacity} peserta',
-                    subtitle:
-                        spotsLeft > 0 ? '$spotsLeft slot tersedia' : 'Sesi penuh',
-                    accentColor:
-                        spotsLeft > 0 ? AppColors.success : AppColors.error,
+                    title: session.capacity > 0
+                        ? '${session.bookedCount}/${session.capacity} peserta'
+                        : '${session.bookedCount} peserta',
+                    subtitle: session.capacity <= 0
+                        ? 'Terbuka — tanpa batas peserta'
+                        : spotsLeft > 0
+                            ? '$spotsLeft slot tersedia'
+                            : 'Sesi penuh',
+                    accentColor: session.capacity <= 0 || spotsLeft > 0
+                        ? AppColors.success
+                        : AppColors.error,
                   ),
                   const SizedBox(height: AppDimensions.lg),
 
@@ -418,7 +426,9 @@ class _ParticipantsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emptySlots = capacity - participants.length;
+    // Capacity 0/null = unlimited — no fixed slot grid to fill.
+    final emptySlots =
+        capacity > 0 ? capacity - participants.length : 0;
 
     // The most recently joined participant is the last in the list (BE appends
     // in join order). We highlight that slot when arriving via ?joined=1.
@@ -428,7 +438,9 @@ class _ParticipantsGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Peserta (${participants.length}/$capacity)',
+          capacity > 0
+              ? 'Peserta (${participants.length}/$capacity)'
+              : 'Peserta (${participants.length})',
           style: AppTypography.headingSmall,
         ),
         const SizedBox(height: AppDimensions.md),
@@ -663,7 +675,10 @@ class _BottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final joinState = ref.watch(marketplaceSessionJoinProvider);
     final currency = ref.watch(tenantCurrencyProvider);
-    final isFull = session.bookedCount >= session.capacity;
+    // Capacity 0/null = unlimited — never treat as full (same rule as the
+    // session list and the BE capacity guard).
+    final isFull =
+        session.capacity > 0 && session.bookedCount >= session.capacity;
 
     return Container(
       padding: EdgeInsets.only(

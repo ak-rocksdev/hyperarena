@@ -136,6 +136,42 @@ class PurchaseDetailScreen extends ConsumerWidget {
 
               const SizedBox(height: 24),
 
+              // Proof uploaded — awaiting admin review. No further payment
+              // action is possible; explain that clearly instead.
+              if (p.status == 'pending_confirmation') ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.amber.shade200),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.hourglass_top,
+                        size: 18,
+                        color: Colors.amber.shade700,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Bukti transfer terkirim. Admin akan memverifikasi '
+                          'dalam 1×24 jam — tidak perlu melakukan pembayaran '
+                          'lagi.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.amber.shade900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
               // Resume payment CTA — only when pending and resume data available
               if (p.status == 'pending_payment' && p.resume != null) ...[
                 SizedBox(
@@ -270,6 +306,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
 
   String _statusLabel(String s) => switch (s) {
     'pending_payment' => 'Menunggu Pembayaran',
+    'pending_confirmation' => 'Menunggu Verifikasi Admin',
     'confirmed' => 'Berhasil',
     'cancelled' => 'Dibatalkan',
     'expired' => 'Kedaluwarsa',
@@ -279,6 +316,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
 
   Color _statusColor(String s) => switch (s) {
     'pending_payment' => Colors.amber.shade700,
+    'pending_confirmation' => Colors.amber.shade700,
     'confirmed' => Colors.green.shade700,
     'cancelled' => Colors.grey.shade700,
     'expired' => Colors.red.shade600,

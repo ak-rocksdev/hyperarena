@@ -90,6 +90,7 @@ class _PurchaseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final (statusLabel, statusColor) = switch (item.status) {
       'pending_payment' => ('Menunggu Pembayaran', Colors.amber.shade700),
+      'pending_confirmation' => ('Menunggu Verifikasi', Colors.amber.shade700),
       'confirmed' => ('Berhasil', Colors.green.shade700),
       'cancelled' => ('Dibatalkan', Colors.grey.shade600),
       'expired' => ('Kedaluwarsa', Colors.red.shade600),

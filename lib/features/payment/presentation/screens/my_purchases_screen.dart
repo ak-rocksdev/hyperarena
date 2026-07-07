@@ -25,24 +25,43 @@ class _MyPurchasesScreenState extends ConsumerState<MyPurchasesScreen> {
       body: Column(
         children: [
           _buildFilterChips(),
+          const _PullToRefreshHint(),
           Expanded(
-            child: purchasesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, stack) => Center(child: Text('Gagal memuat: $e')),
-              data: (items) => items.isEmpty
-                  ? const _EmptyState()
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        ref.invalidate(myPurchasesProvider(_statusFilter));
-                      },
-                      child: ListView.separated(
+            // RefreshIndicator wraps every state (data/empty/error) and the
+            // lists force AlwaysScrollableScrollPhysics so pull-to-refresh
+            // works even when the content doesn't fill the screen.
+            child: RefreshIndicator(
+              onRefresh: () =>
+                  ref.refresh(myPurchasesProvider(_statusFilter).future),
+              child: purchasesAsync.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, stack) => ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Center(child: Text('Gagal memuat: $e')),
+                    ),
+                  ],
+                ),
+                data: (items) => items.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 320, child: _EmptyState()),
+                        ],
+                      )
+                    : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16),
                         itemCount: items.length,
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: 12),
-                        itemBuilder: (context, i) => _PurchaseCard(item: items[i]),
+                        itemBuilder: (context, i) =>
+                            _PurchaseCard(item: items[i]),
                       ),
-                    ),
+              ),
             ),
           ),
         ],
@@ -183,6 +202,29 @@ class _PurchaseCard extends StatelessWidget {
     );
   }
 
+}
+
+/// Subtle caption telling users the list can be pulled down to refresh.
+class _PullToRefreshHint extends StatelessWidget {
+  const _PullToRefreshHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.arrow_downward, size: 11, color: Colors.grey.shade500),
+          const SizedBox(width: 4),
+          Text(
+            'Tarik ke bawah untuk memperbarui',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _EmptyState extends StatelessWidget {

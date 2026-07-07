@@ -17,6 +17,20 @@ class PurchaseDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(purchaseDetailProvider(purchaseId));
 
+    // While awaiting payment or admin review, poll the raw status so the
+    // page reacts immediately when the admin approves (no manual refresh).
+    // The stream self-terminates on terminal statuses.
+    final awaiting = detailAsync.valueOrNull?.purchase.status;
+    if (awaiting == 'pending_payment' || awaiting == 'pending_confirmation') {
+      ref.listen(purchaseStatusStreamProvider(purchaseId), (previous, next) {
+        final live = next.valueOrNull?.status;
+        // Raw status stays pending_payment until a terminal transition.
+        if (live != null && live != 'pending_payment') {
+          ref.invalidate(purchaseDetailProvider(purchaseId));
+        }
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Pesanan')),
       body: detailAsync.when(

@@ -220,17 +220,23 @@ class PurchaseDetailScreen extends ConsumerWidget {
         amountTotal: resume.amountTotal,
         vaNumber: resume.vaNumber,
         vaBank: resume.vaBank,
+        qrString: resume.qrString,
         expiresAt: resume.expiresAt,
         bankDetails: resume.bankDetails,
         proofUploadUrl: resume.proofUploadUrl,
       );
-      context.push('/payment/va/$purchaseId', extra: {
-        'amount': resume.amountTotal,
-        'intent': intent,
-        'sessionLabel': sessionLabel,
-        'paymentMethodLabel':
-            'Virtual Account ${(resume.vaBank ?? '').toUpperCase()}',
-      });
+      final isQris = resume.method == 'qris';
+      context.push(
+        isQris ? '/payment/qris/$purchaseId' : '/payment/va/$purchaseId',
+        extra: {
+          'amount': resume.amountTotal,
+          'intent': intent,
+          'sessionLabel': sessionLabel,
+          'paymentMethodLabel': isQris
+              ? 'QRIS'
+              : 'Virtual Account ${(resume.vaBank ?? '').toUpperCase()}',
+        },
+      );
     } else {
       final bankDetails = resume.bankDetails;
       if (bankDetails == null) return; // guard: manual flow needs bank details

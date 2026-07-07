@@ -914,17 +914,25 @@ class _BottomBar extends ConsumerWidget {
         amountTotal: pending.amountTotal,
         vaNumber: pending.vaNumber,
         vaBank: pending.vaBank,
+        qrString: pending.qrString,
         expiresAt: pending.expiresAt,
         bankDetails: pending.bankDetails,
         proofUploadUrl: pending.proofUploadUrl,
       );
-      context.push('/payment/va/${pending.purchaseId}', extra: {
-        'amount': pending.amountTotal,
-        'intent': intent,
-        'sessionLabel': sessionLabel,
-        'paymentMethodLabel':
-            'Virtual Account ${(pending.vaBank ?? '').toUpperCase()}',
-      });
+      final isQris = pending.method == 'qris';
+      context.push(
+        isQris
+            ? '/payment/qris/${pending.purchaseId}'
+            : '/payment/va/${pending.purchaseId}',
+        extra: {
+          'amount': pending.amountTotal,
+          'intent': intent,
+          'sessionLabel': sessionLabel,
+          'paymentMethodLabel': isQris
+              ? 'QRIS'
+              : 'Virtual Account ${(pending.vaBank ?? '').toUpperCase()}',
+        },
+      );
     } else {
       final bankDetails = pending.bankDetails;
       if (bankDetails == null) return;

@@ -1002,6 +1002,8 @@ mixin _$PendingPurchase {
   String? get vaNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'va_bank')
   String? get vaBank => throw _privateConstructorUsedError;
+  @JsonKey(name: 'qr_string')
+  String? get qrString => throw _privateConstructorUsedError;
   @JsonKey(name: 'expires_at')
   DateTime? get expiresAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'bank_details')
@@ -1035,6 +1037,7 @@ abstract class $PendingPurchaseCopyWith<$Res> {
     @JsonKey(name: 'amount_total') int amountTotal,
     @JsonKey(name: 'va_number') String? vaNumber,
     @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'qr_string') String? qrString,
     @JsonKey(name: 'expires_at') DateTime? expiresAt,
     @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
     @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,
@@ -1066,6 +1069,7 @@ class _$PendingPurchaseCopyWithImpl<$Res, $Val extends PendingPurchase>
     Object? amountTotal = null,
     Object? vaNumber = freezed,
     Object? vaBank = freezed,
+    Object? qrString = freezed,
     Object? expiresAt = freezed,
     Object? bankDetails = freezed,
     Object? proofUploadUrl = freezed,
@@ -1103,6 +1107,10 @@ class _$PendingPurchaseCopyWithImpl<$Res, $Val extends PendingPurchase>
             vaBank: freezed == vaBank
                 ? _value.vaBank
                 : vaBank // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            qrString: freezed == qrString
+                ? _value.qrString
+                : qrString // ignore: cast_nullable_to_non_nullable
                       as String?,
             expiresAt: freezed == expiresAt
                 ? _value.expiresAt
@@ -1154,6 +1162,7 @@ abstract class _$$PendingPurchaseImplCopyWith<$Res>
     @JsonKey(name: 'amount_total') int amountTotal,
     @JsonKey(name: 'va_number') String? vaNumber,
     @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'qr_string') String? qrString,
     @JsonKey(name: 'expires_at') DateTime? expiresAt,
     @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
     @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,
@@ -1185,6 +1194,7 @@ class __$$PendingPurchaseImplCopyWithImpl<$Res>
     Object? amountTotal = null,
     Object? vaNumber = freezed,
     Object? vaBank = freezed,
+    Object? qrString = freezed,
     Object? expiresAt = freezed,
     Object? bankDetails = freezed,
     Object? proofUploadUrl = freezed,
@@ -1223,6 +1233,10 @@ class __$$PendingPurchaseImplCopyWithImpl<$Res>
             ? _value.vaBank
             : vaBank // ignore: cast_nullable_to_non_nullable
                   as String?,
+        qrString: freezed == qrString
+            ? _value.qrString
+            : qrString // ignore: cast_nullable_to_non_nullable
+                  as String?,
         expiresAt: freezed == expiresAt
             ? _value.expiresAt
             : expiresAt // ignore: cast_nullable_to_non_nullable
@@ -1252,6 +1266,7 @@ class _$PendingPurchaseImpl implements _PendingPurchase {
     @JsonKey(name: 'amount_total') required this.amountTotal,
     @JsonKey(name: 'va_number') this.vaNumber,
     @JsonKey(name: 'va_bank') this.vaBank,
+    @JsonKey(name: 'qr_string') this.qrString,
     @JsonKey(name: 'expires_at') this.expiresAt,
     @JsonKey(name: 'bank_details') this.bankDetails,
     @JsonKey(name: 'proof_upload_url') this.proofUploadUrl,
@@ -1283,6 +1298,9 @@ class _$PendingPurchaseImpl implements _PendingPurchase {
   @JsonKey(name: 'va_bank')
   final String? vaBank;
   @override
+  @JsonKey(name: 'qr_string')
+  final String? qrString;
+  @override
   @JsonKey(name: 'expires_at')
   final DateTime? expiresAt;
   @override
@@ -1294,7 +1312,7 @@ class _$PendingPurchaseImpl implements _PendingPurchase {
 
   @override
   String toString() {
-    return 'PendingPurchase(purchaseId: $purchaseId, method: $method, provider: $provider, amountBase: $amountBase, feeAmount: $feeAmount, amountTotal: $amountTotal, vaNumber: $vaNumber, vaBank: $vaBank, expiresAt: $expiresAt, bankDetails: $bankDetails, proofUploadUrl: $proofUploadUrl)';
+    return 'PendingPurchase(purchaseId: $purchaseId, method: $method, provider: $provider, amountBase: $amountBase, feeAmount: $feeAmount, amountTotal: $amountTotal, vaNumber: $vaNumber, vaBank: $vaBank, qrString: $qrString, expiresAt: $expiresAt, bankDetails: $bankDetails, proofUploadUrl: $proofUploadUrl)';
   }
 
   @override
@@ -1316,6 +1334,8 @@ class _$PendingPurchaseImpl implements _PendingPurchase {
             (identical(other.vaNumber, vaNumber) ||
                 other.vaNumber == vaNumber) &&
             (identical(other.vaBank, vaBank) || other.vaBank == vaBank) &&
+            (identical(other.qrString, qrString) ||
+                other.qrString == qrString) &&
             (identical(other.expiresAt, expiresAt) ||
                 other.expiresAt == expiresAt) &&
             (identical(other.bankDetails, bankDetails) ||
@@ -1336,6 +1356,7 @@ class _$PendingPurchaseImpl implements _PendingPurchase {
     amountTotal,
     vaNumber,
     vaBank,
+    qrString,
     expiresAt,
     bankDetails,
     proofUploadUrl,
@@ -1368,6 +1389,7 @@ abstract class _PendingPurchase implements PendingPurchase {
     @JsonKey(name: 'amount_total') required final int amountTotal,
     @JsonKey(name: 'va_number') final String? vaNumber,
     @JsonKey(name: 'va_bank') final String? vaBank,
+    @JsonKey(name: 'qr_string') final String? qrString,
     @JsonKey(name: 'expires_at') final DateTime? expiresAt,
     @JsonKey(name: 'bank_details') final ManualBankDetails? bankDetails,
     @JsonKey(name: 'proof_upload_url') final String? proofUploadUrl,
@@ -1398,6 +1420,9 @@ abstract class _PendingPurchase implements PendingPurchase {
   @override
   @JsonKey(name: 'va_bank')
   String? get vaBank;
+  @override
+  @JsonKey(name: 'qr_string')
+  String? get qrString;
   @override
   @JsonKey(name: 'expires_at')
   DateTime? get expiresAt;

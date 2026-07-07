@@ -98,6 +98,7 @@ class PendingPurchase with _$PendingPurchase {
     @JsonKey(name: 'amount_total') required int amountTotal,
     @JsonKey(name: 'va_number') String? vaNumber,
     @JsonKey(name: 'va_bank') String? vaBank,
+    @JsonKey(name: 'qr_string') String? qrString,
     @JsonKey(name: 'expires_at') DateTime? expiresAt,
     @JsonKey(name: 'bank_details') ManualBankDetails? bankDetails,
     @JsonKey(name: 'proof_upload_url') String? proofUploadUrl,

@@ -31,8 +31,11 @@ class _MyPurchasesScreenState extends ConsumerState<MyPurchasesScreen> {
             // lists force AlwaysScrollableScrollPhysics so pull-to-refresh
             // works even when the content doesn't fill the screen.
             child: RefreshIndicator(
-              onRefresh: () =>
-                  ref.refresh(myPurchasesProvider(_statusFilter).future),
+              // Swallow refresh failures — the provider's error state renders
+              // them; an escaped rejection would only pollute crash logs.
+              onRefresh: () => ref
+                  .refresh(myPurchasesProvider(_statusFilter).future)
+                  .catchError((_) => <PurchaseCardSummary>[]),
               child: purchasesAsync.when(
                 loading: () =>
                     const Center(child: CircularProgressIndicator()),

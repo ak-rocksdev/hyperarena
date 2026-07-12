@@ -6,6 +6,8 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/payment/data/models/purchase_full_detail.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
+import 'package:hyperarena/features/payment/presentation/screens/checkout_screen.dart'
+    show paymentTargetPath;
 import 'package:hyperarena/routing/app_routes.dart';
 
 class PurchaseDetailScreen extends ConsumerWidget {
@@ -24,8 +26,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
     if (awaiting == 'pending_payment' || awaiting == 'pending_confirmation') {
       ref.listen(purchaseStatusStreamProvider(purchaseId), (previous, next) {
         final live = next.valueOrNull?.status;
-        // Raw status stays pending_payment until a terminal transition.
-        if (live != null && live != 'pending_payment') {
+        if (kTerminalPurchaseStatuses.contains(live)) {
           ref.invalidate(purchaseDetailProvider(purchaseId));
         }
       });
@@ -186,8 +187,12 @@ class PurchaseDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
               ],
 
-              // Resume payment CTA — only when pending and resume data available
-              if (p.status == 'pending_payment' && p.resume != null) ...[
+              // Resume payment CTA — only when pending, resume data available,
+              // and the session hasn't started (same rule as the session
+              // detail bottom bar: started/ended sessions are read-only).
+              if (p.status == 'pending_payment' &&
+                  p.resume != null &&
+                  !_sessionStarted(p.session)) ...[
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -279,7 +284,11 @@ class PurchaseDetailScreen extends ConsumerWidget {
       );
       final isQris = resume.method == 'qris';
       context.push(
-        isQris ? '/payment/qris/$purchaseId' : '/payment/va/$purchaseId',
+        paymentTargetPath(
+          provider: resume.provider,
+          method: resume.method,
+          id: purchaseId,
+        ),
         extra: {
           'amount': resume.amountTotal,
           'intent': intent,
@@ -306,6 +315,11 @@ class PurchaseDetailScreen extends ConsumerWidget {
       });
     }
   }
+
+  /// Started/ended sessions are read-only — no payment CTA (matches the
+  /// session-detail bottom bar rule).
+  bool _sessionStarted(DetailSession? session) =>
+      session?.startAt != null && !DateTime.now().isBefore(session!.startAt!);
 
   bool _shouldShowReason(String status) =>
       ['expired', 'cancelled', 'rejected'].contains(status);

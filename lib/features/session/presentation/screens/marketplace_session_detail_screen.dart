@@ -10,6 +10,8 @@ import 'package:hyperarena/core/theme/app_typography.dart';
 import 'package:hyperarena/core/utils/app_haptics.dart';
 import 'package:hyperarena/features/auth/providers/auth_provider.dart';
 import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
+import 'package:hyperarena/features/payment/presentation/screens/checkout_screen.dart'
+    show paymentTargetPath;
 import 'package:hyperarena/features/review/presentation/widgets/post_session_review_banner.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session.dart';
 import 'package:hyperarena/features/session/data/models/marketplace_session_detail.dart';
@@ -957,9 +959,11 @@ class _BottomBar extends ConsumerWidget {
       );
       final isQris = pending.method == 'qris';
       context.push(
-        isQris
-            ? '/payment/qris/${pending.purchaseId}'
-            : '/payment/va/${pending.purchaseId}',
+        paymentTargetPath(
+          provider: pending.provider,
+          method: pending.method,
+          id: pending.purchaseId,
+        ),
         extra: {
           'amount': pending.amountTotal,
           'intent': intent,

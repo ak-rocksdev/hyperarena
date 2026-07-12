@@ -58,7 +58,10 @@ class _BookingsTab extends ConsumerWidget {
     final async = ref.watch(myBookingsProvider(tab));
 
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(myBookingsProvider(tab).future),
+      // Swallow refresh failures — the provider's error state renders them.
+      onRefresh: () => ref
+          .refresh(myBookingsProvider(tab).future)
+          .catchError((_) => <MarketplaceBooking>[]),
       child: async.when(
         loading: () => ListView.builder(
           padding: const EdgeInsets.all(AppDimensions.screenHorizontal),

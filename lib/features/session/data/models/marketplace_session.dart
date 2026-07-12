@@ -48,6 +48,23 @@ extension MarketplaceSessionX on MarketplaceSession {
   /// tenant's tz, off by the device-tz delta cross-tz; do not use for
   /// booking-cutoff validation.
   DateTime get endAt => startAt.add(Duration(minutes: durationMinutes));
+
+  /// Capacity 0 is the defensive default for legacy null-capacity rows —
+  /// unlimited, never "full" (same rule as the BE capacity guard).
+  bool get hasUnlimitedCapacity => capacity <= 0;
+
+  /// Full only applies to capped sessions.
+  bool get isFull => !hasUnlimitedCapacity && bookedCount >= capacity;
+
+  /// UX-only time predicates (same tz caveat as [endAt]) — started/ended
+  /// sessions are read-only; the BE guard is authoritative.
+  bool get hasStarted => !DateTime.now().isBefore(startAt);
+  bool get hasEnded => !DateTime.now().isBefore(endAt);
+
+  /// "3/8 peserta", or just "3 peserta" when capacity is unlimited.
+  String get participantsSummary => hasUnlimitedCapacity
+      ? '$bookedCount peserta'
+      : '$bookedCount/$capacity peserta';
 }
 
 @freezed

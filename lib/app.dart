@@ -36,6 +36,14 @@ class HyperArenaApp extends ConsumerWidget {
         Widget app = _ForegroundNotificationListener(
           child: child ?? const SizedBox.shrink(),
         );
+        // Tap anywhere outside a text field to dismiss the keyboard.
+        // Needed app-wide: iOS multiline fields have no "Done" key, so
+        // without this the keyboard can't be closed at all.
+        app = GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: app,
+        );
         // Dev builds get a green corner ribbon so testers know at a glance
         // they're on a non-production build. No-op on prod / local.
         if (AppEnv.isDev) {

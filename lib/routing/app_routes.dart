@@ -145,3 +145,22 @@ abstract final class AppRoutes {
   static const myPurchases = '/purchases';
   static String purchaseDetail(String id) => '/purchases/$id';
 }
+
+/// Where a purchase's payment flow continues, decided by provider + method.
+/// Single source for the qris/va/manual route split — used by checkout and
+/// both resume-payment dispatchers.
+String paymentTargetPath({
+  required String provider,
+  required String method,
+  required int id,
+}) {
+  if (provider == 'manual') return '/payment/manual/$id';
+  if (method == 'qris') return '/payment/qris/$id';
+  return '/payment/va/$id';
+}
+
+/// User-facing label for an automatic payment method on resume flows.
+String paymentMethodLabel({required String method, String? vaBank}) =>
+    method == 'qris'
+        ? 'QRIS'
+        : 'Virtual Account ${(vaBank ?? '').toUpperCase()}';

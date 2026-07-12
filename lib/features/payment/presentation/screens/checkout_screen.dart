@@ -8,6 +8,7 @@ import 'package:hyperarena/features/payment/data/providers/payment_providers.dar
 import 'package:hyperarena/features/payment/presentation/widgets/cost_breakdown_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/payment_method_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/refund_policy_card.dart';
+import 'package:hyperarena/routing/app_routes.dart' show paymentTargetPath;
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
@@ -153,18 +154,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         'venueName': widget.venueName,
         'paymentMethodLabel': _selected!.label,
       };
-      if (intent.provider == 'manual') {
-        context.go('/payment/manual/${intent.purchaseId}', extra: {
-          ...sharedExtra,
+      final target = paymentTargetPath(
+        provider: intent.provider,
+        method: intent.paymentMethod,
+        id: intent.purchaseId,
+      );
+      context.go(target, extra: {
+        ...sharedExtra,
+        if (intent.provider == 'manual') ...{
           'bankDetails': intent.bankDetails,
           'proofUploadUrl': intent.proofUploadUrl,
-        });
-      } else {
-        context.go('/payment/va/${intent.purchaseId}', extra: {
-          ...sharedExtra,
+        } else
           'intent': intent,
-        });
-      }
+      });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

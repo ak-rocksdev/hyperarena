@@ -58,7 +58,10 @@ class _BookingsTab extends ConsumerWidget {
     final async = ref.watch(myBookingsProvider(tab));
 
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(myBookingsProvider(tab).future),
+      // Swallow refresh failures — the provider's error state renders them.
+      onRefresh: () => ref
+          .refresh(myBookingsProvider(tab).future)
+          .catchError((_) => <MarketplaceBooking>[]),
       child: async.when(
         loading: () => ListView.builder(
           padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
@@ -69,6 +72,7 @@ class _BookingsTab extends ConsumerWidget {
           ),
         ),
         error: (e, _) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
             Padding(
               padding: const EdgeInsets.all(AppDimensions.lg),
@@ -82,6 +86,7 @@ class _BookingsTab extends ConsumerWidget {
         data: (items) {
           if (items.isEmpty) {
             return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 SizedBox(
                   height: 320,
@@ -96,6 +101,7 @@ class _BookingsTab extends ConsumerWidget {
             );
           }
           return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(AppDimensions.screenHorizontal),
             itemCount: items.length,
             itemBuilder: (_, i) => Padding(

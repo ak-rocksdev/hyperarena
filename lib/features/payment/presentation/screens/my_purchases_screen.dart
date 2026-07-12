@@ -5,6 +5,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/purchase_card_summary.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
+import 'package:hyperarena/features/payment/presentation/purchase_status_ui.dart';
 
 class MyPurchasesScreen extends ConsumerStatefulWidget {
   const MyPurchasesScreen({super.key});
@@ -25,24 +26,46 @@ class _MyPurchasesScreenState extends ConsumerState<MyPurchasesScreen> {
       body: Column(
         children: [
           _buildFilterChips(),
+          const _PullToRefreshHint(),
           Expanded(
-            child: purchasesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, stack) => Center(child: Text('Gagal memuat: $e')),
-              data: (items) => items.isEmpty
-                  ? const _EmptyState()
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        ref.invalidate(myPurchasesProvider(_statusFilter));
-                      },
-                      child: ListView.separated(
+            // RefreshIndicator wraps every state (data/empty/error) and the
+            // lists force AlwaysScrollableScrollPhysics so pull-to-refresh
+            // works even when the content doesn't fill the screen.
+            child: RefreshIndicator(
+              // Swallow refresh failures — the provider's error state renders
+              // them; an escaped rejection would only pollute crash logs.
+              onRefresh: () => ref
+                  .refresh(myPurchasesProvider(_statusFilter).future)
+                  .catchError((_) => <PurchaseCardSummary>[]),
+              child: purchasesAsync.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, stack) => ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Center(child: Text('Gagal memuat: $e')),
+                    ),
+                  ],
+                ),
+                data: (items) => items.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 320, child: _EmptyState()),
+                        ],
+                      )
+                    : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16),
                         itemCount: items.length,
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: 12),
-                        itemBuilder: (context, i) => _PurchaseCard(item: items[i]),
+                        itemBuilder: (context, i) =>
+                            _PurchaseCard(item: items[i]),
                       ),
-                    ),
+              ),
             ),
           ),
         ],
@@ -88,14 +111,7 @@ class _PurchaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (statusLabel, statusColor) = switch (item.status) {
-      'pending_payment' => ('Menunggu Pembayaran', Colors.amber.shade700),
-      'confirmed' => ('Berhasil', Colors.green.shade700),
-      'cancelled' => ('Dibatalkan', Colors.grey.shade600),
-      'expired' => ('Kedaluwarsa', Colors.red.shade600),
-      'rejected' => ('Ditolak', Colors.red.shade800),
-      _ => (item.status, Colors.grey),
-    };
+    final (statusLabel, statusColor) = purchaseStatusUi(item.status);
 
     return InkWell(
       onTap: () => context.push('/purchases/${item.id}'),
@@ -182,6 +198,29 @@ class _PurchaseCard extends StatelessWidget {
     );
   }
 
+}
+
+/// Subtle caption telling users the list can be pulled down to refresh.
+class _PullToRefreshHint extends StatelessWidget {
+  const _PullToRefreshHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.arrow_downward, size: 11, color: AppColors.neutral500),
+          const SizedBox(width: 4),
+          Text(
+            'Tarik ke bawah untuk memperbarui',
+            style: const TextStyle(fontSize: 11, color: AppColors.neutral500),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _EmptyState extends StatelessWidget {

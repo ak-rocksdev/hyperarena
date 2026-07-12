@@ -73,6 +73,7 @@ import 'package:hyperarena/features/payment/presentation/screens/manual_payment_
 import 'package:hyperarena/features/payment/presentation/screens/my_purchases_screen.dart';
 import 'package:hyperarena/features/payment/presentation/screens/payment_success_screen.dart';
 import 'package:hyperarena/features/payment/presentation/screens/purchase_detail_screen.dart';
+import 'package:hyperarena/features/payment/presentation/screens/qris_waiting_screen.dart';
 import 'package:hyperarena/features/payment/presentation/screens/va_waiting_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/explore_screen.dart';
 import 'package:hyperarena/features/venue/presentation/screens/marketplace_venue_detail_screen.dart';
@@ -788,6 +789,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (ctx, state) {
           final extra = state.extra as Map<String, dynamic>;
           return VaWaitingScreen(
+            purchaseId: int.parse(state.pathParameters['purchaseId']!),
+            amount: extra['amount'] as int,
+            intent: extra['intent'] as PaymentIntent,
+            sessionId: extra['sessionId'] as int?,
+            sessionLabel: extra['sessionLabel'] as String?,
+            sessionStartAt: extra['sessionStartAt'] as DateTime?,
+            venueName: extra['venueName'] as String?,
+            paymentMethodLabel: extra['paymentMethodLabel'] as String?,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/payment/qris/:purchaseId',
+        builder: (ctx, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return QrisWaitingScreen(
             purchaseId: int.parse(state.pathParameters['purchaseId']!),
             amount: extra['amount'] as int,
             intent: extra['intent'] as PaymentIntent,

@@ -6,6 +6,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/payment/data/models/purchase_full_detail.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
+import 'package:hyperarena/features/payment/presentation/purchase_status_ui.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 class PurchaseDetailScreen extends ConsumerWidget {
@@ -17,6 +18,19 @@ class PurchaseDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(purchaseDetailProvider(purchaseId));
 
+    // While awaiting payment or admin review, poll the raw status so the
+    // page reacts immediately when the admin approves (no manual refresh).
+    // The stream self-terminates on terminal statuses.
+    final awaiting = detailAsync.valueOrNull?.purchase.status;
+    if (awaiting == 'pending_payment' || awaiting == 'pending_confirmation') {
+      ref.listen(purchaseStatusStreamProvider(purchaseId), (previous, next) {
+        final live = next.valueOrNull?.status;
+        if (kTerminalPurchaseStatuses.contains(live)) {
+          ref.invalidate(purchaseDetailProvider(purchaseId));
+        }
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Pesanan')),
       body: detailAsync.when(
@@ -25,6 +39,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
         data: (data) {
           final p = data.purchase;
           final eligibility = data.rebookEligibility;
+          final (statusLabel, statusColor) = purchaseStatusUi(p.status);
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -46,11 +61,11 @@ class PurchaseDetailScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _statusLabel(p.status),
+                      statusLabel,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
-                        color: _statusColor(p.status),
+                        color: statusColor,
                       ),
                     ),
                   ],
@@ -136,8 +151,48 @@ class PurchaseDetailScreen extends ConsumerWidget {
 
               const SizedBox(height: 24),
 
-              // Resume payment CTA — only when pending and resume data available
-              if (p.status == 'pending_payment' && p.resume != null) ...[
+              // Proof uploaded — awaiting admin review. No further payment
+              // action is possible; explain that clearly instead.
+              if (p.status == 'pending_confirmation') ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.warningLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.warning),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.hourglass_top,
+                        size: 18,
+                        color: AppColors.warning,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Bukti transfer terkirim. Admin akan memverifikasi '
+                          'dalam 1×24 jam — tidak perlu melakukan pembayaran '
+                          'lagi.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.warningDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // Resume payment CTA — only when pending, resume data available,
+              // and the session hasn't started (same rule as the session
+              // detail bottom bar: started/ended sessions are read-only).
+              if (p.status == 'pending_payment' &&
+                  p.resume != null &&
+                  !_sessionStarted(p.session)) ...[
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -146,6 +201,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
                       p.resume!,
                       p.id,
                       p.session?.displayTitle ?? p.productLabel ?? 'Sesi',
+                      p.session,
                     ),
                     icon: const Icon(Icons.payment),
                     label: const Text('Lanjutkan Pembayaran'),
@@ -208,7 +264,21 @@ class PurchaseDetailScreen extends ConsumerWidget {
     PurchaseResume resume,
     int purchaseId,
     String sessionLabel,
+    DetailSession? session,
   ) {
+    final target = paymentTargetPath(
+      provider: resume.provider,
+      method: resume.method,
+      id: purchaseId,
+    );
+    final sharedExtra = <String, dynamic>{
+      'amount': resume.amountTotal,
+      'sessionId': session?.id,
+      'sessionLabel': sessionLabel,
+      'sessionStartAt': session?.startAt,
+      'venueName': session?.venue?.name,
+    };
+
     if (resume.provider == 'automatic') {
       final intent = PaymentIntent(
         purchaseId: purchaseId,
@@ -220,28 +290,32 @@ class PurchaseDetailScreen extends ConsumerWidget {
         amountTotal: resume.amountTotal,
         vaNumber: resume.vaNumber,
         vaBank: resume.vaBank,
+        qrString: resume.qrString,
         expiresAt: resume.expiresAt,
         bankDetails: resume.bankDetails,
         proofUploadUrl: resume.proofUploadUrl,
       );
-      context.push('/payment/va/$purchaseId', extra: {
-        'amount': resume.amountTotal,
+      context.push(target, extra: {
+        ...sharedExtra,
         'intent': intent,
-        'sessionLabel': sessionLabel,
         'paymentMethodLabel':
-            'Virtual Account ${(resume.vaBank ?? '').toUpperCase()}',
+            paymentMethodLabel(method: resume.method, vaBank: resume.vaBank),
       });
     } else {
       final bankDetails = resume.bankDetails;
       if (bankDetails == null) return; // guard: manual flow needs bank details
-      context.push('/payment/manual/$purchaseId', extra: {
-        'amount': resume.amountTotal,
+      context.push(target, extra: {
+        ...sharedExtra,
         'bankDetails': bankDetails,
-        'sessionLabel': sessionLabel,
         'paymentMethodLabel': 'Transfer Manual',
       });
     }
   }
+
+  /// Started/ended sessions are read-only — no payment CTA (matches the
+  /// session-detail bottom bar rule).
+  bool _sessionStarted(DetailSession? session) =>
+      session?.startAt != null && !DateTime.now().isBefore(session!.startAt!);
 
   bool _shouldShowReason(String status) =>
       ['expired', 'cancelled', 'rejected'].contains(status);
@@ -252,24 +326,6 @@ class PurchaseDetailScreen extends ConsumerWidget {
     'session_full' => 'Sesi sudah penuh.',
     'completed' => 'Pesanan sudah berhasil — tidak perlu dipesan ulang.',
     _ => 'Pesan ulang tidak tersedia: $reason',
-  };
-
-  String _statusLabel(String s) => switch (s) {
-    'pending_payment' => 'Menunggu Pembayaran',
-    'confirmed' => 'Berhasil',
-    'cancelled' => 'Dibatalkan',
-    'expired' => 'Kedaluwarsa',
-    'rejected' => 'Ditolak',
-    _ => s,
-  };
-
-  Color _statusColor(String s) => switch (s) {
-    'pending_payment' => Colors.amber.shade700,
-    'confirmed' => Colors.green.shade700,
-    'cancelled' => Colors.grey.shade700,
-    'expired' => Colors.red.shade600,
-    'rejected' => Colors.red.shade800,
-    _ => Colors.grey,
   };
 
   Widget _sectionCard(String title, Widget body) {

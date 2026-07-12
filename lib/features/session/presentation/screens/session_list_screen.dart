@@ -262,7 +262,7 @@ class _MarketplaceSessionCard extends ConsumerWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '${session.bookedCount}/${session.capacity} peserta',
+                        session.participantsSummary,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.primary,
                         ),

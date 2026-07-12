@@ -234,14 +234,18 @@ class _DetailBody extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppDimensions.md),
 
-                  // Capacity card
+                  // Capacity card — unlimited (capacity 0/null) is never full.
                   _InfoCard(
                     icon: Icons.groups_outlined,
-                    title: '${session.bookedCount}/${session.capacity} peserta',
-                    subtitle:
-                        spotsLeft > 0 ? '$spotsLeft slot tersedia' : 'Sesi penuh',
-                    accentColor:
-                        spotsLeft > 0 ? AppColors.success : AppColors.error,
+                    title: session.participantsSummary,
+                    subtitle: session.hasUnlimitedCapacity
+                        ? 'Terbuka — tanpa batas peserta'
+                        : spotsLeft > 0
+                            ? '$spotsLeft slot tersedia'
+                            : 'Sesi penuh',
+                    accentColor: session.hasUnlimitedCapacity || spotsLeft > 0
+                        ? AppColors.success
+                        : AppColors.error,
                   ),
                   const SizedBox(height: AppDimensions.lg),
 
@@ -418,7 +422,9 @@ class _ParticipantsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emptySlots = capacity - participants.length;
+    // Capacity 0/null = unlimited — no fixed slot grid to fill.
+    final emptySlots =
+        capacity > 0 ? capacity - participants.length : 0;
 
     // The most recently joined participant is the last in the list (BE appends
     // in join order). We highlight that slot when arriving via ?joined=1.
@@ -428,7 +434,9 @@ class _ParticipantsGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Peserta (${participants.length}/$capacity)',
+          capacity > 0
+              ? 'Peserta (${participants.length}/$capacity)'
+              : 'Peserta (${participants.length})',
           style: AppTypography.headingSmall,
         ),
         const SizedBox(height: AppDimensions.md),
@@ -663,7 +671,7 @@ class _BottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final joinState = ref.watch(marketplaceSessionJoinProvider);
     final currency = ref.watch(tenantCurrencyProvider);
-    final isFull = session.bookedCount >= session.capacity;
+    final isFull = session.isFull;
 
     return Container(
       padding: EdgeInsets.only(
@@ -719,6 +727,26 @@ class _BottomBar extends ConsumerWidget {
     MarketplaceSessionJoinState joinState,
     bool isFull,
   ) {
+    // Started/ended sessions are read-only — the BE rejects any new purchase
+    // for them, so never offer a booking/payment CTA (labels mirror the
+    // status pills on the session list).
+    if (session.hasStarted) {
+      final ended = session.hasEnded;
+      return FilledButton.icon(
+        onPressed: null,
+        icon: Icon(
+          ended ? Icons.check_circle_outline : Icons.play_circle_outline,
+          size: 18,
+        ),
+        label: Text(ended ? 'Sesi Selesai' : 'Sedang Berlangsung'),
+        style: FilledButton.styleFrom(
+          disabledBackgroundColor: AppColors.neutral500.withValues(alpha: 0.7),
+          disabledForegroundColor: Colors.white,
+          minimumSize: const Size(160, AppDimensions.buttonHeightMd),
+        ),
+      );
+    }
+
     // Already booked — check if payment is pending and resumable
     if (userStatus.isBooked) {
       final status = userStatus.paymentStatus;
@@ -903,6 +931,19 @@ class _BottomBar extends ConsumerWidget {
     PendingPurchase pending,
     String sessionLabel,
   ) {
+    final target = paymentTargetPath(
+      provider: pending.provider,
+      method: pending.method,
+      id: pending.purchaseId,
+    );
+    final sharedExtra = <String, dynamic>{
+      'amount': pending.amountTotal,
+      'sessionId': int.tryParse(sessionId),
+      'sessionLabel': sessionLabel,
+      'sessionStartAt': session.startAt,
+      'venueName': session.venue?.name,
+    };
+
     if (pending.provider == 'automatic') {
       final intent = PaymentIntent(
         purchaseId: pending.purchaseId,
@@ -914,24 +955,23 @@ class _BottomBar extends ConsumerWidget {
         amountTotal: pending.amountTotal,
         vaNumber: pending.vaNumber,
         vaBank: pending.vaBank,
+        qrString: pending.qrString,
         expiresAt: pending.expiresAt,
         bankDetails: pending.bankDetails,
         proofUploadUrl: pending.proofUploadUrl,
       );
-      context.push('/payment/va/${pending.purchaseId}', extra: {
-        'amount': pending.amountTotal,
+      context.push(target, extra: {
+        ...sharedExtra,
         'intent': intent,
-        'sessionLabel': sessionLabel,
         'paymentMethodLabel':
-            'Virtual Account ${(pending.vaBank ?? '').toUpperCase()}',
+            paymentMethodLabel(method: pending.method, vaBank: pending.vaBank),
       });
     } else {
       final bankDetails = pending.bankDetails;
       if (bankDetails == null) return;
-      context.push('/payment/manual/${pending.purchaseId}', extra: {
-        'amount': pending.amountTotal,
+      context.push(target, extra: {
+        ...sharedExtra,
         'bankDetails': bankDetails,
-        'sessionLabel': sessionLabel,
         'paymentMethodLabel': 'Transfer Manual',
       });
     }

@@ -17,6 +17,7 @@ _$PaymentIntentImpl _$$PaymentIntentImplFromJson(Map<String, dynamic> json) =>
       amountTotal: (json['amount_total'] as num).toInt(),
       vaNumber: json['va_number'] as String?,
       vaBank: json['va_bank'] as String?,
+      qrString: json['qr_string'] as String?,
       expiresAt: json['expires_at'] == null
           ? null
           : DateTime.parse(json['expires_at'] as String),
@@ -39,6 +40,7 @@ Map<String, dynamic> _$$PaymentIntentImplToJson(_$PaymentIntentImpl instance) =>
       'amount_total': instance.amountTotal,
       'va_number': instance.vaNumber,
       'va_bank': instance.vaBank,
+      'qr_string': instance.qrString,
       'expires_at': instance.expiresAt?.toIso8601String(),
       'bank_details': instance.bankDetails,
       'proof_upload_url': instance.proofUploadUrl,

@@ -31,19 +31,27 @@ final purchaseDetailProvider = FutureProvider.autoDispose
   return ref.watch(paymentRepositoryProvider).getPurchaseDetail(id);
 });
 
+/// Purchase statuses that end the payment lifecycle — consumers of the
+/// status stream must key off this set, never off "not pending".
+const kTerminalPurchaseStatuses = {
+  'confirmed',
+  'expired',
+  'cancelled',
+  'rejected',
+};
+
 /// Polls purchase status every 3 seconds until terminal status (confirmed, expired,
 /// cancelled, rejected). Closes the stream once terminal so the screen stops polling.
 /// Auto-disposes when no longer listened to (e.g. user leaves the screen).
 final purchaseStatusStreamProvider = StreamProvider.autoDispose
     .family<PurchaseStatus, int>((ref, purchaseId) async* {
   final repo = ref.watch(paymentRepositoryProvider);
-  const terminalStatuses = {'confirmed', 'expired', 'cancelled', 'rejected'};
 
   while (true) {
     try {
       final status = await repo.getStatus(purchaseId);
       yield status;
-      if (terminalStatuses.contains(status.status)) {
+      if (kTerminalPurchaseStatuses.contains(status.status)) {
         return;
       }
     } catch (_) {

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hyperarena/features/payment/presentation/screens/checkout_screen.dart';
+import 'package:hyperarena/routing/app_routes.dart';
 
 void main() {
   test('qris routes to /payment/qris, va to /payment/va, manual to /payment/manual', () {

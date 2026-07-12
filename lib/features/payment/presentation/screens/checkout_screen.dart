@@ -8,17 +8,7 @@ import 'package:hyperarena/features/payment/data/providers/payment_providers.dar
 import 'package:hyperarena/features/payment/presentation/widgets/cost_breakdown_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/payment_method_card.dart';
 import 'package:hyperarena/features/payment/presentation/widgets/refund_policy_card.dart';
-
-/// Chooses the post-create payment route by provider/method.
-String paymentTargetPath({
-  required String provider,
-  required String method,
-  required int id,
-}) {
-  if (provider == 'manual') return '/payment/manual/$id';
-  if (method == 'qris') return '/payment/qris/$id';
-  return '/payment/va/$id';
-}
+import 'package:hyperarena/routing/app_routes.dart' show paymentTargetPath;
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
@@ -169,15 +159,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         method: intent.paymentMethod,
         id: intent.purchaseId,
       );
-      if (intent.provider == 'manual') {
-        context.go(target, extra: {
-          ...sharedExtra,
+      context.go(target, extra: {
+        ...sharedExtra,
+        if (intent.provider == 'manual') ...{
           'bankDetails': intent.bankDetails,
           'proofUploadUrl': intent.proofUploadUrl,
-        });
-      } else {
-        context.go(target, extra: {...sharedExtra, 'intent': intent});
-      }
+        } else
+          'intent': intent,
+      });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

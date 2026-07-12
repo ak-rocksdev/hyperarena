@@ -6,8 +6,7 @@ import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/payment_intent.dart';
 import 'package:hyperarena/features/payment/data/models/purchase_full_detail.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
-import 'package:hyperarena/features/payment/presentation/screens/checkout_screen.dart'
-    show paymentTargetPath;
+import 'package:hyperarena/features/payment/presentation/purchase_status_ui.dart';
 import 'package:hyperarena/routing/app_routes.dart';
 
 class PurchaseDetailScreen extends ConsumerWidget {
@@ -40,6 +39,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
         data: (data) {
           final p = data.purchase;
           final eligibility = data.rebookEligibility;
+          final (statusLabel, statusColor) = purchaseStatusUi(p.status);
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -61,11 +61,11 @@ class PurchaseDetailScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _statusLabel(p.status),
+                      statusLabel,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
-                        color: _statusColor(p.status),
+                        color: statusColor,
                       ),
                     ),
                   ],
@@ -157,9 +157,9 @@ class PurchaseDetailScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.amber.shade50,
+                    color: AppColors.warningLight,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.amber.shade200),
+                    border: Border.all(color: AppColors.warning),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +167,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
                       Icon(
                         Icons.hourglass_top,
                         size: 18,
-                        color: Colors.amber.shade700,
+                        color: AppColors.warning,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -177,7 +177,7 @@ class PurchaseDetailScreen extends ConsumerWidget {
                           'lagi.',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.amber.shade900,
+                            color: AppColors.warningDark,
                           ),
                         ),
                       ),
@@ -266,6 +266,19 @@ class PurchaseDetailScreen extends ConsumerWidget {
     String sessionLabel,
     DetailSession? session,
   ) {
+    final target = paymentTargetPath(
+      provider: resume.provider,
+      method: resume.method,
+      id: purchaseId,
+    );
+    final sharedExtra = <String, dynamic>{
+      'amount': resume.amountTotal,
+      'sessionId': session?.id,
+      'sessionLabel': sessionLabel,
+      'sessionStartAt': session?.startAt,
+      'venueName': session?.venue?.name,
+    };
+
     if (resume.provider == 'automatic') {
       final intent = PaymentIntent(
         purchaseId: purchaseId,
@@ -282,35 +295,18 @@ class PurchaseDetailScreen extends ConsumerWidget {
         bankDetails: resume.bankDetails,
         proofUploadUrl: resume.proofUploadUrl,
       );
-      final isQris = resume.method == 'qris';
-      context.push(
-        paymentTargetPath(
-          provider: resume.provider,
-          method: resume.method,
-          id: purchaseId,
-        ),
-        extra: {
-          'amount': resume.amountTotal,
-          'intent': intent,
-          'sessionId': session?.id,
-          'sessionLabel': sessionLabel,
-          'sessionStartAt': session?.startAt,
-          'venueName': session?.venue?.name,
-          'paymentMethodLabel': isQris
-              ? 'QRIS'
-              : 'Virtual Account ${(resume.vaBank ?? '').toUpperCase()}',
-        },
-      );
+      context.push(target, extra: {
+        ...sharedExtra,
+        'intent': intent,
+        'paymentMethodLabel':
+            paymentMethodLabel(method: resume.method, vaBank: resume.vaBank),
+      });
     } else {
       final bankDetails = resume.bankDetails;
       if (bankDetails == null) return; // guard: manual flow needs bank details
-      context.push('/payment/manual/$purchaseId', extra: {
-        'amount': resume.amountTotal,
+      context.push(target, extra: {
+        ...sharedExtra,
         'bankDetails': bankDetails,
-        'sessionId': session?.id,
-        'sessionLabel': sessionLabel,
-        'sessionStartAt': session?.startAt,
-        'venueName': session?.venue?.name,
         'paymentMethodLabel': 'Transfer Manual',
       });
     }
@@ -330,26 +326,6 @@ class PurchaseDetailScreen extends ConsumerWidget {
     'session_full' => 'Sesi sudah penuh.',
     'completed' => 'Pesanan sudah berhasil — tidak perlu dipesan ulang.',
     _ => 'Pesan ulang tidak tersedia: $reason',
-  };
-
-  String _statusLabel(String s) => switch (s) {
-    'pending_payment' => 'Menunggu Pembayaran',
-    'pending_confirmation' => 'Menunggu Verifikasi Admin',
-    'confirmed' => 'Berhasil',
-    'cancelled' => 'Dibatalkan',
-    'expired' => 'Kedaluwarsa',
-    'rejected' => 'Ditolak',
-    _ => s,
-  };
-
-  Color _statusColor(String s) => switch (s) {
-    'pending_payment' => Colors.amber.shade700,
-    'pending_confirmation' => Colors.amber.shade700,
-    'confirmed' => Colors.green.shade700,
-    'cancelled' => Colors.grey.shade700,
-    'expired' => Colors.red.shade600,
-    'rejected' => Colors.red.shade800,
-    _ => Colors.grey,
   };
 
   Widget _sectionCard(String title, Widget body) {

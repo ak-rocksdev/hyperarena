@@ -5,6 +5,7 @@ import 'package:hyperarena/core/theme/app_colors.dart';
 import 'package:hyperarena/core/utils/formatters.dart';
 import 'package:hyperarena/features/payment/data/models/purchase_card_summary.dart';
 import 'package:hyperarena/features/payment/data/providers/payment_providers.dart';
+import 'package:hyperarena/features/payment/presentation/purchase_status_ui.dart';
 
 class MyPurchasesScreen extends ConsumerStatefulWidget {
   const MyPurchasesScreen({super.key});
@@ -110,15 +111,7 @@ class _PurchaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (statusLabel, statusColor) = switch (item.status) {
-      'pending_payment' => ('Menunggu Pembayaran', Colors.amber.shade700),
-      'pending_confirmation' => ('Menunggu Verifikasi', Colors.amber.shade700),
-      'confirmed' => ('Berhasil', Colors.green.shade700),
-      'cancelled' => ('Dibatalkan', Colors.grey.shade600),
-      'expired' => ('Kedaluwarsa', Colors.red.shade600),
-      'rejected' => ('Ditolak', Colors.red.shade800),
-      _ => (item.status, Colors.grey),
-    };
+    final (statusLabel, statusColor) = purchaseStatusUi(item.status);
 
     return InkWell(
       onTap: () => context.push('/purchases/${item.id}'),
@@ -218,11 +211,11 @@ class _PullToRefreshHint extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.arrow_downward, size: 11, color: Colors.grey.shade500),
+          const Icon(Icons.arrow_downward, size: 11, color: AppColors.neutral500),
           const SizedBox(width: 4),
           Text(
             'Tarik ke bawah untuk memperbarui',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 11, color: AppColors.neutral500),
           ),
         ],
       ),
